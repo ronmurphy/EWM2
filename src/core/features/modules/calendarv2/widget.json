@@ -1,0 +1,13 @@
+{
+    "name": "Note Calendar",
+    "description": "A -better- calendar with notes",
+    "version": "1.0.0",
+    "icon": "event_note",
+    "settings": {
+        "size": {
+            "width": 800,
+            "height": 800
+        },
+        "autoload": true
+    }
+}

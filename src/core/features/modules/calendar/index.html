@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendar Notes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      width: 100vw;
+      color: #333;
+      flex-direction: column;
+    }
+
+    .calendar {
+      width: 95%;
+      height: 95%;
+      /* max-width: 500px; */
+      text-align: center;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+
+    h2 {
+      font-size: 1.6em;
+      color: #333;
+      margin-bottom: 1em;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    #monthSelect {
+      font-size: 0.9em;
+      padding: 8px 12px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      background: #f7f9fc;
+      color: #333;
+      outline: none;
+    }
+
+    #resetCalendar {
+      background-color: #ff6b6b;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      font-size: 0.9em;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    #resetCalendar:hover {
+      background-color: #ff5252;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+    }
+
+    .day {
+      padding: 15px;
+      background-color: #f0f3f7;
+      color: #333;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background-color 0.2s;
+      min-height: 70px;
+      position: relative;
+      font-size: 0.9em;
+    }
+
+    .day-placeholder {
+      visibility: hidden;
+    }
+
+    .day:hover {
+      background-color: #e0e6ef;
+    }
+
+    .note {
+      font-size: 0.75em;
+      margin-top: 5px;
+      color: #555;
+    }
+
+    .note-entry {
+      border-top: 1px solid #ddd;
+      padding-top: 5px;
+      margin-top: 5px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.4);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 300px;
+      text-align: left;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      z-index: 1100;
+    }
+
+
+    .close {
+      font-size: 1.5em;
+      cursor: pointer;
+      color: #888;
+      float: right;
+    }
+
+    .close:hover {
+      color: #555;
+    }
+
+    textarea,
+    input[type="time"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 0.9em;
+      appearance: auto;
+      background: none;
+    }
+
+    #saveNote {
+      background-color: #4caf50;
+      color: white;
+      padding: 10px;
+      margin-top: 15px;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      border-radius: 5px;
+      font-size: 1em;
+      transition: background-color 0.2s;
+    }
+
+    #saveNote:hover {
+      background-color: #43a047;
+    }
+
+    .note-emoji {
+      background: none;
+      border: none;
+      font-size: 1.2em;
+      cursor: pointer;
+      margin: 2px;
+      padding: 5px;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+
+    .note-emoji:hover {
+      background-color: #e0e6ef;
+    }
+
+    .time-input-wrapper {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .time-input-wrapper input[type="time"] {
+      width: 100%;
+      padding-right: 30px;
+      font-size: 1em;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+
+    .time-input-wrapper .clock-icon {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      font-size: 1.2em;
+      color: #888;
+    }
+
+    .days-of-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr); /* Match the calendar grid layout */
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.9em;
+  margin-bottom: 10px; /* Add spacing between day names and calendar grid */
+  color: #272727; /* Adjust color for visibility */
+}
+
+.day-name {
+  padding: 5px 0;
+  border-bottom: 1px solid #ddd; /* Optional: Add a subtle separator */
+}
+
+  </style>
+</head>
+
+<body>
+  <div class="calendar">
+    <h2>Calendar Notes</h2>
+    <div class="controls">
+      <select id="monthSelect">
+        <option value="0">January</option>
+        <option value="1">February</option>
+        <option value="2">March</option>
+        <option value="3">April</option>
+        <option value="4">May</option>
+        <option value="5">June</option>
+        <option value="6">July</option>
+        <option value="7">August</option>
+        <option value="8">September</option>
+        <option value="9">October</option>
+        <option value="10">November</option>
+        <option value="11">December</option>
+      </select>
+      <button id="resetCalendar">Reset Calendar</button>
+    </div>
+
+  <div class="days-of-week">
+    <div class="day-name">Sun</div>
+    <div class="day-name">Mon</div>
+    <div class="day-name">Tue</div>
+    <div class="day-name">Wed</div>
+    <div class="day-name">Thu</div>
+    <div class="day-name">Fri</div>
+    <div class="day-name">Sat</div>
+  </div>
+
+    <div class="calendar-grid">
+      <!-- Calendar days will be generated here -->
+    </div>
+  </div>
+
+  <!-- Modal for adding notes -->
+  <div id="noteModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h3>Add Note</h3>
+      <p id="selectedDate"></p>
+
+      <!-- Time Input -->
+      <div class="time-input-wrapper">
+        <label for="time">Select Time:</label>
+        <input type="time" id="time" required>
+        <span class="clock-icon">🕒</span>
+      </div>
+
+      <!-- Note Input -->
+      <label for="note">Note:</label>
+      <textarea id="note" rows="2" placeholder="Enter your note..."></textarea>
+
+      <!-- Emoji Selector -->
+      <label for="emoji">Select Emoji:</label>
+      <select id="emoji">
+        <option value="🎉">🎉 Celebration</option>
+        <option value="📅">📅 Appointment</option>
+        <option value="🏃">🏃 Activity</option>
+        <option value="🍴">🍴 Meal</option>
+        <option value="💼">💼 Work</option>
+        <option value="🏖️">🏖️ Vacation</option>
+        <option value="🎓">🎓 Education</option>
+      </select>
+
+      <!-- Save Button -->
+      <button id="saveNote">Save Note</button>
+    </div>
+  </div>
+
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const calendarGrid = document.querySelector(".calendar-grid");
+      const noteModal = document.getElementById("noteModal");
+      const closeModal = document.querySelector(".close");
+      const selectedDateEl = document.getElementById("selectedDate");
+      const timeInput = document.getElementById("time");
+      const noteInput = document.getElementById("note");
+      const saveNoteBtn = document.getElementById("saveNote");
+      const resetBtn = document.getElementById("resetCalendar");
+      const monthSelect = document.getElementById("monthSelect");
+      let currentMonth = 0;
+      const notes = {};
+
+      loadNotesFromLocalStorage(); // Load notes first
+      renderCalendar(currentMonth); // Then render calendar
+
+      function daysInMonth(month, year) {
+        return new Date(year, month + 1, 0).getDate();
+      }
+
+      function formatTimeTo12Hour(time) {
+        const [hours, minutes] = time.split(':').map(Number);
+        const period = hours >= 12 ? 'PM' : 'AM';
+        const adjustedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
+        return `${adjustedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+      }
+
+
+      function renderCalendar(month) {
+        calendarGrid.innerHTML = "";
+        const year = new Date().getFullYear(); // Get the current year dynamically
+        const firstDayOfWeek = new Date(year, month, 1).getDay(); // Day of the week for the first day
+        const days = daysInMonth(month, year);
+
+        // Add placeholders for the days before the first of the month
+        for (let i = 0; i < firstDayOfWeek; i++) {
+          const placeholder = document.createElement("div");
+          placeholder.classList.add("day-placeholder");
+          calendarGrid.appendChild(placeholder);
+        }
+
+        // Add actual days of the month
+        for (let i = 1; i <= days; i++) {
+          const day = document.createElement("div");
+          day.classList.add("day");
+          day.textContent = i;
+          day.setAttribute("data-day", i);
+
+          const noteDisplay = document.createElement("div");
+          noteDisplay.classList.add("note");
+          day.appendChild(noteDisplay);
+
+          day.addEventListener("click", () => openModal(month, i));
+          calendarGrid.appendChild(day);
+
+          if (notes[`${month}-${i}`]) {
+            updateNotesDisplay(month, i);
+          }
+        };
+        console.log("Viewing note:", note);
+
+      }
+
+
+      function openModal(month, day) {
+        selectedDateEl.textContent = `Day: ${day}, ${monthSelect.options[month].text}`;
+        timeInput.value = "";
+        noteInput.value = "";
+
+        noteModal.style.display = "flex";
+        saveNoteBtn.onclick = () => saveNote(month, day);
+      }
+
+      function closeModalFunc() {
+        noteModal.style.display = "none";
+      }
+
+      function loadNotesFromLocalStorage() {
+        const savedNotes = localStorage.getItem("calendarNotes");
+        if (savedNotes) {
+          Object.assign(notes, JSON.parse(savedNotes));
+        }
+      }
+
+
+      function saveNoteToLocalStorage() {
+        localStorage.setItem("calendarNotes", JSON.stringify(notes));
+      }
+
+      function saveNote(month, day) {
+        const time = timeInput.value;
+        const noteText = noteInput.value;
+        const emoji = document.getElementById("emoji").value;
+        const key = `${month}-${day}`;
+
+        if (time && noteText) {
+          if (!notes[key]) notes[key] = [];
+          notes[key].push({ time, text: noteText, emoji });
+
+          updateNotesDisplay(month, day);
+          saveNoteToLocalStorage(); // Save to localStorage
+          closeModalFunc();
+        } else {
+          alert("Please fill out both time and note.");
+        }
+      }
+
+
+      function updateNotesDisplay(month, day) {
+        const key = `${month}-${day}`;
+        const dayCell = document.querySelector(`.day[data-day='${day}'] .note`);
+        dayCell.innerHTML = ""; // Clear existing notes
+
+        notes[key].forEach((note, index) => {
+          const emojiButton = document.createElement("button");
+          emojiButton.classList.add("note-emoji");
+          emojiButton.textContent = note.emoji || "📝"; // Default emoji if none is assigned
+
+          // Ensure the event handler references the correct note
+          emojiButton.onclick = () => viewNoteDetails(month, day, index);
+
+          dayCell.appendChild(emojiButton);
+        });
+        console.log("Viewing note:", note);
+
+      }
+
+
+      function viewNoteDetails(month, day, noteIndex) {
+        const key = `${month}-${day}`;
+        const note = notes[key][noteIndex];
+
+        // Ensure note exists before proceeding
+        if (!note) return;
+
+        // Populate modal fields with note details
+        selectedDateEl.textContent = `Day: ${day}, ${monthSelect.options[month].text}`;
+        timeInput.value = note.time;
+        noteInput.value = note.text;
+        document.getElementById("emoji").value = note.emoji || "📝";
+
+        // Update save button to allow editing the current note
+        saveNoteBtn.onclick = () => updateNote(month, day, noteIndex);
+
+        // Display the modal
+        noteModal.style.display = "flex";
+      }
+
+
+      function updateNote(month, day, noteIndex) {
+        const time = timeInput.value;
+        const noteText = noteInput.value;
+        const emoji = document.getElementById("emoji").value;
+        const key = `${month}-${day}`;
+
+        if (time && noteText) {
+          notes[key][noteIndex] = { time, text: noteText, emoji };
+
+          updateNotesDisplay(month, day);
+          saveNoteToLocalStorage(); // Save updated notes to localStorage
+          closeModalFunc();
+        } else {
+          alert("Please fill out both time and note.");
+        }
+      }
+
+
+
+      function resetCalendar() {
+        for (let key in notes) delete notes[key];
+        saveNoteToLocalStorage(); // Clear storage
+        renderCalendar(currentMonth);
+      }
+
+      resetBtn.addEventListener("click", resetCalendar);
+      monthSelect.addEventListener("change", (e) => {
+        currentMonth = parseInt(e.target.value);
+        renderCalendar(currentMonth);
+      });
+
+      closeModal.addEventListener("click", closeModalFunc);
+      window.addEventListener("click", (event) => {
+        if (event.target == noteModal) closeModalFunc();
+      });
+
+      renderCalendar(currentMonth);
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Picture Viewer</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2196f3;
+            --background-color: #f5f5f5;
+            --card-color: #ffffff;
+            --text-color: #333333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: var(--card-color);
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .view-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .view-button {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .view-button:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .view-button.active {
+            color: var(--primary-color);
+            background-color: rgba(33, 150, 243, 0.1);
+        }
+
+        .folder-button {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 16px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .folder-button:hover {
+            background-color: #1976d2;
+        }
+
+        #currentPath {
+            padding: 4px 8px;
+            background-color: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .gallery {
+            transition: all 0.3s ease;
+        }
+
+        .gallery.grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .gallery.grid .image-item {
+            aspect-ratio: 1;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .gallery.grid .image-item:hover {
+            transform: scale(1.05);
+        }
+
+        .gallery.list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .gallery.list .image-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: var(--card-color);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .gallery.list .image-item img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 20px;
+        }
+
+        .gallery.carousel {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        .gallery.carousel .image-item {
+            flex: 0 0 300px;
+            scroll-snap-align: start;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .gallery.mac {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .gallery.mac .image-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .gallery.mac .image-item img {
+            width: 128px;
+            height: 128px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .modal-content img {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+        }
+
+        .close-button {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        @media (max-width: 768px) {
+            .gallery.grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="toolbar">
+            <div class="breadcrumb">
+                <input type="file" id="folderPicker" webkitdirectory directory multiple style="display: none;">
+                <button id="openFolder" class="folder-button">
+                    <span class="material-icons-outlined">folder_open</span>
+                    Open Folder
+                </button>
+                <span id="currentPath"></span>
+            </div>
+            <div class="view-controls">
+                <button class="view-button active" data-view="grid">
+                    <span class="material-icons-outlined">grid_view</span>
+                </button>
+                <button class="view-button" data-view="list">
+                    <span class="material-icons-outlined">view_list</span>
+                </button>
+                <button class="view-button" data-view="carousel">
+                    <span class="material-icons-outlined">view_carousel</span>
+                </button>
+                <button class="view-button" data-view="mac">
+                    <span class="material-icons-outlined">apps</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="gallery grid" id="gallery"></div>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <button class="close-button">
+                <span class="material-icons-outlined">close</span>
+            </button>
+            <img src="" alt="Full-size image">
+        </div>
+    </div>
+
+    <script>
+        let images = [];
+        const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+        const folderPicker = document.getElementById('folderPicker');
+        const openFolderBtn = document.getElementById('openFolder');
+        const currentPath = document.getElementById('currentPath');
+        const gallery = document.getElementById('gallery');
+        const modal = document.getElementById('modal');
+        const modalImg = modal.querySelector('img');
+        const closeButton = modal.querySelector('.close-button');
+        const viewButtons = document.querySelectorAll('.view-button');
+
+        openFolderBtn.addEventListener('click', () => {
+            folderPicker.click();
+        });
+
+        folderPicker.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files);
+            images = files.filter(file => validImageTypes.includes(file.type))
+                .map((file, index) => ({
+                    id: index + 1,
+                    src: URL.createObjectURL(file),
+                    name: file.name,
+                    path: file.webkitRelativePath
+                }));
+
+            currentPath.textContent = files[0]?.webkitRelativePath.split('/').slice(0, -1).join('/') || "No Folder Selected";
+            renderGallery(gallery.className.split(' ')[1]);
+        });
+
+        function renderGallery(viewMode) {
+            gallery.innerHTML = '';
+            images.forEach(image => {
+                const item = document.createElement('div');
+                item.className = 'image-item';
+                if (viewMode === 'list') {
+                    item.innerHTML = `
+                        <img src="${image.src}" alt="${image.name}">
+                        <span>${image.name}</span>
+                    `;
+                } else if (viewMode === 'mac') {
+                    item.innerHTML = `
+                        <img src="${image.src}" alt="${image.name}">
+                        <span>${image.name}</span>
+                    `;
+                } else {
+                    item.innerHTML = `<img src="${image.src}" alt="${image.name}">`;
+                }
+
+                item.addEventListener('click', () => {
+                    modalImg.src = image.src;
+                    modal.classList.add('active');
+                });
+
+                gallery.appendChild(item);
+            });
+        }
+
+        viewButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                viewButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                gallery.className = `gallery ${button.dataset.view}`;
+                renderGallery(button.dataset.view);
+            });
+        });
+
+        closeButton.addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+
+        renderGallery('grid');
+    </script>
+</body>
+</html>

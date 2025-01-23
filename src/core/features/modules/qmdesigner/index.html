@@ -1,0 +1,890 @@
+<html lang="en">
+<div style="display: none;"></div>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Start Menu Designer</title>
+    <meta name="description"
+        content="Interactive start menu designer with draggable components and layout saving capabilities">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            /* min-height: 100vh; */
+        }
+
+        .top-bar {
+            width: 100%;
+            height: 60px;
+            background-color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 10px;
+        }
+
+        .top-bar-content {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar {
+            width: 80px;
+            background: #333;
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .tool-item {
+            color: white;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .tool-item:hover {
+            background: #444;
+        }
+
+        .material-icons-outlined {
+            font-size: 24px;
+        }
+
+        #designArea {
+            margin: 20px;
+            background: white;
+            width: 400px;
+            height: 600px;
+            position: relative;
+            resize: both;
+            overflow: auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            min-width: 100px;
+            min-height: 100px;
+        }
+
+        .widget {
+            position: absolute;
+            min-width: 16px;
+            min-height: 16px;
+            --initial-width: 64px;
+            --initial-height: 64px;
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: move;
+            user-select: none;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .widget .handle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #666;
+            right: 0;
+            bottom: 0;
+            cursor: se-resize;
+        }
+
+        #designArea.grid {
+            background-size: 16px 16px;
+            background-image:
+                linear-gradient(to right, rgba(0, 128, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 128, 255, 0.1) 1px, transparent 1px);
+        }
+
+        .widget {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .widget .material-icons-outlined {
+            font-size: 20px;
+        }
+
+        .widget-text {
+            font-size: 14px;
+            border: none;
+            background: transparent;
+            text-align: center;
+            width: 80%;
+        }
+
+        .widget-controls {
+            position: absolute;
+            display: none;
+            z-index: 100;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+        }
+
+        .widget-controls.visible {
+            display: flex;
+        }
+
+        .control-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #ff4444;
+        }
+
+        .visibility-btn {
+            background: #44aa44;
+        }
+
+        .rename-btn {
+            background: #4444ff;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.visible {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .modal-content input {
+            padding: 5px;
+            width: 200px;
+        }
+
+        .modal-content button {
+            padding: 5px 10px;
+            background: #4444ff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        /* .action-buttons {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        } */
+
+
+
+
+        .action-button {
+            background: #555;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            width: 60px;
+            border-radius: 5px;
+        }
+
+        .action-button:hover {
+            background: #666;
+        }
+
+        .clear-button {
+            background: #744;
+        }
+
+        .clear-button:hover {
+            background: #855;
+        }
+
+        .top-bar {
+            width: 100%;
+            height: 60px;
+            /* background-color: #2c3e50; */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+        }
+
+        .top-bar-content {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+
+        }
+
+        .tool-item,
+        .action-button {
+            color: white;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+
+        .tool-item:hover,
+        .action-button:hover {
+            background-color: #34495e;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        /* Main layout container styling */
+        .main-layout {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 60px);
+            /* Full height minus top-bar */
+        }
+
+
+        /* Main content area */
+        .main-content {
+            flex: 1;
+            padding: 8px;
+            background-color: white;
+            overflow-y: auto;
+        }
+    </style>
+
+<body>
+
+    <div class="top-bar">
+        <div class="top-bar-content">
+
+            <!-- Action Buttons on Right -->
+            <div class="action-buttons">
+                <button id="modifyButton" class="action-button"><span
+                        class="material-icons-outlined">architecture</span></button>
+                <button id="saveButton" class="action-button"><span class="material-icons-outlined">save</span></button>
+                <button id="loadButton" class="action-button"><span
+                        class="material-icons-outlined">folder_open</span></button>
+                <button id="clearButton" class="action-button"><span
+                        class="material-icons-outlined">delete</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Layout Container -->
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="tool-item" data-type="folder">
+                <span class="material-icons-outlined">folder</span>
+            </div>
+            <div class="tool-item" data-type="widget">
+                <span class="material-icons-outlined">widgets</span>
+            </div>
+            <div class="tool-item" data-type="web">
+                <span class="material-icons-outlined">language</span>
+            </div>
+            <div class="tool-item" data-type="url">
+                <span class="material-icons-outlined">link</span>
+            </div>
+            <div class="tool-item" data-type="power">
+                <span class="material-icons-outlined">power_settings_new</span>
+            </div>
+            <div class="tool-item" data-type="restart">
+                <span class="material-icons-outlined">restart_alt</span>
+            </div>
+            <div class="tool-item" data-type="settings">
+                <span class="material-icons-outlined">settings</span>
+            </div>
+            <div class="tool-item" data-type="clock">
+                <span class="material-icons-outlined">schedule</span>
+            </div>
+            <div class="tool-item" data-type="label">
+                <span class="material-icons-outlined">label</span>
+            </div>
+            <div class="tool-item" data-type="grid" id="gridToggle">
+                <span class="material-icons-outlined">grid_on</span>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="main-content" id="designArea">
+            <!-- Design area content -->
+            <!-- <div id="designArea"> -->
+            <input type="file" id="fileInput" style="display: none" accept=".json">
+
+            <div class="modal" id="renameModal">
+                <div class="modal-content">
+                    <input type="text" id="renameInput" placeholder="Enter new name">
+                    <button id="renameConfirm">OK</button>
+                </div>
+            </div>
+
+            <div class="modal" id="modifyModal">
+                <div class="modal-content">
+                    <p>Select the widgets you want to resize, click the modify button again to exit this function</p>
+                    <button id="modifyOkBtn">OK</button>
+                </div>
+            </div>
+
+            <div class="modal" id="resizeModal">
+                <div class="modal-content">
+                    <input type="text" id="resizeInput" placeholder="Width x Height">
+                    <button id="resizeConfirm">OK</button>
+                </div>
+            </div>
+
+            <div class="modal" id="gridAlignModal">
+                <div class="modal-content">
+                    <p id="gridAlignText"></p>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="shrinkBtn">Shrink</button>
+                        <button id="enlargeBtn">Enlarge</button>
+                    </div>
+                </div>
+            </div>
+            <!-- </div> -->
+        </div>
+
+
+
+        <script>
+            let nextId = 1;
+
+            function showRenameModal(inputElement) {
+                const modal = document.getElementById('renameModal');
+                const renameInput = document.getElementById('renameInput');
+                const confirmBtn = document.getElementById('renameConfirm');
+
+                modal.classList.add('visible');
+                renameInput.value = inputElement.value;
+                renameInput.focus();
+
+                const handleRename = () => {
+                    inputElement.value = renameInput.value;
+                    modal.classList.remove('visible');
+                    confirmBtn.removeEventListener('click', handleRename);
+                };
+
+                confirmBtn.addEventListener('click', handleRename);
+            }
+
+            document.querySelectorAll('.tool-item:not(#gridToggle):not(#optionsToggle)').forEach(tool => {
+                tool.addEventListener('click', () => {
+                    const type = tool.dataset.type;
+                    createWidget(type);
+                });
+            });
+
+            function createWidget(type, config = null) {
+                const widget = document.createElement('div');
+                widget.className = 'widget';
+                widget.id = config?.id || `widget-${nextId++}`;
+
+                if (config) {
+                    widget.style.left = config.left;
+                    widget.style.top = config.top;
+                    widget.style.width = config.width;
+                    widget.style.height = config.height;
+                } else {
+                    widget.style.left = '10px';
+                    widget.style.top = '10px';
+
+                    // Get computed initial sizes
+                    const style = getComputedStyle(widget);
+                    const defaultWidth = style.getPropertyValue('--initial-width');
+                    const defaultHeight = style.getPropertyValue('--initial-height');
+
+                    // Set initial sizes based on widget type
+                    if (['url', 'web', 'clock'].includes(type)) {
+                        widget.style.width = '64px';
+                        widget.style.height = '32px';
+                    } else if (['power', 'restart', 'settings'].includes(type)) {
+                        widget.style.width = '32px';
+                        widget.style.height = '32px';
+                    } else {
+                        widget.style.width = defaultWidth;
+                        widget.style.height = defaultHeight;
+                    }
+                }
+
+                // Store widget type as data attribute
+                widget.dataset.widgetType = type;
+
+                const icon = document.createElement('span');
+                icon.className = 'material-icons-outlined';
+                icon.textContent = getIconForType(type);
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = config?.name || type;
+                input.className = 'widget-text';
+
+                const controls = document.createElement('div');
+                controls.className = 'widget-controls';
+
+                const deleteBtn = document.createElement('div');
+                deleteBtn.className = 'control-btn delete-btn';
+                deleteBtn.innerHTML = '<span class="material-icons-outlined">delete</span>';
+
+                const visibilityBtn = document.createElement('div');
+                visibilityBtn.className = 'control-btn visibility-btn';
+                visibilityBtn.innerHTML = '<span class="material-icons-outlined">visibility</span>';
+
+                const renameBtn = document.createElement('div');
+                renameBtn.className = 'control-btn rename-btn';
+                renameBtn.innerHTML = '<span class="material-icons-outlined">edit</span>';
+
+                controls.appendChild(deleteBtn);
+                controls.appendChild(visibilityBtn);
+                controls.appendChild(renameBtn);
+
+                const handle = document.createElement('div');
+                handle.className = 'handle';
+
+                widget.appendChild(icon);
+                widget.appendChild(input);
+                widget.appendChild(handle);
+                widget.appendChild(controls);
+
+                // Set initial name visibility from config
+                if (config?.nameVisible === false) {
+                    input.style.display = 'none';
+                }
+
+                designArea.appendChild(widget);
+                makeWidgetDraggable(widget);
+                makeWidgetResizable(widget, handle);
+                setupWidgetDeletion(widget, deleteBtn);
+            }
+
+            function getIconForType(type) {
+                const iconMap = {
+                    folder: 'folder',
+                    widget: 'widgets',
+                    web: 'language',
+                    url: 'link',
+                    power: 'power_settings_new',
+                    restart: 'restart_alt',
+                    settings: 'settings',
+                    clock: 'schedule',
+                    label: 'label'
+                };
+                return iconMap[type] || 'widgets';
+            }
+
+            // Grid toggle functionality
+            const gridToggle = document.getElementById('gridToggle');
+            let gridEnabled = false;
+            let optionsEnabled = false;
+
+            // Grid toggle
+            function checkGridAlignment() {
+                const widgets = document.querySelectorAll('.widget');
+                let currentWidget = 0;
+
+                function showNextWidgetAlignment() {
+                    if (currentWidget >= widgets.length) return;
+
+                    const widget = widgets[currentWidget];
+                    const width = parseInt(widget.style.width);
+                    const height = parseInt(widget.style.height);
+                    const name = widget.querySelector('.widget-text').value;
+
+                    const needsWidthAlign = width % 16 !== 0;
+                    const needsHeightAlign = height % 16 !== 0;
+
+                    if (needsWidthAlign || needsHeightAlign) {
+                        const modal = document.getElementById('gridAlignModal');
+                        const text = document.getElementById('gridAlignText');
+                        const shrinkBtn = document.getElementById('shrinkBtn');
+                        const enlargeBtn = document.getElementById('enlargeBtn');
+
+                        const newShrinkWidth = Math.floor(width / 16) * 16;
+                        const newShrinkHeight = Math.floor(height / 16) * 16;
+                        const newEnlargeWidth = Math.ceil(width / 16) * 16;
+                        const newEnlargeHeight = Math.ceil(height / 16) * 16;
+
+                        text.textContent = `Widget "${name}" (${width}x${height}) needs grid alignment`;
+                        shrinkBtn.textContent = `Shrink (${newShrinkWidth}x${newShrinkHeight})`;
+                        enlargeBtn.textContent = `Enlarge (${newEnlargeWidth}x${newEnlargeHeight})`;
+                        modal.classList.add('visible');
+
+                        shrinkBtn.onclick = () => {
+                            widget.style.width = newShrinkWidth + 'px';
+                            widget.style.height = newShrinkHeight + 'px';
+                            modal.classList.remove('visible');
+                            currentWidget++;
+                            showNextWidgetAlignment();
+                        };
+
+                        enlargeBtn.onclick = () => {
+                            widget.style.width = newEnlargeWidth + 'px';
+                            widget.style.height = newEnlargeHeight + 'px';
+                            modal.classList.remove('visible');
+                            currentWidget++;
+                            showNextWidgetAlignment();
+                        };
+                    } else {
+                        currentWidget++;
+                        showNextWidgetAlignment();
+                    }
+                }
+
+                showNextWidgetAlignment();
+            }
+
+            gridToggle.addEventListener('click', () => {
+                gridEnabled = !gridEnabled;
+                designArea.classList.toggle('grid', gridEnabled);
+                gridToggle.style.background = gridEnabled ? '#444' : 'transparent';
+
+                if (gridEnabled) {
+                    checkGridAlignment();
+                }
+            });
+
+
+
+            function setupWidgetDeletion(widget, deleteBtn) {
+                let longPressTimer;
+                const controls = widget.querySelector('.widget-controls');
+                const input = widget.querySelector('.widget-text');
+                const visibilityBtn = widget.querySelector('.visibility-btn');
+                const renameBtn = widget.querySelector('.rename-btn');
+
+                widget.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    if (!optionsEnabled) {
+                        toggleControls();
+                    }
+                });
+
+                widget.addEventListener('touchstart', () => {
+                    if (!optionsEnabled) {
+                        longPressTimer = setTimeout(() => {
+                            toggleControls();
+                        }, 500);
+                    }
+                });
+
+                widget.addEventListener('touchend', () => {
+                    clearTimeout(longPressTimer);
+                });
+
+                // Update controls visibility based on options toggle
+                const updateControlsVisibility = () => {
+                    controls.classList.toggle('visible', optionsEnabled);
+                };
+
+                // Always start hidden
+                controls.classList.remove('visible');
+
+                deleteBtn.addEventListener('click', () => {
+                    widget.remove();
+                });
+
+                function toggleControls() {
+                    controls.classList.toggle('visible');
+                }
+
+                visibilityBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    input.style.display = input.style.display === 'none' ? '' : 'none';
+                });
+
+                renameBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showRenameModal(input);
+                });
+            }
+
+            function makeWidgetDraggable(widget) {
+                let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+                // Mouse events
+                widget.onmousedown = (e) => {
+                    if (modifyMode) {
+                        showResizeModal(widget);
+                        return;
+                    }
+                    dragMouseDown(e);
+                };
+
+                function dragMouseDown(e) {
+                    if (e.target.className === 'handle') return;
+                    e.preventDefault();
+                    startDrag(e.clientX, e.clientY);
+                }
+
+                function elementDrag(e) {
+                    e.preventDefault();
+                    moveDrag(e.clientX, e.clientY);
+                }
+
+                function closeDragElement() {
+                    document.onmouseup = null;
+                    document.onmousemove = null;
+                    document.ontouchend = null;
+                    document.ontouchmove = null;
+                }
+
+                // Touch events
+                widget.ontouchstart = function (e) {
+                    if (modifyMode) {
+                        showResizeModal(widget);
+                        return;
+                    }
+                    if (e.target.className === 'handle') return;
+                    const touch = e.touches[0];
+                    startDrag(touch.clientX, touch.clientY);
+                };
+
+                function startDrag(clientX, clientY) {
+                    pos3 = clientX;
+                    pos4 = clientY;
+                    document.onmouseup = closeDragElement;
+                    document.onmousemove = elementDrag;
+                    document.ontouchend = closeDragElement;
+                    document.ontouchmove = function (e) {
+                        const touch = e.touches[0];
+                        moveDrag(touch.clientX, touch.clientY);
+                    };
+                }
+
+                function moveDrag(clientX, clientY) {
+                    pos1 = pos3 - clientX;
+                    pos2 = pos4 - clientY;
+                    pos3 = clientX;
+                    pos4 = clientY;
+                    let newTop = widget.offsetTop - pos2;
+                    let newLeft = widget.offsetLeft - pos1;
+                    if (gridEnabled) {
+                        newTop = Math.max(0, Math.round(newTop / 16) * 16);
+                        newLeft = Math.max(0, Math.round(newLeft / 16) * 16);
+                    }
+                    widget.style.top = newTop + "px";
+                    widget.style.left = newLeft + "px";
+                }
+            }
+
+            function makeWidgetResizable(widget, handle) {
+                // Mouse resize
+                handle.onmousedown = resizeMouseDown;
+                // Touch resize
+                handle.ontouchstart = function (e) {
+                    const touch = e.touches[0];
+                    startResize(touch.clientX, touch.clientY);
+                };
+
+                function resizeMouseDown(e) {
+                    e.preventDefault();
+                    startResize(e.clientX, e.clientY);
+                }
+
+                function startResize(clientX, clientY) {
+                    document.onmouseup = stopResize;
+                    document.onmousemove = resize;
+                    document.ontouchend = stopResize;
+                    document.ontouchmove = function (e) {
+                        const touch = e.touches[0];
+                        doResize(touch.clientX, touch.clientY);
+                    };
+                }
+
+                function resize(e) {
+                    doResize(e.clientX, e.clientY);
+                }
+
+                function doResize(clientX, clientY) {
+                    const rect = widget.getBoundingClientRect();
+                    const newWidth = clientX - rect.left;
+                    const newHeight = clientY - rect.top;
+                    const type = widget.dataset.widgetType;
+                    let minWidth = 16, minHeight = 16;
+
+                    let finalWidth = newWidth;
+                    let finalHeight = newHeight;
+                    if (gridEnabled) {
+                        finalWidth = Math.round(newWidth / 16) * 16;
+                        finalHeight = Math.round(newHeight / 16) * 16;
+                    }
+                    widget.style.width = Math.max(minWidth, finalWidth) + 'px';
+                    widget.style.height = Math.max(minHeight, finalHeight) + 'px';
+                }
+
+                function stopResize() {
+                    document.onmouseup = null;
+                    document.onmousemove = null;
+                    document.ontouchend = null;
+                    document.ontouchmove = null;
+                }
+            }
+
+            const saveButton = document.getElementById('saveButton');
+            const loadButton = document.getElementById('loadButton');
+            const modifyButton = document.getElementById('modifyButton');
+            const clearButton = document.getElementById('clearButton');
+            let modifyMode = false;
+
+            modifyButton.addEventListener('click', () => {
+                modifyMode = !modifyMode;
+                modifyButton.style.background = modifyMode ? '#5b7' : '#4a6';
+
+                if (modifyMode) {
+                    const modal = document.getElementById('modifyModal');
+                    modal.classList.add('visible');
+                    document.getElementById('modifyOkBtn').onclick = () => {
+                        modal.classList.remove('visible');
+                    };
+                }
+            });
+
+            function showResizeModal(widget) {
+                if (!modifyMode) return;
+
+                const modal = document.getElementById('resizeModal');
+                const input = document.getElementById('resizeInput');
+                const width = parseInt(widget.style.width);
+                const height = parseInt(widget.style.height);
+
+                input.value = `${width}x${height}`;
+                modal.classList.add('visible');
+
+                document.getElementById('resizeConfirm').onclick = () => {
+                    const [newWidth, newHeight] = input.value.split('x').map(n => parseInt(n));
+                    if (newWidth && newHeight) {
+                        widget.style.width = newWidth + 'px';
+                        widget.style.height = newHeight + 'px';
+                    }
+                    modal.classList.remove('visible');
+                };
+            }
+            const fileInput = document.getElementById('fileInput');
+            const designArea = document.getElementById('designArea');
+
+            clearButton.addEventListener('click', () => {
+                designArea.innerHTML = '';
+            });
+
+            saveButton.addEventListener('click', () => {
+                const layout = {
+                    designArea: {
+                        width: designArea.style.width || '400px',
+                        height: designArea.style.height || '600px'
+                    },
+                    widgets: Array.from(designArea.children).map(widget => {
+                        const input = widget.querySelector('input');
+                        return {
+                            id: widget.id,
+                            type: widget.dataset.widgetType,
+                            left: widget.style.left,
+                            top: widget.style.top,
+                            width: widget.style.width,
+                            height: widget.style.height,
+                            name: input.value,
+                            nameVisible: input.style.display !== 'none',
+                            gridEnabled: gridEnabled
+                        };
+                    })
+                };
+
+                const blob = new Blob([JSON.stringify(layout, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const now = new Date();
+                const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                const fileName = `layout-${dayNames[now.getDay()]}-${now.getHours()}-${now.getMinutes()}-${now.getMonth() + 1}-${now.getDate()}-${now.getFullYear()}.json`;
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+
+            loadButton.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const layout = JSON.parse(e.target.result);
+                    designArea.innerHTML = '';
+
+                    gridEnabled = layout.widgets[0]?.gridEnabled || false;
+                    gridToggle.style.background = gridEnabled ? '#444' : 'transparent';
+                    designArea.classList.toggle('grid', gridEnabled);
+
+                    // Set design area dimensions, with defaults if not specified
+                    designArea.style.width = layout.designArea?.width || '400px';
+                    designArea.style.height = layout.designArea?.height || '600px';
+
+                    layout.widgets.forEach(widget => {
+                        createWidget(widget.type, widget);
+                    });
+
+                    // Ensure options are hidden after load
+                    optionsEnabled = false;
+                    optionsToggle.style.background = 'transparent';
+                    document.querySelectorAll('.widget-controls').forEach(controls => {
+                        controls.classList.remove('visible');
+                    });
+                };
+                reader.readAsText(file);
+            });
+        </script>
+</body>
+
+</html>

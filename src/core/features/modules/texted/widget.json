@@ -1,0 +1,13 @@
+{
+    "name": "Texted Widget",
+    "description": "A Tabbed Text Editor",
+    "version": "1.0.0",
+    "icon": "text_snippet",
+    "settings": {
+        "size": {
+            "width": 250,
+            "height": 100
+        },
+        "autoload": true
+    }
+}

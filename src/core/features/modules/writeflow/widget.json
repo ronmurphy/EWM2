@@ -1,0 +1,13 @@
+{
+    "name": "WriteFlow",
+    "description": "A modern text editor",
+    "version": "1.0.0",
+    "icon": "format_bold",
+    "settings": {
+        "size": {
+            "width": 250,
+            "height": 100
+        },
+        "autoload": true
+    }
+}

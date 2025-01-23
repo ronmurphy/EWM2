@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analog Clock</title>
+<style>
+/* Basic Page Style */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background: transparent;
+    font-family: Arial, sans-serif;
+}
+
+/* Clock Container - using viewport units */
+.clock-widget {
+    width: min(90vw, 90vh);
+    height: min(90vw, 90vh);
+    position: relative;
+    border-radius: 50%;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    background-color: rgba(255, 255, 255, 0.8);
+    /* removed margin-bottom */
+}
+
+/* Clock Center - scale with container */
+.clock-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(min(90vw, 90vh) * 0.04);  /* 4% of container size */
+    height: calc(min(90vw, 90vh) * 0.04);
+    background-color: #333;
+    border-radius: 50%;
+    z-index: 10;
+}
+
+/* Clock Hands - scale with container */
+.hand {
+    position: absolute;
+    bottom: 50%;
+    left: 50%;
+    transform-origin: bottom;
+    border-radius: 6px;
+    transform: translateX(-50%);
+z-index: 6;
+}
+
+.hand.hour {
+    width: calc(min(90vw, 90vh) * 0.02);  /* 2% of container width */
+    height: calc(min(90vw, 90vh) * 0.25);  /* 25% of container height */
+    background-color: #333;
+}
+
+.hand.minute {
+    width: calc(min(90vw, 90vh) * 0.015);  /* 1.5% of container width */
+    height: calc(min(90vw, 90vh) * 0.35);  /* 35% of container height */
+    background-color: #666;
+}
+
+.hand.second {
+    width: calc(min(90vw, 90vh) * 0.01);  /* 1% of container width */
+    height: calc(min(90vw, 90vh) * 0.4);  /* 40% of container height */
+    background-color: #e74c3c;
+}
+
+/* Markers - scale with container */
+.markers {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.marker {
+    position: absolute;
+    background-color: #333;
+}
+
+/* Vertical markers (12 and 6) */
+.marker-12, .marker-6 {
+    width: calc(min(90vw, 90vh) * 0.015);  /* 1.5% of container width */
+    height: calc(min(90vw, 90vh) * 0.07);  /* 7% of container height */
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.marker-12 { top: 5%; }
+.marker-6 { bottom: 5%; }
+
+/* Horizontal markers (3 and 9) */
+.marker-3, .marker-9 {
+    width: calc(min(90vw, 90vh) * 0.07);  /* 7% of container width */
+    height: calc(min(90vw, 90vh) * 0.015);  /* 1.5% of container height */
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.marker-3 { right: 5%; }
+.marker-9 { left: 5%; }
+
+/* Date Display - scale with container */
+.date-display {
+    position: absolute;
+    top: 75%;  /* Position in lower quarter of clock */
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: calc(min(90vw, 90vh) * 0.045);  /* Slightly smaller font */
+    color: #333;
+    background: rgba(255, 255, 255, 0.9);
+    padding: calc(min(90vw, 90vh) * 0.01) calc(min(90vw, 90vh) * 0.03);
+    border-radius: calc(min(90vw, 90vh) * 0.04);
+    white-space: nowrap;
+    z-index: 5;  /* Below hands (which have z-index: 10) */
+}
+</style>
+</head>
+<body>
+  <div class="clock-widget">
+    <div class="clock-center"></div>
+
+    <div class="hand hour" id="hour-hand"></div>
+    <div class="hand minute" id="minute-hand"></div>
+    <div class="hand second" id="second-hand"></div>
+
+<div class="markers">
+    <div class="marker marker-12"></div>
+    <div class="marker marker-3"></div>
+    <div class="marker marker-6"></div>
+    <div class="marker marker-9"></div>
+</div>
+
+    <div class="date-display" id="date-display"></div>
+  </div>
+
+  <script>
+function updateClock() {
+    const now = new Date();
+    const seconds = now.getSeconds();
+    const minutes = now.getMinutes();
+    const hours = now.getHours();
+
+    // Calculate angles
+    const secondAngle = (seconds / 60) * 360;
+    const minuteAngle = (minutes / 60) * 360 + (seconds / 60) * 6;
+    const hourAngle = (hours % 12 / 12) * 360 + (minutes / 60) * 30;
+
+    // Rotate hands with adjusted transform
+    document.getElementById('second-hand').style.transform = `translateX(-50%) rotate(${secondAngle}deg)`;
+    document.getElementById('minute-hand').style.transform = `translateX(-50%) rotate(${minuteAngle}deg)`;
+    document.getElementById('hour-hand').style.transform = `translateX(-50%) rotate(${hourAngle}deg)`;
+
+    // Display the date
+    const options = { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' };
+    const formattedDate = now.toLocaleDateString('en-US', options);
+    document.getElementById('date-display').textContent = formattedDate;
+}
+
+    // Update the clock every second
+    setInterval(updateClock, 1000);
+    updateClock(); // Initial call
+  </script>
+</body>
+</html>

@@ -1,0 +1,3330 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PipeDreams</title>
+    <meta name="description"
+        content="Connect pipes to guide water from start to finish in this challenging puzzle game!">
+    <style>
+        body,
+        html {
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: #1a1a2e;
+            font-family: Arial, sans-serif;
+            color: #fff;
+            touch-action: none;
+        }
+
+        #startMenu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        #startMenu button {
+            padding: 15px 30px;
+            font-size: 20px;
+            background: #4a90e2;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        #instructions {
+            text-align: center;
+            max-width: 80%;
+            margin-bottom: 20px;
+        }
+
+        .game-container {
+            position: relative;
+            margin: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 2px;
+            background: #2a2a4a;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .cell {
+            width: 50px;
+            height: 50px;
+            background: #3a3a5a;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease;
+        }
+
+
+
+        .grid {
+            touch-action: none;
+            /* Prevent scrolling on the grid itself */
+            position: relative;
+            z-index: 1;
+        }
+
+        .cell {
+            cursor: pointer;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            user-select: none;
+            aspect-ratio: 1;
+            /* Keeps cells square */
+            width: auto;
+            /* Let grid control the size */
+            min-width: 30px;
+            /* Minimum size for usability */
+            background: #3a3a5a;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease;
+        }
+
+        */ .cell:active {
+            transform: scale(0.95);
+        }
+
+        .cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+
+
+        .cell.touched {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: scale(0.95);
+            transition: all 0.2s ease;
+        }
+
+        .cell svg {
+            pointer-events: none;
+        }
+
+        .pipe {
+            width: 100%;
+            height: 100%;
+        }
+
+        .start {
+            background: #4CAF50;
+        }
+
+        .end {
+            background: #f44336;
+        }
+
+        .solution-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .solution-path {
+            fill: none;
+            stroke: #ffeb3b;
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 0 4px rgba(255, 235, 59, 0.5));
+        }
+
+        .flowing {
+            stroke-dasharray: 1000;
+            animation: flowAnimation 2s ease-out forwards;
+        }
+
+        @keyframes flowAnimation {
+            0% {
+                stroke: #4CAF50;
+                stroke-dashoffset: 1000;
+            }
+
+            100% {
+                stroke: #2196F3;
+                stroke-dashoffset: 0;
+            }
+        }
+
+        .completion-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(74, 144, 226, 0.95);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 1000;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .completion-modal h2 {
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .completion-modal button {
+            margin-top: 15px;
+            background: #2a2a4a;
+        }
+
+        #levelInfo {
+            text-align: center;
+            margin: 10px;
+            font-size: 20px;
+        }
+
+        #controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #4a90e2;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+
+        @media (max-width: 400px) {
+            .cell {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        #levelInfo {
+            text-align: center;
+            margin: 10px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* Add some animation for the stars */
+        @keyframes starPulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        #levelInfo {
+            animation: starPulse 1s ease-in-out;
+        }
+
+        .game-stats {
+            margin: 10px;
+            text-align: center;
+            color: white;
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        #moveCounter,
+        #timer {
+            display: inline-block;
+            padding: 5px 10px;
+            background: rgba(74, 144, 226, 0.3);
+            border-radius: 5px;
+        }
+
+        #timer {
+            min-width: 80px;
+            /* Prevents jumping when numbers change */
+            text-align: left;
+        }
+
+        @keyframes bgShift {
+            0% {
+                transform: scale(1) rotate(0deg);
+            }
+
+            50% {
+                transform: scale(1.1) rotate(1deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        @keyframes bgPulse {
+            0% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+
+            100% {
+                opacity: 0.5;
+            }
+        }
+
+        @keyframes bgFlow {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .bg-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            transition: opacity 1s ease;
+        }
+
+        @keyframes particleFloat {
+
+            0%,
+            100% {
+                transform: translate(0, 0);
+            }
+
+            25% {
+                transform: translate(2px, 2px);
+            }
+
+            50% {
+                transform: translate(0, 4px);
+            }
+
+            75% {
+                transform: translate(-2px, 2px);
+            }
+        }
+
+        @keyframes beamRotate {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes colorShift {
+            0% {
+                filter: hue-rotate(0deg);
+            }
+
+            100% {
+                filter: hue-rotate(360deg);
+            }
+        }
+
+        @keyframes geometricSpin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(180deg);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(120%);
+            }
+
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+            }
+
+            to {
+                transform: translateX(120%);
+            }
+        }
+
+        .achievement-popup {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(74, 144, 226, 0.9);
+            backdrop-filter: blur(5px);
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            max-width: 300px;
+            animation: slideIn 0.5s ease;
+            transition: transform 0.5s ease;
+        }
+
+        .achievement-popup.hiding {
+            animation: slideOut 0.5s ease forwards;
+        }
+
+        .achievement-icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+
+        .achievement-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .achievement-desc {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        #achievementsButton {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #4a90e2;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        #achievementsButton:hover {
+            background: #357abd;
+        }
+
+        #achievements-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(26, 32, 44, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 80%;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 1001;
+        }
+
+        .achievement-list-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+
+        .achievement-list-item.earned {
+            opacity: 1;
+        }
+
+        #achievementsButton {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #4a90e2;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        #achievementsButton:hover {
+            background: #357abd;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="startMenu">
+        <div id="instructions">
+            <h1>PipeDreams</h1>
+            <p>Connect the pipes from the top-left start to the bottom-right end.</p>
+            <p>Tap/click tiles to rotate pipes.</p>
+            <p>Create a continuous path to win!</p>
+        </div>
+        <button id="startButton">Ready!</button>
+    </div>
+
+    <div id="levelInfo">Level 1</div>
+    <div id="gameStats" class="game-stats">
+        <div id="moveCounter">Moves: 0</div>
+        <div id="timer">Time: 0s</div>
+    </div>
+    <div class="game-container">
+        <div class="grid" id="grid">
+            <!-- Grid will be populated by JavaScript -->
+        </div>
+    </div>
+    <div id="controls">
+        <button id="achievementsButton">🏆 Achievements</button>
+        <button id="resetButton">Reset Level</button>
+    </div>
+
+    <div class="completion-modal" id="completionModal">
+        <h2>Congratulations!</h2>
+        <p>You solved the puzzle!</p>
+        <button id="nextLevelButton">Next Level</button>
+    </div>
+
+    <script>
+        let GRID_WIDTH = 6;
+        let GRID_HEIGHT = 6;
+        let levelsCompleted = 0;
+        const LEVELS_PER_EXPANSION = 3;
+
+        const PIPE_TYPES = {
+            STRAIGHT: 0,
+            CORNER: 1,
+            EMPTY: 2
+        };
+
+        const DIRECTIONS = [
+            { x: 0, y: -1 }, // Up
+            { x: 1, y: 0 },  // Right
+            { x: 0, y: 1 },  // Down
+            { x: -1, y: 0 }  // Left
+        ];
+
+        let currentLevel = 1;
+        let grid = [];
+        let startPos = { x: 0, y: 0 };
+        let endPos = { x: 5, y: 5 };
+        let solution = [];
+        let startTaps = 0;
+        let solutionTimeout = null;
+        let touchStartX = null;
+        let touchStartY = null;
+        let touchedCell = null;
+        let moveCount = 0;
+        let levelStartTime;
+        let timerInterval;
+        let currentBackground = null;
+        const SAVE_KEY = 'pipeGameSave';
+
+        const backgroundEffects = [
+            {
+                name: 'subtle-gradient',
+                create: () => {
+                    const bg = document.createElement('div');
+                    bg.className = 'bg-effect';
+                    bg.style.cssText = `
+                background: radial-gradient(circle at 30% 40%,
+                    rgba(255,255,255,0.05) 0%,
+                    transparent 50%);
+                animation: bgShift 20s ease infinite;
+            `;
+                    return bg;
+                }
+            },
+            {
+                name: 'double-gradient',
+                create: () => {
+                    const bg = document.createElement('div');
+                    bg.className = 'bg-effect';
+                    bg.style.cssText = `
+                background: 
+                    radial-gradient(circle at 70% 60%,
+                        rgba(255,255,255,0.03) 0%,
+                        transparent 40%),
+                    radial-gradient(circle at 30% 40%,
+                        rgba(255,255,255,0.03) 0%,
+                        transparent 40%);
+                animation: bgPulse 15s ease-in-out infinite;
+            `;
+                    return bg;
+                }
+            },
+            {
+                name: 'soft-waves',
+                create: () => {
+                    const bg = document.createElement('div');
+                    bg.className = 'bg-effect';
+                    bg.style.cssText = `
+                background: linear-gradient(45deg,
+                    transparent 0%,
+                    rgba(255,255,255,0.03) 25%,
+                    transparent 50%,
+                    rgba(255,255,255,0.03) 75%,
+                    transparent 100%);
+                background-size: 200% 200%;
+                animation: bgFlow 15s ease infinite;
+            `;
+                    return bg;
+                }
+            },
+            {
+                name: 'subtle-corners',
+                create: () => {
+                    const bg = document.createElement('div');
+                    bg.className = 'bg-effect';
+                    bg.style.cssText = `
+                background: 
+                    radial-gradient(circle at 0% 0%,
+                        rgba(255,255,255,0.03) 0%,
+                        transparent 30%),
+                    radial-gradient(circle at 100% 100%,
+                        rgba(255,255,255,0.03) 0%,
+                        transparent 30%);
+                animation: bgPulse 12s ease-in-out infinite alternate;
+            `;
+                    return bg;
+                }
+            },
+            {
+                name: 'none',
+                create: () => {
+                    const bg = document.createElement('div');
+                    bg.className = 'bg-effect';
+                    return bg;
+                }
+            }
+        ];
+
+        const newEffects = [
+            {
+                name: 'subtle-particles',
+                create: () => {
+                    const bg = document.createElement('div');
+                    bg.className = 'bg-effect';
+                    // Create multiple particle layers
+                    const particles = Array.from({ length: 20 }, (_, i) => `
+                radial-gradient(circle at ${Math.random() * 100}% ${Math.random() * 100}%,
+                    rgba(255,255,255,0.03) 0%,
+                    transparent 1%)
+            `).join(',');
+                    bg.style.cssText = `
+                background-image: ${particles};
+                animation: particleFloat 10s ease-in-out infinite;
+            `;
+                    return bg;
+                }
+            },
+            {
+                name: 'floating-particles',
+                create: () => {
+                    const bg = document.createElement('div');
+                    bg.className = 'bg-effect';
+
+                    const particles = Array.from({ length: 15 }, (_, i) => {
+                        const size = Math.random() * 3 + 1;
+                        const delay = Math.random() * 5;
+                        const duration = 15 + Math.random() * 10;
+
+                        return `
+                    radial-gradient(circle at ${Math.random() * 100}% ${Math.random() * 100}%,
+                        rgba(255,255,255,${0.02 + Math.random() * 0.03}) 0%,
+                        transparent ${size}px)
+                `;
+                    }).join(',');
+
+                    bg.style.cssText = `
+                background-image: ${particles};
+                animation: particleFloat 20s ease-in-out infinite;
+                opacity: 0.7;
+            `;
+
+                    // Add the necessary animation if not already present
+                    if (!document.querySelector('#particleAnimation')) {
+                        const style = document.createElement('style');
+                        style.id = 'particleAnimation';
+                        style.textContent = `
+                    @keyframes particleFloat {
+                        0%, 100% { 
+                            transform: translate(0, 0) scale(1); 
+                            opacity: 0.7;
+                        }
+                        25% { 
+                            transform: translate(10px, -10px) scale(1.05); 
+                            opacity: 0.9;
+                        }
+                        50% { 
+                            transform: translate(0, -20px) scale(1.1); 
+                            opacity: 0.7;
+                        }
+                        75% { 
+                            transform: translate(-10px, -10px) scale(1.05); 
+                            opacity: 0.9;
+                        }
+                    }
+                `;
+                        document.head.appendChild(style);
+                    }
+
+                    return bg;
+                }
+            },
+            {
+                name: 'geometric-pattern',
+                create: () => {
+                    const bg = document.createElement('div');
+                    bg.className = 'bg-effect';
+                    bg.style.cssText = `
+            background-image:
+                linear-gradient(30deg, rgba(255,255,255,0.03) 1px, transparent 2px),
+                linear-gradient(-30deg, rgba(255,255,255,0.03) 1px, transparent 2px);
+            background-size: 80px 80px;
+            background-position: center center;
+            background-repeat: repeat;
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            animation: geometricSpin 30s linear infinite;
+            transform-origin: center center;
+        `;
+
+                    // Add the animation if it doesn't exist
+                    if (!document.querySelector('#geometricAnimation')) {
+                        const style = document.createElement('style');
+                        style.id = 'geometricAnimation';
+                        style.textContent = `
+                @keyframes geometricSpin {
+                    0% {
+                        transform: rotate(0deg) scale(1);
+                        opacity: 0.7;
+                    }
+                    50% {
+                        transform: rotate(180deg) scale(1.1);
+                        opacity: 0.9;
+                    }
+                    100% {
+                        transform: rotate(360deg) scale(1);
+                        opacity: 0.7;
+                    }
+                }
+            `;
+                        document.head.appendChild(style);
+                    }
+
+                    return bg;
+                }
+            },
+            {
+                name: 'light-beams',
+                create: () => {
+                    const bg = document.createElement('div');
+                    bg.className = 'bg-effect';
+                    bg.style.cssText = `
+                background: 
+                    conic-gradient(
+                        from 0deg at 50% 50%,
+                        transparent 0deg,
+                        rgba(255,255,255,0.01) 10deg,
+                        transparent 20deg,
+                        rgba(255,255,255,0.01) 30deg,
+                        transparent 40deg,
+                        rgba(255,255,255,0.01) 50deg,
+                        transparent 360deg
+                    );
+                animation: beamRotate 30s linear infinite;
+            `;
+                    return bg;
+                }
+            },
+            {
+                name: 'color-shift',
+                create: () => {
+                    const bg = document.createElement('div');
+                    bg.className = 'bg-effect';
+                    bg.style.cssText = `
+                background: radial-gradient(
+                    circle at center,
+                    rgba(255,255,255,0.03) 0%,
+                    rgba(100,149,237,0.02) 30%,
+                    rgba(147,112,219,0.02) 60%,
+                    transparent 100%
+                );
+                animation: colorShift 20s linear infinite;
+            `;
+                    return bg;
+                }
+            },
+            {
+                name: 'complex-gradient',
+                create: () => {
+                    const bg = document.createElement('div');
+                    bg.className = 'bg-effect';
+                    bg.style.cssText = `
+                background: 
+                    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.02) 0%, transparent 30%),
+                    radial-gradient(circle at 80% 80%, rgba(255,255,255,0.02) 0%, transparent 30%),
+                    radial-gradient(circle at 50% 50%, rgba(255,255,255,0.01) 0%, transparent 50%),
+                    linear-gradient(45deg, transparent 0%, rgba(255,255,255,0.01) 50%, transparent 100%);
+                animation: bgShift 25s ease infinite;
+            `;
+                    return bg;
+                }
+            }
+
+        ];
+
+        // Add the new effects to your existing array
+        backgroundEffects.push(...newEffects);
+
+        const achievements = {
+            speedRunner: {
+                title: "Speed Runner",
+                desc: "Complete a level in under 10 seconds",
+                icon: "⚡",
+                earned: false
+            },
+            noMistakes: {
+                title: "Perfect Path",
+                desc: "Complete level without any incorrect rotations",
+                icon: "✨",
+                earned: false
+            },
+            gridMaster: {
+                title: "Grid Master",
+                desc: "Reach a 9x9 grid",
+                icon: "🏁",
+                earned: false
+            },
+            quickThinking: {
+                title: "Quick Thinking",
+                desc: "Complete a level in under 5 moves",
+                icon: "🧠",
+                earned: false
+            },
+            persistent: {
+                title: "Persistent",
+                desc: "Complete 10 levels",
+                icon: "🎯",
+                earned: false
+            },
+            mastermind: {
+                title: "Mastermind",
+                desc: "Complete a 5-star difficulty level",
+                icon: "🌟",
+                earned: false
+            },
+            speedDemon: {
+                title: "Speed Demon",
+                desc: "Complete 3 levels in under a minute total",
+                icon: "⏱️",
+                earned: false
+            },
+            precisionExpert: {
+                title: "Precision Expert",
+                desc: "Complete 3 levels in a row without mistakes",
+                icon: "🎯",
+                earned: false
+            },
+            earlyBird: {
+                title: "Early Bird",
+                desc: "Play the game before 9 AM",
+                icon: "🌅",
+                earned: false
+            },
+            nightOwl: {
+                title: "Night Owl",
+                desc: "Play the game after 10 PM",
+                icon: "🌙",
+                earned: false
+            }
+        };
+
+        const additionalAchievements = {
+            pipeWhisperer: {
+                title: "Pipe Whisperer",
+                desc: "Complete 5 levels without checking the solution",
+                icon: "🔍",
+                earned: false
+            },
+            speedrunnerElite: {
+                title: "Speedrunner Elite",
+                desc: "Complete 3 levels in under 5 seconds each",
+                icon: "🏃",
+                earned: false
+            },
+            morningMarathon: {
+                title: "Morning Marathon",
+                desc: "Play for 30 minutes before 10 AM",
+                icon: "☀️",
+                earned: false
+            },
+            gridExpander: {
+                title: "Grid Expander",
+                desc: "Reach a level with expanded grid size",
+                icon: "📐",
+                earned: false
+            },
+            perfectionist: {
+                title: "Perfectionist",
+                desc: "Complete 10 levels with minimum possible moves",
+                icon: "💎",
+                earned: false
+            },
+            veteran: {
+                title: "Pipe Veteran",
+                desc: "Play the game on 5 different days",
+                icon: "👑",
+                earned: false
+            },
+            puzzleMaster: {
+                title: "Puzzle Master",
+                desc: "Complete a level with all pipes correctly oriented on first try",
+                icon: "🎲",
+                earned: false
+            },
+            dedication: {
+                title: "Dedication",
+                desc: "Play 50 levels total",
+                icon: "🌟",
+                earned: false
+            }
+        };
+
+        // Add to your existing achievements object
+        Object.assign(achievements, additionalAchievements);
+
+        function unlockAchievement(id) {
+            if (achievements[id] && !achievements[id].earned) {
+                console.log(`Unlocking achievement: ${id}`); // Debug log
+                achievements[id].earned = true;
+                showAchievement(achievements[id]);
+                saveAchievements();
+            }
+        }
+
+        function saveGameProgress() {
+            const gameState = {
+                level: currentLevel,
+                levelsCompleted: levelsCompleted,
+                gridWidth: GRID_WIDTH,
+                gridHeight: GRID_HEIGHT,
+                lastPlayed: new Date().toISOString(),
+                // Add any other state you want to preserve
+            };
+            localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
+        }
+
+        function loadGameProgress() {
+            const savedGame = localStorage.getItem(SAVE_KEY);
+            if (savedGame) {
+                const gameState = JSON.parse(savedGame);
+                return gameState;
+            }
+            return null;
+        }
+
+        //🏆
+
+        function updateStartMenu() {
+            const startMenu = document.getElementById('startMenu');
+            const savedGame = loadGameProgress();
+
+            // Check if any achievements have been earned
+            const hasAchievements = Object.values(achievements).some(a => a.earned);
+
+            const achievementsButton = hasAchievements ? `
+        <button id="viewAchievementsButton" class="menu-button achievements-button">
+            🏆 View Achievements
+        </button>
+    ` : '';
+
+            if (savedGame) {
+                startMenu.innerHTML = `
+            <div id="instructions">
+                <h1>PipeDreams</h1>
+                <p>Connect the pipes from the top-left start to the bottom-right end.</p>
+                <p>Tap/click tiles to rotate pipes.</p>
+                <p>Create a continuous path to win!</p>
+            </div>
+            <div class="start-buttons">
+                <button id="continueButton" class="menu-button">Continue Level ${savedGame.level}</button>
+                <button id="newGameButton" class="menu-button">New Game</button>
+                ${achievementsButton}
+            </div>
+        `;
+            } else {
+                startMenu.innerHTML = `
+            <div id="instructions">
+                <h1>PipeDreams</h1>
+                <p>Connect the pipes from the top-left start to the bottom-right end.</p>
+                <p>Tap/click tiles to rotate pipes.</p>
+                <p>Create a continuous path to win!</p>
+            </div>
+            <div class="start-buttons">
+                <button id="startButton" class="menu-button">Start Game</button>
+                ${achievementsButton}
+            </div>
+        `;
+            }
+
+
+
+            // Add styles for the menu and achievements
+            const style = document.createElement('style');
+            style.textContent = `
+        .start-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+            align-items: center;
+        }
+
+        .menu-button {
+            padding: 15px 30px;
+            font-size: 20px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            width: 280px;
+            transition: transform 0.2s ease;
+        }
+
+        .menu-button:hover {
+            transform: scale(1.05);
+        }
+
+        #continueButton {
+            background: #4CAF50;
+        }
+
+        #newGameButton, #startButton {
+            background: #4a90e2;
+        }
+
+        .achievements-button {
+            background: #9c27b0;
+        }
+
+        #achievementsModal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 90%;
+            max-height: 80vh;
+            width: 400px;
+            color: white;
+            z-index: 1000;
+        }
+
+        .achievements-list {
+            max-height: 60vh;
+            overflow-y: auto;
+            margin: 20px 0;
+            padding-right: 10px;
+        }
+
+        .achievement-card {
+            background: rgba(255, 255, 255, 0.1);
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: transform 0.2s ease;
+        }
+
+        .achievement-card.earned {
+            background: rgba(76, 175, 80, 0.2);
+        }
+
+        .achievement-card:hover {
+            transform: translateX(5px);
+        }
+
+        .achievement-icon {
+            font-size: 24px;
+            min-width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .achievement-details {
+            flex-grow: 1;
+        }
+
+        .achievement-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 1.1em;
+        }
+
+        .achievement-desc {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .close-button {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        /* Scrollbar styling */
+        .achievements-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .achievements-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .achievements-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .achievements-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+    `;
+            document.head.appendChild(style);
+
+            // Add event listeners
+            if (savedGame) {
+                document.getElementById('continueButton').addEventListener('click', () => {
+                    continueSavedGame(savedGame);
+                });
+
+                document.getElementById('newGameButton').addEventListener('click', () => {
+                    if (confirm('Starting a new game will erase your saved progress. Continue?')) {
+                        localStorage.removeItem(SAVE_KEY);
+                        startNewGame();
+                    }
+                });
+            } else {
+                document.getElementById('startButton').addEventListener('click', () => {
+                    console.log('Game starting');
+                    document.getElementById('startMenu').style.display = 'none';
+                    initializeGameBoard();  // This will trigger the calculations
+                    applyLevelColors();
+                    updateBackground();
+                    initializeGrid();
+                });
+            }
+
+            if (hasAchievements) {
+                document.getElementById('viewAchievementsButton').addEventListener('click', showAchievementsPanel);
+            }
+        }
+
+
+        function showAchievementsPanel() {
+            const earnedCount = Object.values(achievements).filter(a => a.earned).length;
+            const totalCount = Object.values(achievements).length;
+
+            const modal = document.createElement('div');
+            modal.id = 'achievementsModal';
+
+            modal.innerHTML = `
+        <div class="achievements-header">
+            <h2>Achievements</h2>
+            <div class="achievement-count">${earnedCount} / ${totalCount} Unlocked</div>
+        </div>
+        <div class="achievements-list">
+            ${Object.values(achievements)
+                    .sort((a, b) => (b.earned ? 1 : 0) - (a.earned ? 1 : 0))
+                    .map(achievement => `
+                    <div class="achievement-card ${achievement.earned ? 'earned' : ''}">
+                        <div class="achievement-icon">${achievement.icon}</div>
+                        <div class="achievement-details">
+                            <div class="achievement-title">${achievement.title}</div>
+                            <div class="achievement-desc">${achievement.desc}</div>
+                        </div>
+                        ${achievement.earned ? '<div class="earned-star">⭐</div>' : ''}
+                    </div>
+                `).join('')}
+        </div>
+        <button class="close-button" onclick="this.parentElement.remove()">Close</button>
+    `;
+
+            // Add some enhanced styling
+            const style = document.createElement('style');
+            style.textContent = `
+        .achievements-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .achievement-count {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .achievement-card {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            transition: transform 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .achievement-card.earned {
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .achievement-card:hover {
+            transform: translateX(5px);
+        }
+
+        .earned-star {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2em;
+            opacity: 0.8;
+        }
+
+        .achievement-icon {
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+
+        .close-button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 15px;
+            background: #4a90e2;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .close-button:hover {
+            background: #357abd;
+        }
+    `;
+            document.head.appendChild(style);
+
+            document.body.appendChild(modal);
+            modal.style.display = 'block';
+        }
+
+
+
+        function continueSavedGame(savedGame) {
+            console.log('Continuing saved game');
+            currentLevel = savedGame.level;
+            levelsCompleted = savedGame.levelsCompleted;
+
+            const maxSize = calculateMaxGridSize();
+            console.log('Max size for continued game:', maxSize);
+
+            GRID_WIDTH = Math.min(savedGame.gridWidth, maxSize.maxWidth);
+            GRID_HEIGHT = Math.min(savedGame.gridHeight, maxSize.maxHeight);
+
+            document.getElementById('startMenu').style.display = 'none';
+            applyLevelColors();
+            updateGridSize();
+            initializeGrid();
+        }
+
+
+
+        function startNewGame() {
+            console.log('Starting new game');
+            const maxSize = calculateMaxGridSize();
+            console.log('Initial max size for new game:', maxSize);
+
+            // Set initial grid size based on device constraints
+            currentLevel = 1;
+            levelsCompleted = 0;
+            GRID_WIDTH = Math.min(6, maxSize.maxWidth);  // Start with standard 6x6 or smaller if needed
+            GRID_HEIGHT = Math.min(6, maxSize.maxHeight);
+
+            console.log('Initial grid size:', { width: GRID_WIDTH, height: GRID_HEIGHT });
+
+            document.getElementById('startMenu').style.display = 'none';
+            applyLevelColors();
+            updateGridSize();
+            updateCellSize();
+            initializeGrid();
+        }
+
+        function checkAchievements(stats = null) {
+            const hour = new Date().getHours();
+
+            // Time of day achievements
+            if (hour < 9) {
+                unlockAchievement('earlyBird');
+            }
+            if (hour >= 22) {
+                unlockAchievement('nightOwl');
+            }
+
+            // Only check level completion achievements if stats are provided
+            if (stats) {
+                const { completionTime, moveCount, levelsCompleted, gridWidth, gridHeight } = stats;
+
+                // Time-based achievements
+                if (completionTime < 10) {
+                    unlockAchievement('speedRunner');
+                }
+                if (completionTime < 5) {
+                    unlockAchievement('speedrunnerElite');
+                }
+
+                // Move-based achievements
+                if (moveCount <= 5) {
+                    unlockAchievement('quickThinking');
+                }
+
+                // Level progression achievements
+                if (levelsCompleted + 1 >= 10) {
+                    unlockAchievement('persistent');
+                }
+                if (levelsCompleted + 1 >= 50) {
+                    unlockAchievement('dedication');
+                }
+
+                // Grid size achievement
+                if (gridWidth >= 9 && gridHeight >= 9) {
+                    unlockAchievement('gridMaster');
+                }
+
+                // Difficulty achievement
+                const difficulty = calculateLevelDifficulty().length;
+                if (difficulty >= 5) {
+                    unlockAchievement('mastermind');
+                }
+            }
+        }
+
+        function unlockAchievement(id) {
+            if (achievements[id] && !achievements[id].earned) {
+                achievements[id].earned = true;
+                showAchievement(achievements[id]);
+                saveAchievements();
+            }
+        }
+
+        function showAchievement(achievement) {
+            const popup = document.createElement('div');
+            popup.className = 'achievement-popup';
+            popup.innerHTML = `
+        <div class="achievement-icon">${achievement.icon}</div>
+        <div class="achievement-title">${achievement.title}</div>
+        <div class="achievement-desc">${achievement.desc}</div>
+    `;
+            document.body.appendChild(popup);
+
+            setTimeout(() => {
+                popup.classList.add('hiding');
+                setTimeout(() => popup.remove(), 500);
+            }, 3000);
+        }
+
+        // Save/Load achievements
+        function saveAchievements() {
+            const earned = Object.entries(achievements)
+                .reduce((acc, [key, value]) => {
+                    acc[key] = value.earned;
+                    return acc;
+                }, {});
+            localStorage.setItem('pipeGameAchievements', JSON.stringify(earned));
+        }
+
+        function loadAchievements() {
+            const saved = localStorage.getItem('pipeGameAchievements');
+            if (saved) {
+                const earned = JSON.parse(saved);
+                Object.entries(earned).forEach(([key, value]) => {
+                    if (achievements[key]) {
+                        achievements[key].earned = value;
+                    }
+                });
+            }
+        }
+
+        // Add achievements button and modal
+        function addAchievementsButton() {
+            // const button = document.createElement('button');
+            // button.id = 'achievements-button';
+            // button.innerHTML = '🏆';
+            // button.onclick = showAchievementsModal;
+            // document.body.appendChild(button);
+        }
+
+        function showAchievementsModal() {
+            let modal = document.getElementById('achievements-modal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'achievements-modal';
+            }
+
+            modal.innerHTML = `
+        <h2>Achievements</h2>
+        <div class="achievements-list">
+            ${Object.values(achievements).map(achievement => `
+                <div class="achievement-list-item ${achievement.earned ? 'earned' : ''}">
+                    <div class="achievement-icon">${achievement.icon}</div>
+                    <div>
+                        <div class="achievement-title">${achievement.title}</div>
+                        <div class="achievement-desc">${achievement.desc}</div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+        <button onclick="this.parentElement.style.display='none'">Close</button>
+    `;
+
+            document.body.appendChild(modal);
+            modal.style.display = 'block';
+        }
+
+        // Initialize achievements
+        loadAchievements();
+        addAchievementsButton();
+
+        function addBackgroundEffect() {
+            // Remove existing background if any
+            if (currentBackground) {
+                currentBackground.remove();
+            }
+
+            // Log available effects
+            console.log('Available background effects:', backgroundEffects.map(e => e.name));
+
+            // Select a random effect
+            const randomIndex = Math.floor(Math.random() * backgroundEffects.length);
+            const effect = backgroundEffects[randomIndex];
+
+            // Log the chosen effect
+            console.log('Selected background effect:', {
+                name: effect.name,
+                index: randomIndex,
+                totalEffects: backgroundEffects.length
+            });
+
+            // Create and add the new background
+            currentBackground = effect.create();
+            document.body.appendChild(currentBackground);
+        }
+
+        // Also let's verify the effects array is properly populated
+        console.log('\nVerifying background effects:', {
+            totalOriginalEffects: backgroundEffects.length - newEffects.length,
+            totalNewEffects: newEffects.length,
+            allEffectNames: backgroundEffects.map(e => e.name)
+        });
+        // Call this when starting a new level
+        function updateBackground() {
+            if (currentBackground) {
+                currentBackground.style.opacity = '0';
+                setTimeout(() => {
+                    addBackgroundEffect();
+                }, 1000); // Wait for fade out before adding new effect
+            } else {
+                addBackgroundEffect();
+            }
+        }
+
+        function startLevelTimer() {
+            // Clear any existing timer
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+
+            levelStartTime = Date.now();
+            timerInterval = setInterval(updateTimer, 1000);
+            updateTimer(); // Update immediately instead of waiting for first interval
+        }
+
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - levelStartTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            const timeText = minutes > 0
+                ? `Time: ${minutes}m ${seconds}s`
+                : `Time: ${seconds}s`;
+            document.getElementById('timer').textContent = timeText;
+        }
+
+        function stopLevelTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function getDebugInfo(x, y) {
+            if (x === startPos.x && y === startPos.y) return "START";
+            if (x === endPos.x && y === endPos.y) return "END";
+
+            const pipe = grid[y][x];
+            if (!pipe) return "EMPTY";
+
+            return `${pipe.type === PIPE_TYPES.STRAIGHT ? 'S' : 'C'}@${pipe.rotation}°`;
+        }
+
+        function handleTouchStart(e, x, y) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchedCell = { x, y };
+        }
+
+        function handleTouchEnd(e) {
+            if (!touchStartX || !touchStartY || !touchedCell) return;
+
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+
+            // Minimum swipe distance
+            const minSwipeDistance = 30;
+
+            // Check if it's a start or end position
+            if (touchedCell.x === startPos.x && touchedCell.y === startPos.y) return;
+            if (touchedCell.x === endPos.x && touchedCell.y === endPos.y) return;
+
+            // Determine swipe direction
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                // Horizontal swipe
+                if (Math.abs(deltaX) > minSwipeDistance) {
+                    shiftRow(touchedCell.y, deltaX > 0 ? 1 : -1);
+                }
+            } else {
+                // Vertical swipe
+                if (Math.abs(deltaY) > minSwipeDistance) {
+                    shiftColumn(touchedCell.x, deltaY > 0 ? 1 : -1);
+                }
+            }
+
+            touchStartX = null;
+            touchStartY = null;
+            touchedCell = null;
+        }
+
+        function shiftRow(row, direction) {
+            const newRow = [...grid[row]];
+            if (direction > 0) {
+                // Shift right
+                const last = newRow.pop();
+                newRow.unshift(last);
+            } else {
+                // Shift left
+                const first = newRow.shift();
+                newRow.push(first);
+            }
+            grid[row] = newRow;
+            updateGridDisplay();
+            checkCorrectPipes();
+        }
+
+        function shiftColumn(col, direction) {
+            const column = grid.map(row => row[col]);
+            if (direction > 0) {
+                // Shift down
+                const last = column.pop();
+                column.unshift(last);
+            } else {
+                // Shift up
+                const first = column.shift();
+                column.push(first);
+            }
+            grid.forEach((row, i) => {
+                row[col] = column[i];
+            });
+            updateGridDisplay();
+            checkCorrectPipes();
+        }
+
+        function updateGridSize() {
+            const grid = document.querySelector('.grid');
+            grid.style.gridTemplateColumns = `repeat(${GRID_WIDTH}, 1fr)`;
+        }
+
+        function showStarCelebration() {
+            const celebration = document.createElement('div');
+            celebration.style.position = 'fixed';
+            celebration.style.top = '20%';
+            celebration.style.left = '50%';
+            celebration.style.transform = 'translateX(-50%)';
+            celebration.style.fontSize = '2em';
+            celebration.style.textAlign = 'center';
+            celebration.style.zIndex = '1000';
+            celebration.style.animation = 'fadeInOut 2s ease-in-out';
+
+            // Show stars for completed levels
+            const stars = '⭐'.repeat(levelsCompleted % LEVELS_PER_EXPANSION);
+            celebration.innerHTML = `
+        ${stars}<br>
+        ${levelsCompleted % LEVELS_PER_EXPANSION === 0 ?
+                    '🎮 Get ready for a bigger challenge! 🎮' :
+                    `${LEVELS_PER_EXPANSION - (levelsCompleted % LEVELS_PER_EXPANSION)} more levels until expansion!`}
+    `;
+
+            document.body.appendChild(celebration);
+
+            // Add the animation style if it doesn't exist
+            if (!document.querySelector('#celebrationStyle')) {
+                const style = document.createElement('style');
+                style.id = 'celebrationStyle';
+                style.textContent = `
+            @keyframes fadeInOut {
+                0% { opacity: 0; transform: translateX(-50%) scale(0.5); }
+                10% { opacity: 1; transform: translateX(-50%) scale(1.2); }
+                20% { transform: translateX(-50%) scale(1); }
+                80% { opacity: 1; }
+                100% { opacity: 0; }
+            }
+        `;
+                document.head.appendChild(style);
+            }
+
+            setTimeout(() => celebration.remove(), 2000);
+        }
+
+        function updateGridDisplay() {
+            const gridElement = document.getElementById('grid');
+            gridElement.innerHTML = '';
+
+            for (let y = 0; y < GRID_WIDTH; y++) {
+                for (let x = 0; x < GRID_HEIGHT; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+
+                    if (x === startPos.x && y === startPos.y) {
+                        cell.classList.add('start');
+                        cell.addEventListener('click', handleStartClick);
+                    } else if (x === endPos.x && y === endPos.y) {
+                        cell.classList.add('end');
+                    } else {
+                        const pipe = grid[y][x];
+                        cell.appendChild(createSVGPipe(pipe.type, pipe.rotation));
+
+                        // Add a visual feedback class when touched
+                        const addTouchFeedback = () => {
+                            cell.classList.add('touched');
+                            setTimeout(() => cell.classList.remove('touched'), 200);
+                        };
+
+                        // Handle both touch and click events
+                        const handleInteraction = (e) => {
+                            e.preventDefault(); // Prevent any default behavior
+                            console.log('Cell interaction detected', { x, y }); // Debug log
+                            addTouchFeedback();
+                            rotatePipe(x, y);
+                        };
+
+                        // Click handler for desktop
+                        cell.addEventListener('click', handleInteraction);
+
+                        // Touch handlers for mobile
+                        let touchStartTime = 0;
+                        let touchStartX = 0;
+                        let touchStartY = 0;
+                        const SWIPE_THRESHOLD = 30;
+
+                        cell.addEventListener('touchstart', (e) => {
+                            touchStartTime = Date.now();
+                            touchStartX = e.touches[0].clientX;
+                            touchStartY = e.touches[0].clientY;
+                            console.log('Touch start on cell:', { x, y }); // Debug log
+                        }, { passive: true });
+
+                        cell.addEventListener('touchend', (e) => {
+                            const touchEndX = e.changedTouches[0].clientX;
+                            const touchEndY = e.changedTouches[0].clientY;
+                            const touchDuration = Date.now() - touchStartTime;
+                            const xDiff = Math.abs(touchEndX - touchStartX);
+                            const yDiff = Math.abs(touchEndY - touchStartY);
+
+                            console.log('Touch end on cell:', {
+                                x, y,
+                                duration: touchDuration,
+                                xDiff,
+                                yDiff
+                            }); // Debug log
+
+                            // If it's a quick tap without much movement
+                            if (touchDuration < 300 && xDiff < SWIPE_THRESHOLD && yDiff < SWIPE_THRESHOLD) {
+                                handleInteraction(e);
+                            }
+                        }, { passive: false });
+                    }
+
+                    gridElement.appendChild(cell);
+                }
+            }
+        }
+
+        function createSVGPipe(type, rotation) {
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("viewBox", "0 0 100 100");
+            svg.classList.add("pipe");
+
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+
+            if (type === PIPE_TYPES.STRAIGHT) {
+                // Vertical by default (0 degrees)
+                path.setAttribute("d", "M40,0 V100 M60,0 V100");
+                svg.style.transform = `rotate(${rotation}deg)`;
+            } else if (type === PIPE_TYPES.CORNER) {
+                // Explicitly define each corner orientation without relying on rotation
+                switch (rotation) {
+                    case 0: // bottom-right
+                        path.setAttribute("d", "M0,60 H60 V0 M0,40 H40 V0");
+                        break;
+                    case 90: // top-right
+                        path.setAttribute("d", "M0,40 H60 V100 M0,60 H40 V100");
+                        break;
+                    case 180: // top-left
+                        path.setAttribute("d", "M100,40 H40 V100 M100,60 H60 V100");
+                        break;
+                    case 270: // bottom-left
+                        path.setAttribute("d", "M100,60 H40 V0 M100,40 H60 V0");
+                        break;
+                }
+            }
+
+            path.setAttribute("stroke", "#6a6a8a");
+            path.setAttribute("stroke-width", "20");
+            path.setAttribute("class", "pipe-path");
+
+            svg.appendChild(path);
+            return svg;
+        }
+
+
+
+        function generateSolution() {
+            solution = [];
+            let current = { ...startPos };
+            let visited = new Set();
+            let path = [];
+            let prev = null;
+
+            // Add start position to visited set
+            visited.add(`${current.x},${current.y}`);
+            path.push(current);
+
+            while (current.x !== endPos.x || current.y !== endPos.y) {
+                // Get all possible moves (only orthogonal)
+                let possibleMoves = [
+                    { x: current.x + 1, y: current.y, direction: "right" },
+                    { x: current.x, y: current.y + 1, direction: "down" }
+                ].filter(pos =>
+                    pos.x >= 0 && pos.x < GRID_WIDTH &&
+                    pos.y >= 0 && pos.y < GRID_HEIGHT &&
+                    !visited.has(`${pos.x},${pos.y}`)
+                );
+
+                if (possibleMoves.length === 0) {
+                    return false;  // No valid moves, try again
+                }
+
+                let nextMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                visited.add(`${nextMove.x},${nextMove.y}`);
+
+                if (prev) {
+                    let dx1 = current.x - prev.x;
+                    let dy1 = current.y - prev.y;
+                    let dx2 = nextMove.x - current.x;
+                    let dy2 = nextMove.y - current.y;
+
+                    let pipeType, rotation;
+
+                    if ((dx1 === 0 && dx2 === 0) || (dy1 === 0 && dy2 === 0)) {
+                        // Straight pipe
+                        pipeType = PIPE_TYPES.STRAIGHT;
+                        rotation = dx1 === 0 ? 0 : 90;  // 0 for vertical, 90 for horizontal
+                    } else {
+                        // Corner pipe - use our new rotation values
+                        pipeType = PIPE_TYPES.CORNER;
+
+                        // Determine corner orientation based on connection directions
+                        if (dx1 === 1 && dy2 === 1) rotation = 90;      // left to down
+                        else if (dx2 === 1 && dy1 === 1) rotation = 0;  // down to right
+                        else if (dx1 === 1 && dy2 === -1) rotation = 270; // left to up
+                        else if (dx2 === 1 && dy1 === -1) rotation = 180; // up to right
+                        else if (dx1 === -1 && dy2 === 1) rotation = 180; // right to down
+                        else if (dx2 === -1 && dy1 === 1) rotation = 270; // down to left
+                        else if (dx1 === -1 && dy2 === -1) rotation = 90; // right to up
+                        else rotation = 0;                               // up to left
+                    }
+
+                    solution.push({
+                        x: current.x,
+                        y: current.y,
+                        type: pipeType,
+                        rotation: rotation
+                    });
+                }
+
+                prev = current;
+                current = { x: nextMove.x, y: nextMove.y };
+                path.push(current);
+            }
+
+            // Add final pipe
+            let dx = current.x - prev.x;
+            let dy = current.y - prev.y;
+            solution.push({
+                x: current.x,
+                y: current.y,
+                type: PIPE_TYPES.STRAIGHT,
+                rotation: dx === 0 ? 0 : 90
+            });
+
+            return true;
+        }
+
+        function showSolutionPath() {
+            const container = document.querySelector('.game-container');
+            const overlay = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            overlay.classList.add('solution-overlay');
+
+            // Calculate cell size and offset
+            const cellSize = container.querySelector('.cell').offsetWidth;
+            const gridPadding = 10; // From CSS
+
+            overlay.setAttribute('viewBox', `0 0 ${GRID_WIDTH * cellSize} ${GRID_HEIGHT * cellSize}`);
+
+            let pathData = '';
+            solution.forEach((pipe, index) => {
+                const x = pipe.x * cellSize + cellSize / 2;
+                const y = pipe.y * cellSize + cellSize / 2;
+
+                if (index === 0) {
+                    pathData += `M ${x} ${y}`;
+                } else {
+                    pathData += ` L ${x} ${y}`;
+                }
+            });
+
+            // Add final point (end position)
+            const endX = endPos.x * cellSize + cellSize / 2;
+            const endY = endPos.y * cellSize + cellSize / 2;
+            pathData += ` L ${endX} ${endY}`;
+
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute('d', pathData);
+            path.classList.add('solution-path');
+
+            overlay.appendChild(path);
+            container.appendChild(overlay);
+
+            // Remove after 6 seconds
+            if (solutionTimeout) {
+                clearTimeout(solutionTimeout);
+            }
+            solutionTimeout = setTimeout(() => {
+                overlay.remove();
+            }, 6000);
+        }
+
+        function handleStartClick() {
+            startTaps++;
+            if (startTaps === 6) {
+                showSolutionPath();
+                startTaps = 0;
+                unlockAchievement('cheatFinder');
+            }
+        }
+
+        function calculateLevelDifficulty() {
+            // Based on grid size and solution path length
+            const pathComplexity = solution.length;
+            const gridSize = GRID_WIDTH * GRID_HEIGHT;
+            const difficulty = Math.floor((pathComplexity / gridSize) * 100);
+            return '⭐'.repeat(Math.ceil(difficulty / 20)); // 1-5 stars
+        }
+
+        // Then modify where we update the level info
+        function updateLevelInfo() {
+            const difficulty = calculateLevelDifficulty();
+            document.getElementById('levelInfo').textContent = `Level ${currentLevel} ${difficulty}`;
+        }
+
+        // Replace the cell touch handling section in initializeGrid with this:
+        function initializeGrid() {
+            moveCount = 0;
+            updateMoveCounter();
+            startLevelTimer();
+            const gridElement = document.getElementById('grid');
+            startTaps = 0;
+            gridElement.innerHTML = '';
+            grid = [];
+
+            // Update end position based on new grid size
+            endPos = { x: GRID_WIDTH - 1, y: GRID_HEIGHT - 1 };
+
+            // Generate a valid solution
+            while (!generateSolution()) {
+                // Keep trying until we get a valid solution
+                console.log("Regenerating solution...");
+            }
+
+            updateLevelInfo();
+
+            for (let y = 0; y < GRID_HEIGHT; y++) {
+                grid[y] = [];
+                for (let x = 0; x < GRID_WIDTH; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+
+                    if (x === startPos.x && y === startPos.y) {
+                        cell.classList.add('start');
+                        cell.addEventListener('click', handleStartClick);
+                    } else if (x === endPos.x && y === endPos.y) {
+                        cell.classList.add('end');
+                    } else {
+                        const solutionPipe = solution.find(p => p.x === x && p.y === y);
+                        let pipeType, rotation;
+
+                        if (solutionPipe) {
+                            // Use the solution pipe type but randomize rotation
+                            pipeType = solutionPipe.type;
+                            rotation = Math.floor(Math.random() * 4) * 90;
+                        } else {
+                            // For non-solution pipes, create random ones
+                            pipeType = Math.random() < 0.5 ? PIPE_TYPES.STRAIGHT : PIPE_TYPES.CORNER;
+                            rotation = Math.floor(Math.random() * 4) * 90;
+                        }
+
+                        grid[y][x] = {
+                            type: pipeType,
+                            rotation: rotation,
+                            touched: false,
+                            isColored: false
+                        };
+                        cell.appendChild(createSVGPipe(pipeType, rotation));
+
+                        // Add a visual feedback class when touched
+                        const addTouchFeedback = () => {
+                            cell.classList.add('touched');
+                            setTimeout(() => cell.classList.remove('touched'), 200);
+                        };
+
+                        // Handle both touch and click events
+                        const handleInteraction = (e) => {
+                            e.preventDefault();
+                            console.log('Cell interaction detected', { x, y });
+                            addTouchFeedback();
+                            rotatePipe(x, y);
+                        };
+
+                        // Click handler for desktop
+                        cell.addEventListener('click', handleInteraction);
+
+                        // Touch handlers for mobile
+                        let touchStartTime = 0;
+                        let touchStartX = 0;
+                        let touchStartY = 0;
+                        const SWIPE_THRESHOLD = 30;
+
+                        cell.addEventListener('touchstart', (e) => {
+                            touchStartTime = Date.now();
+                            touchStartX = e.touches[0].clientX;
+                            touchStartY = e.touches[0].clientY;
+                            console.log('Touch start on cell:', { x, y });
+                        }, { passive: true });
+
+                        cell.addEventListener('touchend', (e) => {
+                            const touchEndX = e.changedTouches[0].clientX;
+                            const touchEndY = e.changedTouches[0].clientY;
+                            const touchDuration = Date.now() - touchStartTime;
+                            const xDiff = Math.abs(touchEndX - touchStartX);
+                            const yDiff = Math.abs(touchEndY - touchStartY);
+
+                            console.log('Touch end on cell:', {
+                                x, y,
+                                duration: touchDuration,
+                                xDiff,
+                                yDiff
+                            });
+
+                            // If it's a quick tap without much movement
+                            if (touchDuration < 300 && xDiff < SWIPE_THRESHOLD && yDiff < SWIPE_THRESHOLD) {
+                                handleInteraction(e);
+                            }
+                        });
+                    }
+
+                    gridElement.appendChild(cell);
+                }
+            }
+
+            // Initial pipe check
+            checkCorrectPipes();
+
+            // Check hours for achievements
+            const hour = new Date().getHours();
+            if (hour < 9) checkAchievements();
+            if (hour >= 22) checkAchievements();
+
+            debugGrid();
+        }
+
+        // Add this helper function to check if a pipe should trigger a reset
+        function shouldResetProgress(x, y) {
+            const pipe = grid[y][x];
+            return pipe && pipe.isColored;
+        }
+
+        function getPipeDescription(pipe) {
+            if (!pipe) return 'no pipe';
+
+            if (pipe.type === PIPE_TYPES.STRAIGHT) {
+                return pipe.rotation === 0 || pipe.rotation === 180 ? 'vertical' : 'horizontal';
+            } else {
+                switch (pipe.rotation) {
+                    case 0: return 'corner: bottom-right (→↓)';
+                    case 90: return 'corner: top-right (→↑)';
+                    case 180: return 'corner: top-left (←↑)';
+                    case 270: return 'corner: bottom-left (←↓)';
+                    default: return 'unknown orientation';
+                }
+            }
+        }
+
+        function getPipeConnections(pipe) {
+            if (!pipe) return [];
+
+            if (pipe.type === PIPE_TYPES.STRAIGHT) {
+                const isVertical = pipe.rotation === 0 || pipe.rotation === 180;
+                const connections = isVertical
+                    ? [{ dx: 0, dy: -1 }, { dx: 0, dy: 1 }]  // vertical
+                    : [{ dx: -1, dy: 0 }, { dx: 1, dy: 0 }]; // horizontal
+                console.log(`Straight pipe ${pipe.rotation}°: ${isVertical ? 'vertical ↑↓' : 'horizontal ←→'}`);
+                return connections;
+            } else { // CORNER
+                // Match connections to the exact SVG paths
+                switch (pipe.rotation) {
+                    case 0:   // bottom-right: "M0,60 H60 V0 M0,40 H40 V0"
+                        console.log('Corner pipe 0°: connects left and up ←↑');
+                        return [
+                            { dx: -1, dy: 0 },  // connects left (M0,-)
+                            { dx: 0, dy: -1 }   // connects up (V0)
+                        ];
+
+                    case 90:  // top-right: "M0,40 H60 V100 M0,60 H40 V100"
+                        console.log('Corner pipe 90°: connects left and down ←↓');
+                        return [
+                            { dx: -1, dy: 0 },  // connects left (M0,-)
+                            { dx: 0, dy: 1 }    // connects down (V100)
+                        ];
+
+                    case 180: // top-left: "M100,40 H40 V100 M100,60 H60 V100"
+                        console.log('Corner pipe 180°: connects right and down →↓');
+                        return [
+                            { dx: 1, dy: 0 },   // connects right (M100,-)
+                            { dx: 0, dy: 1 }    // connects down (V100)
+                        ];
+
+                    case 270: // bottom-left: "M100,60 H40 V0 M100,40 H60 V0"
+                        console.log('Corner pipe 270°: connects right and up →↑');
+                        return [
+                            { dx: 1, dy: 0 },   // connects right (M100,-)
+                            { dx: 0, dy: -1 }   // connects up (V0)
+                        ];
+
+                    default:
+                        console.error('Invalid rotation:', pipe.rotation);
+                        return [];
+                }
+            }
+        }
+
+        // Helper function to get all connected neighbors from a point
+        function getConnectedNeighbors(x, y) {
+            const pipe = grid[y][x];
+            if (!pipe) return [];
+
+            const connections = [];
+            const pipeConnections = getPipeConnections(pipe);
+
+            for (const conn of pipeConnections) {
+                const nextX = x + conn.dx;
+                const nextY = y + conn.dy;
+
+                if (nextX >= 0 && nextX < GRID_WIDTH &&
+                    nextY >= 0 && nextY < GRID_HEIGHT) {
+                    const nextPipe = grid[nextY][nextX];
+                    if (!nextPipe) continue;
+
+                    const nextConnections = getPipeConnections(nextPipe);
+                    if (nextConnections.some(nc => nc.dx === -conn.dx && nc.dy === -conn.dy)) {
+                        connections.push({ x: nextX, y: nextY });
+                    }
+                }
+            }
+
+            return connections;
+        }
+
+        function isConnectedToColored(x, y) {
+            const currentPipe = grid[y][x];
+            if (!currentPipe) return false;
+
+            const connections = getPipeConnections(currentPipe);
+
+            for (const conn of connections) {
+                const nextX = x + conn.dx;
+                const nextY = y + conn.dy;
+
+                // Check bounds
+                if (nextX < 0 || nextX >= GRID_WIDTH || nextY < 0 || nextY >= GRID_HEIGHT) {
+                    continue;
+                }
+
+                // Special case for start position
+                if (nextX === startPos.x && nextY === startPos.y) {
+                    return true;
+                }
+
+                const nextPipe = grid[nextY][nextX];
+                if (!nextPipe || !nextPipe.isColored) continue;
+
+                // Check if next pipe connects back
+                const nextConnections = getPipeConnections(nextPipe);
+                if (nextConnections.some(nc => nc.dx === -conn.dx && nc.dy === -conn.dy)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        function rotatePipe(x, y) {
+            const cell = grid[y][x];
+            if (cell) {
+                const oldRotation = cell.rotation;
+                cell.touched = true;
+                cell.rotation = (cell.rotation + 90) % 360;
+
+                console.log(`\n=== Rotating Pipe at (${x},${y}) ===`);
+                console.log(`- Previous rotation: ${oldRotation}°`);
+                console.log(`- New rotation: ${cell.rotation}°`);
+                console.log(`- Pipe type: ${cell.type === PIPE_TYPES.STRAIGHT ? 'straight' : 'corner'}`);
+
+                // Update visual representation
+                const gridElement = document.getElementById('grid');
+                const cellElement = gridElement.children[y * GRID_WIDTH + x];
+                const svg = cellElement.querySelector('svg');
+
+                // Remove old SVG and create new one to ensure clean rotation
+                const newSvg = createSVGPipe(cell.type, cell.rotation);
+                cellElement.removeChild(svg);
+                cellElement.appendChild(newSvg);
+
+                moveCount++;
+                updateMoveCounter();
+
+                checkCorrectPipes();
+            }
+        }
+
+        function debugGrid() {
+            // console.log("\n=== Grid State ===");
+            // for (let y = 0; y < GRID_HEIGHT; y++) {
+            //     let row = "";
+            //     for (let x = 0; x < GRID_WIDTH; x++) {
+            //         const pipe = grid[y][x];
+            //         if (!pipe) {
+            //             row += "[ ]";
+            //         } else if (pipe.type === PIPE_TYPES.STRAIGHT) {
+            //             row += pipe.rotation === 0 ? "[║]" : "[═]";
+            //         } else {
+            //             switch(pipe.rotation) {
+            //                 case 0:   row += "[╝]"; break; // right and down
+            //                 case 90:  row += "[╗]"; break; // right and up
+            //                 case 180: row += "[╔]"; break; // left and up
+            //                 case 270: row += "[╚]"; break; // left and down
+            //             }
+            //         }
+            //     }
+            //     console.log(row);
+            // }
+        }
+
+
+        function updateMoveCounter() {
+            const counter = document.getElementById('moveCounter');
+            if (counter) {
+                counter.textContent = `Moves: ${moveCount}`;
+            }
+        }
+
+
+
+        function checkCorrectPipes() {
+            // console.log("\n=== Starting Pipe Check ===");
+            const gridElement = document.getElementById('grid');
+
+            // Reset all pipes to default color
+            document.querySelectorAll('.pipe-path').forEach(path => {
+                path.setAttribute('stroke', '#6a6a8a');
+            });
+
+            // Reset colored state in grid
+            for (let y = 0; y < GRID_HEIGHT; y++) {
+                for (let x = 0; x < GRID_WIDTH; x++) {
+                    if (grid[y][x]) {
+                        grid[y][x].isColored = false;
+                    }
+                }
+            }
+
+            // Color the start position
+            colorPipe(startPos.x, startPos.y, '#4CAF50');
+            if (grid[startPos.y][startPos.x]) {
+                grid[startPos.y][startPos.x].isColored = true;
+            }
+
+            if (validateFullPath()) {
+                console.log("Valid path found!");
+                const modal = document.getElementById('completionModal');
+                modal.style.display = 'block';
+            }
+
+            let queue = [{ x: startPos.x, y: startPos.y }];
+            let colored = new Set([`${startPos.x},${startPos.y}`]);
+
+            while (queue.length > 0) {
+                const current = queue.shift();
+                const currentPipe = grid[current.y][current.x];
+
+                // console.log(`\nChecking pipe at (${current.x},${current.y}):`);
+                // console.log(`- Type: ${currentPipe ? (currentPipe.type === PIPE_TYPES.STRAIGHT ? 'straight' : 'corner') : 'none'}`);
+                // console.log(`- Rotation: ${currentPipe ? currentPipe.rotation : 'N/A'}°`);
+                // console.log(`- Orientation: ${currentPipe ? getPipeDescription(currentPipe) : 'N/A'}`);
+                // console.log(`- Is Colored: ${currentPipe ? currentPipe.isColored : 'N/A'}`);
+                // console.log(`- Is Touched: ${currentPipe ? currentPipe.touched : 'N/A'}`);
+
+                // Special handling for start position
+                if (current.x === startPos.x && current.y === startPos.y) {
+                    // console.log('- Start position, checking right and down connections');
+                    const validNextPositions = [
+                        { x: current.x + 1, y: current.y },  // right
+                        { x: current.x, y: current.y + 1 }   // down
+                    ];
+
+                    for (const next of validNextPositions) {
+                        if (next.x < GRID_WIDTH && next.y < GRID_HEIGHT) {
+                            const nextPipe = grid[next.y][next.x];
+                            if (nextPipe && nextPipe.touched && !colored.has(`${next.x},${next.y}`)) {
+                                const connections = getPipeConnections(nextPipe);
+                                // console.log(`  Checking connection to (${next.x},${next.y}):`);
+                                // console.log(`  - Next pipe orientation: ${getPipeDescription(nextPipe)}`);
+
+                                const connects = connections.some(conn =>
+                                    (conn.dx === -1 && next.x === current.x + 1) ||
+                                    (conn.dy === -1 && next.y === current.y + 1)
+                                );
+                                // console.log(`  - Connects: ${connects}`);
+
+                                if (connects) {
+                                    colorPipe(next.x, next.y, '#4CAF50');
+                                    nextPipe.isColored = true;
+                                    colored.add(`${next.x},${next.y}`);
+                                    queue.push(next);
+                                }
+                            }
+                        }
+                    }
+                    continue;
+                }
+
+                // For other positions
+                const connections = getPipeConnections(currentPipe);
+                // console.log('Checking connections:', connections.map(c => `(dx:${c.dx}, dy:${c.dy})`));
+
+                for (const conn of connections) {
+                    const nextX = current.x + conn.dx;
+                    const nextY = current.y + conn.dy;
+
+                    if (nextX >= 0 && nextX < GRID_WIDTH &&
+                        nextY >= 0 && nextY < GRID_HEIGHT &&
+                        !colored.has(`${nextX},${nextY}`)) {
+
+                        const nextPipe = grid[nextY][nextX];
+                        // console.log(`\nChecking connection to (${nextX},${nextY}):`);
+                        // console.log(`- Next pipe: ${nextPipe ? getPipeDescription(nextPipe) : 'none'}`);
+                        // console.log(`- Next pipe touched: ${nextPipe ? nextPipe.touched : 'N/A'}`);
+
+                        if (!nextPipe || !nextPipe.touched) continue;
+
+                        const nextConnections = getPipeConnections(nextPipe);
+                        const connects = nextConnections.some(nc =>
+                            nc.dx === -conn.dx && nc.dy === -conn.dy
+                        );
+                        console.log(`- Connects back: ${connects}`);
+
+                        if (connects) {
+                            colorPipe(nextX, nextY, '#4CAF50');
+                            nextPipe.isColored = true;
+                            colored.add(`${nextX},${nextY}`);
+                            queue.push({ x: nextX, y: nextY });
+                        }
+                    }
+                }
+            }
+
+            // Check if we've reached the end
+            // console.log(`\nPath reaches end: ${colored.has(`${endPos.x},${endPos.y}`)}`);
+            if (colored.has(`${endPos.x},${endPos.y}`)) {
+                const modal = document.getElementById('completionModal');
+                modal.style.display = 'block';
+            }
+        }
+
+        function checkPathCompletion() {
+            // Start from the start position
+            let queue = [{ x: startPos.x, y: startPos.y }];
+            let visited = new Set([`${startPos.x},${startPos.y}`]);
+
+            while (queue.length > 0) {
+                const current = queue.shift();
+
+                // If we've reached the end position and it's colored, we've found a valid path
+                if (current.x === endPos.x && current.y === endPos.y) {
+                    console.log("Valid path found to end!");
+                    const modal = document.getElementById('completionModal');
+                    modal.style.display = 'block';
+                    return true;
+                }
+
+                // Get the current pipe
+                const currentPipe = grid[current.y][current.x];
+                if (!currentPipe || !currentPipe.isColored) continue;
+
+                // Get all connections from this pipe
+                const connections = getPipeConnections(currentPipe);
+
+                // Check each possible connection
+                for (const conn of connections) {
+                    const nextX = current.x + conn.dx;
+                    const nextY = current.y + conn.dy;
+                    const key = `${nextX},${nextY}`;
+
+                    // Skip if we've already visited this position or it's out of bounds
+                    if (visited.has(key) ||
+                        nextX < 0 || nextX >= GRID_WIDTH ||
+                        nextY < 0 || nextY >= GRID_HEIGHT) {
+                        continue;
+                    }
+
+                    // Check if the next pipe exists and is colored
+                    const nextPipe = grid[nextY][nextX];
+                    if (!nextPipe || !nextPipe.isColored) continue;
+
+                    // Verify the pipes actually connect
+                    const nextConnections = getPipeConnections(nextPipe);
+                    const connects = nextConnections.some(nc =>
+                        nc.dx === -conn.dx && nc.dy === -conn.dy
+                    );
+
+                    if (connects) {
+                        queue.push({ x: nextX, y: nextY });
+                        visited.add(key);
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        // Modify the colorPipe function to check for completion
+        function isConnectedToEnd() {
+            // Get all neighbors of the end position
+            const endNeighbors = [
+                { x: endPos.x - 1, y: endPos.y }, // left
+                { x: endPos.x + 1, y: endPos.y }, // right
+                { x: endPos.x, y: endPos.y - 1 }, // up
+                { x: endPos.x, y: endPos.y + 1 }  // down
+            ].filter(pos =>
+                pos.x >= 0 && pos.x < GRID_WIDTH &&
+                pos.y >= 0 && pos.y < GRID_HEIGHT
+            );
+
+            // Check each neighbor
+            for (const neighbor of endNeighbors) {
+                const neighborPipe = grid[neighbor.y][neighbor.x];
+                if (!neighborPipe || !neighborPipe.isColored) continue;
+
+                // Get the connections from this pipe
+                const connections = getPipeConnections(neighborPipe);
+
+                // Calculate direction to end
+                const dx = endPos.x - neighbor.x;
+                const dy = endPos.y - neighbor.y;
+
+                // Check if this pipe connects to the end
+                const connectsToEnd = connections.some(conn =>
+                    conn.dx === dx && conn.dy === dy
+                );
+
+                if (connectsToEnd) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function colorPipe(x, y, color) {
+            const gridElement = document.getElementById('grid');
+            const cellElement = gridElement.children[y * GRID_WIDTH + x];
+            const pipePath = cellElement.querySelector('.pipe-path');
+
+            if (pipePath) {
+                pipePath.setAttribute('stroke', color);
+                if (grid[y][x]) {
+                    const wasColoredBefore = grid[y][x].isColored;
+                    grid[y][x].isColored = (color === '#4CAF50');
+
+                    // If this pipe just got colored (wasn't colored before)
+                    if (!wasColoredBefore && grid[y][x].isColored) {
+                        console.log(`Pipe colored at ${x},${y}`);
+
+                        // Check if any colored pipe connects to the end
+                        if (isConnectedToEnd()) {
+                            console.log("Found connection to end!");
+                            handleLevelCompletion();
+                        }
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
+
+        // Helper function to validate the entire path from start to end
+        function validateFullPath() {
+            let queue = [{ x: startPos.x, y: startPos.y }];
+            let visited = new Set([`${startPos.x},${startPos.y}`]);
+
+            while (queue.length > 0) {
+                const current = queue.shift();
+
+                // If we're at the start position, add special start connections
+                if (current.x === startPos.x && current.y === startPos.y) {
+                    const possibleMoves = [
+                        { x: current.x + 1, y: current.y }, // right
+                        { x: current.x, y: current.y + 1 }  // down
+                    ];
+
+                    for (const move of possibleMoves) {
+                        if (move.x < GRID_WIDTH && move.y < GRID_HEIGHT) {
+                            const nextPipe = grid[move.y][move.x];
+                            if (nextPipe && nextPipe.isColored) {
+                                const connections = getPipeConnections(nextPipe);
+                                if (connections.some(conn =>
+                                    (conn.dx === -1 && move.x === current.x + 1) ||
+                                    (conn.dy === -1 && move.y === current.y + 1))) {
+                                    queue.push(move);
+                                    visited.add(`${move.x},${move.y}`);
+                                }
+                            }
+                        }
+                    }
+                    continue;
+                }
+
+                // For all other positions
+                const currentPipe = grid[current.y][current.x];
+                if (!currentPipe || !currentPipe.isColored) continue;
+
+                const connections = getPipeConnections(currentPipe);
+                for (const conn of connections) {
+                    const nextX = current.x + conn.dx;
+                    const nextY = current.y + conn.dy;
+                    const key = `${nextX},${nextY}`;
+
+                    // If we've reached the end, we're done
+                    if (nextX === endPos.x && nextY === endPos.y) {
+                        return true;
+                    }
+
+                    if (!visited.has(key) &&
+                        nextX >= 0 && nextX < GRID_WIDTH &&
+                        nextY >= 0 && nextY < GRID_HEIGHT) {
+                        const nextPipe = grid[nextY][nextX];
+                        if (nextPipe && nextPipe.isColored) {
+                            const nextConnections = getPipeConnections(nextPipe);
+                            if (nextConnections.some(nc => nc.dx === -conn.dx && nc.dy === -conn.dy)) {
+                                queue.push({ x: nextX, y: nextY });
+                                visited.add(key);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+
+        // Helper function to get pipe connections based on rotation
+        function getCornerConnections(rotation) {
+            switch (rotation) {
+                case 0: return ['right', 'down'];
+                case 90: return ['down', 'left'];
+                case 180: return ['left', 'up'];
+                case 270: return ['up', 'right'];
+                default: return [];
+            }
+        }
+
+        // Helper function to check if two sets of connections are the same
+        function areConnectionsSame(conn1, conn2) {
+            // Sort the connections to make comparison easier
+            const sorted1 = [...conn1].sort().join(',');
+            const sorted2 = [...conn2].sort().join(',');
+            return sorted1 === sorted2;
+        }
+
+        function validatePipePath() {
+            let current = { ...startPos };
+            let visited = new Set(`${startPos.x},${startPos.y}`);
+            let path = [current];
+
+            while (true) {
+                let nextPos = null;
+                const currentPipe = grid[current.y][current.x];
+
+                let connections = [];
+                if (currentPipe) {
+                    if (currentPipe.type === PIPE_TYPES.STRAIGHT) {
+                        if (currentPipe.rotation === 0 || currentPipe.rotation === 180) {
+                            connections = [{ x: 0, y: -1 }, { x: 0, y: 1 }];
+                        } else {
+                            connections = [{ x: -1, y: 0 }, { x: 1, y: 0 }];
+                        }
+                    } else if (currentPipe.type === PIPE_TYPES.CORNER) {
+                        switch (currentPipe.rotation) {
+                            case 0: connections = [{ x: 0, y: 1 }, { x: 1, y: 0 }]; break;    // bottom-right
+                            case 90: connections = [{ x: 0, y: -1 }, { x: 1, y: 0 }]; break;  // top-right
+                            case 180: connections = [{ x: 0, y: -1 }, { x: -1, y: 0 }]; break; // top-left
+                            case 270: connections = [{ x: 0, y: 1 }, { x: -1, y: 0 }]; break;  // bottom-left
+                        }
+                    }
+                }
+
+                // Try each possible connection
+                for (let conn of connections) {
+                    const newPos = { x: current.x + conn.x, y: current.y + conn.y };
+                    if (newPos.x >= 0 && newPos.x < GRID_WIDTH &&     // Changed from GRID_SIZE
+                        newPos.y >= 0 && newPos.y < GRID_HEIGHT &&    // Changed from GRID_SIZE
+                        !visited.has(`${newPos.x},${newPos.y}`)) {
+
+                        // Check if pipes connect properly
+                        const nextPipe = grid[newPos.y][newPos.x];
+                        if (nextPipe) {
+                            let isConnected = false;
+                            if (nextPipe.type === PIPE_TYPES.STRAIGHT) {
+                                if (conn.x === 0 && (nextPipe.rotation === 0 || nextPipe.rotation === 180)) isConnected = true;
+                                if (conn.y === 0 && (nextPipe.rotation === 90 || nextPipe.rotation === 270)) isConnected = true;
+                            } else if (nextPipe.type === PIPE_TYPES.CORNER) {
+                                const dx = -conn.x;
+                                const dy = -conn.y;
+                                switch (nextPipe.rotation) {
+                                    case 0: isConnected = (dy === -1 || dx === -1); break;   // bottom-right
+                                    case 90: isConnected = (dy === 1 || dx === -1); break;   // top-right
+                                    case 180: isConnected = (dy === 1 || dx === 1); break;   // top-left
+                                    case 270: isConnected = (dy === -1 || dx === 1); break;  // bottom-left
+                                }
+                            }
+                            if (isConnected) {
+                                nextPos = newPos;
+                                visited.add(`${nextPos.x},${nextPos.y}`);
+                                path.push(nextPos);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!nextPos) break;
+                current = nextPos;
+
+                if (current.x === endPos.x && current.y === endPos.y) {
+                    return path;
+                }
+            }
+            return null;
+        }
+
+        // Add this function to calculate animation duration
+        function getFlowAnimationDuration() {
+            // Base duration for 6x6 grid is 2 seconds
+            // Add 0.5 seconds for each additional row/column beyond 6
+            const baseSize = 6;
+            const baseDuration = 2;
+            const additionalTime = Math.max(GRID_WIDTH, GRID_HEIGHT) - baseSize;
+            return baseDuration + (additionalTime * 0.5);
+        }
+
+        // Modify the animateFlow function to use dynamic duration
+        function animateFlow(path) {
+            const container = document.querySelector('.game-container');
+            const overlay = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            overlay.classList.add('solution-overlay');
+
+            const cellSize = container.querySelector('.cell').offsetWidth;
+            const gridPadding = 10; // From CSS
+
+            overlay.setAttribute('viewBox', `0 0 ${GRID_WIDTH * cellSize} ${GRID_HEIGHT * cellSize}`);
+
+            let pathData = '';
+            path.forEach((pos, index) => {
+                const x = pos.x * cellSize + cellSize / 2;
+                const y = pos.y * cellSize + cellSize / 2;
+
+                if (index === 0) {
+                    pathData += `M ${x} ${y}`;
+                } else {
+                    pathData += ` L ${x} ${y}`;
+                }
+            });
+
+            const flowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            flowPath.setAttribute('d', pathData);
+            flowPath.classList.add('solution-path');
+            flowPath.classList.add('flowing');
+
+            overlay.appendChild(flowPath);
+            container.appendChild(overlay);
+
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    overlay.remove();
+                    resolve();
+                }, 2500); // Match this with your animation duration
+            });
+        }
+
+
+
+        // New dedicated achievements checking function
+        function checkLevelCompletionAchievements(stats) {
+            const { completionTime, moveCount, levelsCompleted, gridWidth, gridHeight } = stats;
+
+            // Time-based achievements
+            if (completionTime < 10) {
+                unlockAchievement('speedRunner');
+            }
+            if (completionTime < 5) {
+                unlockAchievement('speedrunnerElite');
+            }
+
+            // Move-based achievements
+            if (moveCount <= 5) {
+                unlockAchievement('quickThinking');
+            }
+
+            // Level progression achievements
+            if (levelsCompleted + 1 >= 10) {
+                unlockAchievement('persistent');
+            }
+            if (levelsCompleted + 1 >= 50) {
+                unlockAchievement('dedication');
+            }
+
+            // Grid size achievement
+            if (gridWidth >= 9 && gridHeight >= 9) {
+                unlockAchievement('gridMaster');
+            }
+
+            // Difficulty achievement
+            const difficulty = calculateLevelDifficulty().length;
+            if (difficulty >= 5) {
+                unlockAchievement('mastermind');
+            }
+        }
+
+        // Updated handleLevelCompletion function
+        function handleLevelCompletion() {
+            stopLevelTimer();
+
+            // Collect stats for achievements
+            const stats = {
+                completionTime: (Date.now() - levelStartTime) / 1000,
+                moveCount: moveCount,
+                levelsCompleted: levelsCompleted,
+                gridWidth: GRID_WIDTH,
+                gridHeight: GRID_HEIGHT
+            };
+
+            // checkAchievements();
+
+            checkAchievements(stats);
+            checkLevelCompletionAchievements(stats);
+            saveGameProgress();
+
+            levelsCompleted++;
+            showStarCelebration();
+
+            const modal = document.getElementById('completionModal');
+            modal.style.display = 'block';
+
+            document.getElementById('nextLevelButton').onclick = () => {
+                stopLevelTimer();
+                modal.style.display = 'none';
+
+                if (levelsCompleted % LEVELS_PER_EXPANSION === 0) {
+                    const expanded = handleGridExpansion();
+                    if (!expanded) {
+                        // Show maximum grid size message
+                        const message = document.createElement('div');
+                        message.className = 'level-message';
+                        message.textContent = 'Maximum grid size reached for your device!';
+                        message.style.cssText = `
+                    position: fixed;
+                    top: 20%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(74, 144, 226, 0.9);
+                    padding: 15px 30px;
+                    border-radius: 10px;
+                    color: white;
+                    z-index: 1000;
+                    animation: fadeInOut 2s ease-in-out forwards;
+                `;
+                        document.body.appendChild(message);
+                        setTimeout(() => message.remove(), 2000);
+                    }
+                    updateGridSize();
+                    updateCellSize();
+                }
+
+                currentLevel++;
+                updateLevelInfo();
+                applyLevelColors();
+                updateBackground();
+                initializeGrid();
+            };
+        }
+
+        // Updated checkSolution function
+        async function checkSolution() {
+            console.log("Checking solution...");
+
+            // Create a direct path without backtracking
+            let path = [];
+            const seen = new Set();
+
+            // Add start position
+            path.push(startPos);
+            seen.add(`${startPos.x},${startPos.y}`);
+
+            // Add each solution point, but only if we haven't seen it before
+            for (let pipe of solution) {
+                const key = `${pipe.x},${pipe.y}`;
+                if (!seen.has(key)) {
+                    path.push({ x: pipe.x, y: pipe.y });
+                    seen.add(key);
+                }
+            }
+
+            // Add end position if not already included
+            const endKey = `${endPos.x},${endPos.y}`;
+            if (!seen.has(endKey)) {
+                path.push(endPos);
+            }
+
+            console.log("Checking path:", path.map(pos => `(${pos.x},${pos.y})`));
+
+            let isValid = true;
+            for (let i = 0; i < path.length - 1; i++) {
+                const current = path[i];
+                const next = path[i + 1];
+
+                const currentPipe = (current.x === startPos.x && current.y === startPos.y) ?
+                    null : grid[current.y][current.x];
+                const nextPipe = (next.x === endPos.x && next.y === endPos.y) ?
+                    null : grid[next.y][next.x];
+
+                const dx = next.x - current.x;
+                const dy = next.y - current.y;
+
+                // Skip connection check for start and end positions
+                if ((current.x === startPos.x && current.y === startPos.y) ||
+                    (next.x === endPos.x && next.y === endPos.y)) {
+                    continue;
+                }
+
+                // Check if pipes are properly connected
+                if (!currentPipe || !nextPipe || !pipeConnects(currentPipe, nextPipe, dx, dy)) {
+                    console.log(`Failed connection at (${current.x},${current.y}) to (${next.x},${next.y})`);
+                    isValid = false;
+                    break;
+                }
+            }
+
+            if (isValid) {
+                // Remove any existing overlay before showing new animation
+                const existingOverlay = document.querySelector('.solution-overlay');
+                if (existingOverlay) {
+                    existingOverlay.remove();
+                }
+
+                // Collect stats for achievements
+                const stats = {
+                    completionTime: (Date.now() - levelStartTime) / 1000,
+                    moveCount: moveCount,
+                    levelsCompleted: levelsCompleted,
+                    gridWidth: GRID_WIDTH,
+                    gridHeight: GRID_HEIGHT
+                };
+
+                stopLevelTimer();
+
+                checkAchievements(stats);
+                // checkAchievements();
+                checkLevelCompletionAchievements(stats);
+                saveGameProgress();
+
+                // Show the animation
+                await animateFlow(path);
+                handleLevelCompletion();
+            } else {
+                alert("Not quite right. Keep trying!");
+            }
+        }
+
+        function pipeConnects(pipe1, pipe2, dx, dy) {
+            function getConnections(pipe) {
+                if (!pipe) return [];
+
+                if (pipe.type === PIPE_TYPES.STRAIGHT) {
+                    const isVertical = (pipe.rotation % 180) === 0;
+                    return isVertical ? ['up', 'down'] : ['left', 'right'];
+                } else if (pipe.type === PIPE_TYPES.CORNER) {
+                    switch (pipe.rotation) {
+                        case 0: return ['down', 'left'];     // bottom-left corner
+                        case 90: return ['up', 'left'];       // top-left corner
+                        case 180: return ['up', 'right'];      // top-right corner
+                        case 270: return ['down', 'right'];    // bottom-right corner
+                        default: return [];
+                    }
+                }
+                return [];
+            }
+
+            // Skip validation for start/end positions
+            if (!pipe1 || !pipe2) return true;
+
+            const conn1 = getConnections(pipe1);
+            const conn2 = getConnections(pipe2);
+
+            console.log('Connection check:', {
+                pipe1: `${pipe1.type}@${pipe1.rotation}° [${conn1.join(',')}]`,
+                pipe2: `${pipe2.type}@${pipe2.rotation}° [${conn2.join(',')}]`,
+                dir: `dx=${dx},dy=${dy}`
+            });
+
+            if (dx > 0) return conn1.includes('right') && conn2.includes('left');
+            if (dx < 0) return conn1.includes('left') && conn2.includes('right');
+            if (dy > 0) return conn1.includes('down') && conn2.includes('up');
+            if (dy < 0) return conn1.includes('up') && conn2.includes('down');
+
+            return false;
+        }
+
+        function generateLevelColors(level) {
+            // Base hue changes with each level
+            const hue = (level * 37) % 360; // Using 37 to get a nice color spread
+
+            // Every 5th level, create a contrasting scheme
+            const isContrastLevel = level % 5 === 0;
+
+            if (isContrastLevel) {
+                // Contrasting colors (opposite on color wheel)
+                return {
+                    background: `hsl(${hue}, 25%, 15%)`,  // Dark background
+                    gridBg: `hsl(${(hue + 180) % 360}, 30%, 20%)`,  // Complementary, slightly lighter
+                    pipeBg: `hsl(${hue}, 35%, 25%)`,  // Cell background
+                    pipeColor: `hsl(${(hue + 180) % 360}, 60%, 75%)`,  // Pipe color
+                    correctPipeColor: `hsl(${(hue + 120) % 360}, 70%, 60%)` // Success color
+                };
+            } else {
+                // Harmonious colors
+                return {
+                    background: `hsl(${hue}, 25%, 15%)`,  // Dark background
+                    gridBg: `hsl(${hue}, 30%, 20%)`,  // Slightly lighter
+                    pipeBg: `hsl(${hue}, 35%, 25%)`,  // Cell background
+                    pipeColor: `hsl(${(hue + 30) % 360}, 60%, 75%)`,  // Slightly shifted hue
+                    correctPipeColor: `hsl(${(hue + 120) % 360}, 70%, 60%)` // Success color
+                };
+            }
+        }
+
+        // Add this function to apply the colors
+        function applyLevelColors() {
+            const colors = generateLevelColors(currentLevel);
+
+            // Create or update the style element
+            let styleEl = document.getElementById('level-colors');
+            if (!styleEl) {
+                styleEl = document.createElement('style');
+                styleEl.id = 'level-colors';
+                document.head.appendChild(styleEl);
+            }
+
+            styleEl.textContent = `
+        body {
+            background: ${colors.background};
+            transition: background 0.5s ease;
+        }
+        
+        .grid {
+            background: ${colors.gridBg};
+            transition: background 0.5s ease;
+        }
+        
+        .cell {
+            background: ${colors.pipeBg};
+            transition: background 0.5s ease;
+        }
+        
+        .pipe-path {
+            stroke: ${colors.pipeColor};
+            transition: stroke 0.5s ease;
+        }
+        
+        .pipe-path[stroke="#4CAF50"] {
+            stroke: ${colors.correctPipeColor} !important;
+        }
+        
+        .start {
+            background: ${colors.correctPipeColor};
+            transition: background 0.5s ease;
+        }
+        
+        .end {
+            background: ${colors.pipeColor};
+            transition: background 0.5s ease;
+        }
+    `;
+        }
+
+
+        // Add these functions at the beginning of your script
+
+        function calculateMaxGridSize() {
+            // Get the game container area dimensions
+            const gameContainer = document.querySelector('.game-container');
+            const containerRect = gameContainer.getBoundingClientRect();
+
+            // Get the full game area including UI elements
+            const gameArea = document.body.getBoundingClientRect();
+
+            // Calculate minimum required spaces
+            const UI_PADDING = 40; // Space for padding
+            const MIN_CELL_SIZE = 40; // Minimum comfortable cell size
+            const UI_HEIGHT = 150; // Approximate height needed for UI elements (level info, buttons, etc.)
+
+            // Calculate available space
+            const availableWidth = gameArea.width - UI_PADDING;
+            const availableHeight = gameArea.height - UI_HEIGHT - UI_PADDING;
+
+            // Calculate maximum grid dimensions
+            const maxGridWidth = Math.floor(availableWidth / MIN_CELL_SIZE);
+            const maxGridHeight = Math.floor(availableHeight / MIN_CELL_SIZE);
+
+            console.log('Screen size calculations:', {
+                availableWidth,
+                availableHeight,
+                maxGridWidth,
+                maxGridHeight,
+                devicePixelRatio: window.devicePixelRatio
+            });
+
+            return {
+                maxWidth: Math.min(maxGridWidth, 12), // Cap at reasonable maximum
+                maxHeight: Math.min(maxGridHeight, 20) // Cap at reasonable maximum
+            };
+        }
+
+        // Modify the grid expansion logic
+        // function handleGridExpansion() {
+        //     const maxSize = calculateMaxGridSize();
+        //     const expandVertically = GRID_WIDTH >= maxSize.maxWidth;
+
+        //     if (expandVertically) {
+        //         // If we can't expand horizontally anymore, try vertical expansion
+        //         if (GRID_HEIGHT < maxSize.maxHeight) {
+        //             GRID_HEIGHT++;
+        //             return true;
+        //         }
+        //     } else {
+        //         // Try horizontal expansion first
+        //         if (GRID_WIDTH < maxSize.maxWidth) {
+        //             GRID_WIDTH++;
+        //             return true;
+        //         } else if (GRID_HEIGHT < maxSize.maxHeight) {
+        //             // If we can't expand horizontally, try vertical
+        //             GRID_HEIGHT++;
+        //             return true;
+        //         }
+        //     }
+
+        //     return false; // Cannot expand further
+        // }
+
+        function handleGridExpansion() {
+            const maxSize = calculateMaxGridSize();
+            console.log('Handling grid expansion:', {
+                currentWidth: GRID_WIDTH,
+                currentHeight: GRID_HEIGHT,
+                maxSize,
+                levelsCompleted
+            });
+
+            const expandVertically = GRID_WIDTH >= maxSize.maxWidth;
+
+            if (expandVertically) {
+                // If we can't expand horizontally anymore, try vertical expansion
+                if (GRID_HEIGHT < maxSize.maxHeight) {
+                    console.log('Expanding vertically:', GRID_HEIGHT + 1);
+                    GRID_HEIGHT++;
+                    return true;
+                }
+            } else {
+                // Try horizontal expansion first
+                if (GRID_WIDTH < maxSize.maxWidth) {
+                    console.log('Expanding horizontally:', GRID_WIDTH + 1);
+                    GRID_WIDTH++;
+                    return true;
+                } else if (GRID_HEIGHT < maxSize.maxHeight) {
+                    // If we can't expand horizontally, try vertical
+                    console.log('Switching to vertical expansion:', GRID_HEIGHT + 1);
+                    GRID_HEIGHT++;
+                    return true;
+                }
+            }
+
+            console.log('Cannot expand grid further');
+            return false;
+        }
+
+        // Make sure calculateMaxGridSize is called during initialization
+        function initializeGameBoard() {
+            console.log('Initializing game board');
+            const maxSize = calculateMaxGridSize();
+            console.log('Initial max size calculation:', maxSize);
+
+            GRID_WIDTH = Math.min(GRID_WIDTH, maxSize.maxWidth);
+            GRID_HEIGHT = Math.min(GRID_HEIGHT, maxSize.maxHeight);
+            updateGridSize();
+            updateCellSize();
+        }
+
+
+
+        // Update the cell size based on grid dimensions
+        function updateCellSize() {
+            const gameContainer = document.querySelector('.game-container');
+            const containerRect = gameContainer.getBoundingClientRect();
+
+            // Calculate cell size based on available space and grid dimensions
+            const maxCellWidth = (containerRect.width - 40) / GRID_WIDTH; // 40px for padding
+            const maxCellHeight = (containerRect.height - 40) / GRID_HEIGHT;
+            const cellSize = Math.min(maxCellWidth, maxCellHeight, 60); // Cap at maximum of 60px
+
+            // Update CSS for cells
+            const style = document.createElement('style');
+            style.textContent = `
+        .cell {
+            width: ${cellSize}px;
+            height: ${cellSize}px;
+            font-size: ${cellSize * 0.4}px;
+        }
+    `;
+
+            // Remove any existing cell size styles
+            const existingStyle = document.getElementById('cell-size-style');
+            if (existingStyle) {
+                existingStyle.remove();
+            }
+
+            style.id = 'cell-size-style';
+            document.head.appendChild(style);
+        }
+
+        // Modify your nextLevelButton click handler to use the new expansion logic
+        document.getElementById('nextLevelButton').onclick = () => {
+            stopLevelTimer();
+            const modal = document.getElementById('completionModal');
+            modal.style.display = 'none';
+
+            if (levelsCompleted % LEVELS_PER_EXPANSION === 0) {
+                const expanded = handleGridExpansion();
+                if (!expanded) {
+                    // If we couldn't expand, show a message to the player
+                    const message = document.createElement('div');
+                    message.className = 'level-message';
+                    message.textContent = 'Maximum grid size reached for your device!';
+                    message.style.cssText = `
+                position: fixed;
+                top: 20%;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(74, 144, 226, 0.9);
+                padding: 15px 30px;
+                border-radius: 10px;
+                color: white;
+                z-index: 1000;
+                animation: fadeInOut 2s ease-in-out forwards;
+            `;
+                    document.body.appendChild(message);
+                    setTimeout(() => message.remove(), 2000);
+                }
+                updateGridSize();
+                updateCellSize();
+            }
+
+            currentLevel++;
+            updateLevelInfo();
+            applyLevelColors();
+            updateBackground();
+            initializeGrid();
+        };
+
+        // Add a resize handler to update cell sizes when the window is resized
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                console.log('Window resized, recalculating grid size');
+                const maxSize = calculateMaxGridSize();
+                console.log('New max size after resize:', maxSize);
+                updateCellSize();
+            }, 250);
+        });
+        // Call these functions during initial setup
+        // function initializeGameBoard() {
+        //     const maxSize = calculateMaxGridSize();
+        //     GRID_WIDTH = Math.min(GRID_WIDTH, maxSize.maxWidth);
+        //     GRID_HEIGHT = Math.min(GRID_HEIGHT, maxSize.maxHeight);
+        //     updateGridSize();
+        //     updateCellSize();
+        // }
+
+        document.getElementById('startButton').addEventListener('click', () => {
+            console.log('Game starting');
+            document.getElementById('startMenu').style.display = 'none';
+            initializeGameBoard();  // This will trigger the calculations
+            applyLevelColors();
+            updateBackground();
+            initializeGrid();
+        });
+
+
+
+
+        // document.getElementById('startButton').addEventListener('click', () => {
+        //     document.getElementById('startMenu').style.display = 'none';
+        //     applyLevelColors();  // Add this line
+        //     updateBackground();
+        //     initializeGrid();
+        // });
+
+        // document.getElementById('checkButton').addEventListener('click', checkSolution);
+        document.getElementById('achievementsButton').addEventListener('click', showAchievementsPanel);
+        document.getElementById('resetButton').addEventListener('click', initializeGrid);
+
+        // Prevent default touch behavior
+        document.addEventListener('touchmove', (e) => {
+            // Only prevent default if more than one touch point
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // Update the double-tap prevention
+        document.addEventListener('touchend', (function () {
+            let lastTap = 0;
+            return function (e) {
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTap;
+                if (tapLength < 300 && tapLength > 0) {
+                    e.preventDefault();
+                }
+                lastTap = currentTime;
+            };
+        })());
+
+
+
+        let lastTouchEnd = 0;
+
+        const existingHandlers = document.querySelectorAll('[data-touch-handler]');
+        existingHandlers.forEach(handler => handler.remove());
+
+        // Add only essential global touch handling
+        document.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 1) e.preventDefault();
+        }, { passive: false });
+
+        // Clear any existing touchend handlers and add just one
+        const existingTouchEndHandlers = document.querySelectorAll('[data-touchend-handler]');
+        existingTouchEndHandlers.forEach(handler => handler.remove());
+
+        // Debug logging for touch events at document level
+        document.addEventListener('touchstart', (e) => {
+            console.log('Document touchstart:', {
+                target: e.target.className,
+                touches: e.touches.length
+            });
+        }, { passive: true });
+
+        document.addEventListener('touchend', (e) => {
+            console.log('Document touchend:', {
+                target: e.target.className,
+                touches: e.touches.length
+            });
+        }, { passive: true });
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const achievementsButton = document.getElementById('achievementsButton');
+            if (achievementsButton) {
+                achievementsButton.addEventListener('click', showAchievementsPanel);
+            }
+            updateStartMenu();
+
+            // Check for veteran achievement
+            const lastPlayed = loadGameProgress()?.lastPlayed;
+            if (lastPlayed) {
+                const playDates = JSON.parse(localStorage.getItem('pipeDreamPlayDates') || '[]');
+                const today = new Date().toDateString();
+                if (!playDates.includes(today)) {
+                    playDates.push(today);
+                    localStorage.setItem('pipeDreamPlayDates', JSON.stringify(playDates));
+                    if (playDates.length >= 5) {
+                        unlockAchievement('veteran');
+                    }
+                }
+            }
+        });
+
+    </script>
+</body>
+
+</html>

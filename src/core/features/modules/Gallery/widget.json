@@ -1,0 +1,13 @@
+{
+    "name": "Gallery",
+    "description": "A gallery with folder navigation",
+    "version": "1.0.0",
+    "icon": "perm_media",
+    "settings": {
+        "size": {
+            "width": 800,
+            "height": 800
+        },
+        "autoload": true
+    }
+}

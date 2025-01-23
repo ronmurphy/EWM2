@@ -1,0 +1,4064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Cursor Creator</title>
+    <meta name="description" content="Advanced cursor design tool with real-time preview, animations, and advanced editing features">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>  <!-- Add this line -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+    <!-- Add GSAP for animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --background-color: #1a1a1a;
+            --text-color: #ffffff;
+            --accent-color: #FF4081;
+            --success-color: #4CAF50;
+            --warning-color: #FFC107;
+            --error-color: #FF5252;
+            --panel-bg: #2a2a2a;
+            --hover-bg: #3a3a3a;
+            --border-color: #404040;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        /* .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        } */
+
+        .container {
+    max-width: 98%; /* Instead of fixed pixels */
+    margin: 0 auto;
+    height: 98vh; /* Use most of the viewport height */
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: var(--panel-bg);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        /* .workspace {
+            display: grid;
+            grid-template-columns: 350px 1fr 250px;
+            gap: 20px;
+            height: calc(100vh - 200px);
+        } */
+
+
+
+        /* .panel {
+            background: var(--panel-bg);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+        } */
+
+        .workspace {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 400px 1fr 300px; /* Wider panels */
+    gap: 20px;
+    height: calc(95vh - 100px); /* Adjust for header */
+}
+
+/* Panel sizing */
+.panel {
+    min-height: 0; /* Allow panels to scroll properly */
+    display: flex;
+    flex-direction: column;
+}
+
+        .panel h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel h3 i {
+            font-size: 1.2em;
+        }
+
+        /* Template Grid Styles */
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            gap: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .cursor-template {
+            aspect-ratio: 1;
+            background: var(--panel-bg);
+            border-radius: 6px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        .cursor-template:hover {
+            background: var(--hover-bg);
+            transform: scale(1.05);
+        }
+
+        .cursor-template.active {
+            border-color: var(--primary-color);
+            background: var(--hover-bg);
+        }
+
+        /* Layer Controls */
+        .layer-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .layer-item {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto; /* Changed to include buttons inline */
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+        .layer-drag-handle {
+            cursor: move;
+            color: var(--text-color);
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+
+        .layer-drag-handle:hover {
+            opacity: 1;
+        }
+
+        .layer-content {
+    display: flex;
+    align-items: center; /* Changed to align horizontally */
+    gap: 8px;
+}
+
+.layer-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.layer-buttons {
+    display: flex;
+    gap: 4px;
+}
+
+        .layer-name {
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .layer-controls-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        /* Preview Area */
+        .preview-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .preview-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .preview-box {
+            flex: 1;
+            background: #fff;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-box.dark {
+            background: #000;
+        }
+
+        .preview-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-size: 16px 16px;
+            background-image: linear-gradient(45deg, #808080 25%, transparent 25%),
+                            linear-gradient(-45deg, #808080 25%, transparent 25%),
+                            linear-gradient(45deg, transparent 75%, #808080 75%),
+                            linear-gradient(-45deg, transparent 75%, #808080 75%);
+            opacity: 0.1;
+        }
+
+        .cursor-preview {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            pointer-events: none;
+            transform-origin: top left;
+        }
+
+        /* Animation Panel */
+        .animation-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .animation-timeline {
+            height: 150px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            position: relative;
+        }
+
+        .timeline-markers {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 20px;
+            display: flex;
+            padding: 0 20px;
+        }
+
+        .timeline-marker {
+            flex: 1;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .timeline-marker::after {
+            content: attr(data-time);
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: var(--text-color);
+            opacity: 0.5;
+        }
+
+        /* Buttons and Controls */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background: var(--panel-bg);
+            color: var(--text-color);
+        }
+
+        .btn:hover {
+            background: var(--hover-bg);
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-color);
+            filter: brightness(1.1);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Tool Controls */
+        .tool-controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .tool-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            cursor: pointer;
+            background: var(--panel-bg);
+            color: var(--text-color);
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .tool-btn:hover {
+            background: var(--hover-bg);
+        }
+
+        .tool-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Hotspot Editor */
+        .hotspot-editor {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        .hotspot-editor.active {
+            pointer-events: all;
+            cursor: crosshair;
+        }
+
+        .hotspot-point {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Size Controls */
+        .size-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .size-input {
+            width: 60px;
+            padding: 4px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--panel-bg);
+            color: var(--text-color);
+            text-align: center;
+        }
+
+        /* Animation Controls */
+        .animation-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .play-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .animation-timeline {
+            flex: 1;
+            height: 36px;
+            background: var(--panel-bg);
+            border-radius: 18px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timeline-progress {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            background: var(--primary-color);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        /* Export Panel */
+        .export-panel {
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin-top: auto;
+        }
+
+        .export-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .export-option label {
+            flex: 1;
+        }
+
+        /* Tooltips */
+        [data-tooltip] {
+            position: relative;
+        }
+
+        [data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+        }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--panel-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-color);
+        }
+
+        /* Color Picker Enhancements */
+        .pickr {
+            width: 100%;
+        }
+
+        .pickr .pcr-button {
+            width: 100%;
+            height: 30px;
+            border-radius: 6px;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Add these styles to your existing CSS section */
+
+.palette-toolbar {
+    display: flex;
+    gap: 8px;
+    padding: 4px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    margin-top: 8px;
+}
+
+.palette-preview-dots {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+    justify-content: center;
+}
+
+.palette-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.palette-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+    padding: 8px;
+    background: var(--panel-bg);
+    border-radius: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.palette-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border: none;
+    border-radius: 6px;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: capitalize;
+}
+
+.palette-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.palette-preview {
+    display: flex;
+    gap: 2px;
+    padding: 2px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.palette-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.palette-dropdown {
+    position: relative;
+    margin: 10px 0;
+}
+
+.palette-dropdown-content {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--panel-bg);
+    border-radius: 8px;
+    padding: 8px;
+    margin-top: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+}
+
+.palette-dropdown-content.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Animation for palette selection */
+@keyframes palette-pop {
+    0% { transform: scale(0.95); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+.palette-btn:active {
+    animation: palette-pop 0.2s ease;
+}
+
+/* Scrollbar styles for palette grid */
+.palette-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.palette-grid::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+}
+
+.palette-grid::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 3px;
+}
+
+.palette-grid::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-color);
+}
+
+/* Quick access palette section */
+.quick-palettes {
+    display: flex;
+    gap: 4px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+.quick-palette-btn {
+    padding: 4px;
+    border-radius: 4px;
+    border: none;
+    background: var(--panel-bg);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.quick-palette-btn:hover {
+    background: var(--hover-bg);
+}
+
+.quick-palette-btn .palette-preview {
+    transform: scale(0.8);
+}
+
+.palette-section {
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+.palette-section h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+    color: var(--primary-color);
+}
+
+.palette-section h3 i {
+    font-size: 1.2em;
+}
+
+.palette-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 4px;
+}
+
+.palette-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px;
+    background: var(--panel-bg);
+    border: none;
+    border-radius: 6px;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.palette-btn:hover {
+    background: var(--hover-bg);
+    transform: translateY(-1px);
+}
+
+.palette-preview {
+    display: flex;
+    gap: 2px;
+}
+
+.palette-color {
+    width: 15px;
+    height: 15px;
+    border-radius: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.palette-btn span {
+    flex: 1;
+    text-align: left;
+    text-transform: capitalize;
+    font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.collapsible-section {
+    margin: 15px 0;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.section-header {
+    padding: 0;
+}
+
+.section-toggle {
+    width: 100%;
+    padding: 12px 15px;
+    background: none;
+    border: none;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.section-toggle:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.section-toggle i:first-child {
+    color: var(--primary-color);
+}
+
+.section-toggle span {
+    flex: 1;
+    text-align: left;
+    font-weight: bold;
+}
+
+.toggle-icon {
+    transition: transform 0.2s ease;
+}
+
+.section-content {
+    max-height: 500px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    padding: 0 15px 15px;
+}
+
+.section-content.collapsed {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+/* Update existing palette grid styles */
+.palette-grid {
+    margin-top: 10px;
+}
+
+/* Update existing template grid styles */
+.template-grid {
+    margin-top: 10px;
+}
+
+/* Add or update these styles in your CSS */
+.collapsible-section {
+    margin: 15px 0;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.section-header {
+    padding: 0;
+}
+
+.section-toggle {
+    width: 100%;
+    padding: 12px 15px;
+    background: none;
+    border: none;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.section-toggle:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.section-toggle i:first-child {
+    color: var(--primary-color);
+    width: 20px;
+    text-align: center;
+}
+
+.section-toggle span {
+    flex: 1;
+    text-align: left;
+    font-weight: bold;
+}
+
+.toggle-icon {
+    transition: transform 0.3s ease;
+}
+
+.section-content {
+    max-height: 500px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+    padding: 15px;
+}
+
+.section-content.collapsed {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.template-grid, .palette-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    gap: 10px;
+    margin: 0;
+}
+
+.template-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Update these styles in your CSS section */
+
+.section-content {
+    max-height: 500px;
+    overflow-y: auto;
+    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+    padding: 15px;
+}
+
+/* Ensure template grid scrolls properly */
+.template-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    gap: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 8px; /* Space for scrollbar */
+}
+
+/* Style the scrollbar */
+.template-grid::-webkit-scrollbar,
+.section-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.template-grid::-webkit-scrollbar-track,
+.section-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.template-grid::-webkit-scrollbar-thumb,
+.section-content::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+/* Style the palette grid */
+.palette-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+    padding: 4px;
+}
+
+.palette-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border: none;
+    border-radius: 6px;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.palette-preview {
+    display: flex;
+    gap: 2px;
+}
+
+.palette-color {
+    width: 15px;
+    height: 15px;
+    border-radius: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Help system styles */
+.help-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.help-content {
+    max-width: 800px;
+    margin: 40px auto;
+    background: var(--panel-bg);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.help-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.help-sections {
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.help-section {
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+.help-section h3 {
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+.help-section ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.help-section li {
+    margin-bottom: 8px;
+    padding-left: 20px;
+    position: relative;
+}
+
+.help-section li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: var(--primary-color);
+}
+
+/* Add help button to header */
+.header {
+    position: relative;
+}
+
+.help-btn {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* hot fix */
+
+.layer-item {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    cursor: move; /* Indicate draggable */
+}
+
+.layer-item-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Top row styling */
+.layer-item-top {
+    justify-content: space-between;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.layer-name {
+    font-weight: 500;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.layer-controls {
+    display: flex;
+    gap: 4px;
+}
+
+/* Bottom row styling */
+.layer-item-bottom {
+    justify-content: space-between;
+}
+
+.color-picker-wrapper {
+    flex: 1;
+    min-width: 80px;
+}
+
+.blend-mode-select {
+    flex: 1;
+    min-width: 100px;
+    background: var(--panel-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 4px;
+}
+
+.layer-actions {
+    display: flex;
+    gap: 4px;
+}
+
+/* Tool buttons in layers */
+.tool-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--panel-bg);
+    border: none;
+    border-radius: 4px;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tool-btn:hover {
+    background: var(--hover-bg);
+}
+
+/* part 2 */
+
+/* Main layers container */
+.layer-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Individual layer header */
+.layer-header {
+    display: flex;
+    flex-direction: row;  /* Make name and buttons horizontal */
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.layer-name {
+    flex: 1;
+}
+
+.layer-buttons {
+    display: flex;
+    gap: 4px;
+}
+
+/* Style for visibility and lock buttons */
+.layer-buttons .tool-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+}
+
+/* Keep existing layer-item-row and layer-item-top styles */
+.layer-item-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.layer-item-top {
+    display: flex;
+    flex-direction: row;  /* Ensure it's a row */
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* New class for the buttons container */
+.layer-visibility-buttons {  /* New class name instead of layer-controls */
+    display: flex;
+    flex-direction: row;  /* Make buttons horizontal */
+    align-items: center;
+    gap: 4px;
+}
+
+.layer-name {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bulk-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.bulk-actions .tool-btn {
+    flex: 0 0 auto;
+}
+
+.tool-btn#helpBtn {
+    margin-left: 8px;
+}
+
+/* FSU */
+
+
+.container {
+    width: 98%;
+    height: 98vh;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 10px;
+}
+
+
+
+.panel {
+    background: var(--panel-bg);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.preview-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.preview-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    flex-wrap: wrap;
+}
+
+.preview-box {
+    flex: 1;
+    background: #ffffff;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    min-height: 0;  /* Important for proper sizing */
+}
+
+/* Properties panel specific */
+.properties-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow-y: auto;
+}
+
+.properties-content {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Animation controls */
+.animation-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    margin-top: auto;
+}
+
+.animation-timeline {
+    flex: 1;
+    height: 36px;
+    background: var(--panel-bg);
+    border-radius: 18px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Help modal */
+.help-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+}
+
+.help-content {
+    position: relative;
+    width: 90%;
+    max-width: 800px;
+    margin: 40px auto;
+    background: var(--panel-bg);
+    border-radius: 12px;
+    padding: 20px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.bulk-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.bulk-actions .tool-btn {
+    flex: 0 0 auto;
+}
+/* Make sure layers are draggable */
+.layer-item {
+    cursor: move; /* Show it's draggable */
+    user-select: none; /* Prevent text selection while dragging */
+}
+
+.layer-drag-handle {
+    cursor: move;
+    padding: 4px;
+    color: var(--text-color);
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+
+.layer-drag-handle:hover {
+    opacity: 1;
+}
+
+/* Style while dragging */
+.sortable-ghost {
+    opacity: 0.4;
+}
+
+.sortable-drag {
+    opacity: 0.8;
+}
+
+/* fuck this shit */
+
+.section-content {
+    max-height: 400px; /* Increased from previous value */
+    overflow-y: auto;
+    padding: 15px;
+    /* Ensure content is fully visible */
+    margin-bottom: 10px;
+}
+
+/* Make sure the grid is fully visible */
+.template-grid, .palette-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    gap: 10px;
+    padding-right: 8px; /* Space for scrollbar */
+    min-height: min-content; /* Ensure all content is accessible */
+}
+
+/* Style scrollbars for better visibility */
+.section-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.section-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+.section-content::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+
+
+</style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Advanced Cursor Creator</h1>
+            <p>Design custom cursors with advanced features, animations, and real-time preview</p>
+        </div>
+    
+        <div class="workspace">
+            <!-- Left Panel: Tools and Layers -->
+            <div class="panel tools-panel">
+                <!-- Collapsible Templates Section -->
+                <div class="collapsible-section template-section">
+                    <div class="section-header">
+                        <button class="section-toggle">
+                            <i class="fas fa-shapes"></i>
+                            <span>Cursor Templates</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                    </div>
+                    <div class="section-content collapsed">
+                        <div class="template-categories">
+                            <div class="template-grid" id="templateGrid"></div>
+                        </div>
+                    </div>
+                </div>
+    
+                <!-- Collapsible Palettes Section -->
+                <div class="collapsible-section palette-section">
+                    <div class="section-header">
+                        <button class="section-toggle">
+                            <i class="fas fa-palette"></i>
+                            <span>Color Palettes</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                    </div>
+                    <div class="section-content collapsed">
+                        <div class="palette-grid" id="paletteGrid"></div>
+                    </div>
+                </div>
+    
+                <!-- Layers Section -->
+                <h3><i class="fas fa-layer-group"></i> Layers</h3>
+                <div class="tool-controls">
+                    <button class="tool-btn" data-tooltip="New Project" id="newProjectBtn">
+                        <i class="fas fa-file"></i>
+                    </button>
+                    <button class="tool-btn" data-tooltip="Add Layer" id="addLayerBtn">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button class="tool-btn" data-tooltip="Group Layers" id="groupLayersBtn">
+                        <i class="fas fa-object-group"></i>
+                    </button>
+                    <button class="tool-btn" data-tooltip="Merge Layers" id="mergeLayersBtn">
+                        <i class="fas fa-compress-arrows-alt"></i>
+                    </button>
+                    <button class="tool-btn" data-tooltip="Clear All" id="clearLayersBtn">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+                <div class="layer-controls" id="layerControls"></div>
+            </div>
+    
+            <!-- Center Panel: Preview -->
+            <div class="panel preview-panel">
+                <div class="preview-controls">
+                    <div class="btn-group">
+                        <button class="tool-btn" data-tooltip="Toggle Grid" id="toggleGridBtn">
+                            <i class="fas fa-border-all"></i>
+                        </button>
+                        <button class="tool-btn" data-tooltip="Toggle Background" id="toggleBgBtn">
+                            <i class="fas fa-adjust"></i>
+                        </button>
+                        <button class="tool-btn" data-tooltip="Set Hotspot" id="setHotspotBtn">
+                            <i class="fas fa-crosshairs"></i>
+                        </button>
+                    </div>
+    
+                    <div class="size-controls">
+                        <label>Size:</label>
+                        <input type="number" class="size-input" id="cursorWidth" value="32" min="16" max="128">
+                        <span>×</span>
+                        <input type="number" class="size-input" id="cursorHeight" value="32" min="16" max="128">
+                    </div>
+    
+                    <div class="btn-group">
+                        <button class="tool-btn" data-tooltip="Zoom Out" id="zoomOutBtn">
+                            <i class="fas fa-search-minus"></i>
+                        </button>
+                        <select class="size-input" id="zoomLevel">
+                            <option value="0.5">50%</option>
+                            <option value="1" selected>100%</option>
+                            <option value="2">200%</option>
+                            <option value="4">400%</option>
+                        </select>
+                        <button class="tool-btn" data-tooltip="Zoom In" id="zoomInBtn">
+                            <i class="fas fa-search-plus"></i>
+                        </button>
+                    </div>
+    
+                    <button class="tool-btn" data-tooltip="Help" id="helpBtn">
+                        <i class="fas fa-question-circle"></i>
+                    </button>
+                </div>
+    
+                <div class="preview-box" id="previewBox">
+                    <div class="preview-background"></div>
+                    <div id="cursorPreview" class="cursor-preview"></div>
+                    <div class="hotspot-editor" id="hotspotEditor"></div>
+                </div>
+    
+                <div class="animation-controls">
+                    <button class="play-btn" id="playAnimationBtn">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <div class="animation-timeline">
+                        <div class="timeline-progress" id="timelineProgress"></div>
+                    </div>
+                    <button class="tool-btn" data-tooltip="Loop Animation" id="loopAnimationBtn">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                </div>
+            </div>
+    
+            <!-- Right Panel: Properties and Export -->
+            <div class="panel properties-panel">
+                <h3><i class="fas fa-sliders-h"></i> Properties</h3>
+                <div class="properties-content" id="propertiesContent">
+                    <!-- Dynamic properties will be inserted here -->
+                </div>
+    
+                <div class="animation-panel">
+                    <h3><i class="fas fa-film"></i> Animation</h3>
+                    <div class="tool-controls">
+                        <button class="tool-btn" data-tooltip="Add Keyframe" id="addKeyframeBtn">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="tool-btn" data-tooltip="Remove Keyframe" id="removeKeyframeBtn">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button class="tool-btn" data-tooltip="Clear Animation" id="clearAnimationBtn">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                    <div id="keyframeTimeline" class="animation-timeline">
+                        <!-- Keyframes will be inserted here -->
+                    </div>
+                </div>
+    
+                <div class="export-panel">
+                    <h3><i class="fas fa-file-export"></i> Export</h3>
+                    <div class="export-option">
+                        <label>Format:</label>
+                        <select class="size-input" id="exportFormat">
+                            <option value="png">PNG</option>
+                            <option value="svg">SVG</option>
+                            <option value="css">CSS</option>
+                            <option value="ani">Animated Cursor</option>
+                        </select>
+                    </div>
+                    <div class="export-option">
+                        <label>Size:</label>
+                        <select class="size-input" id="exportSize">
+                            <option value="1">1x</option>
+                            <option value="2">2x</option>
+                            <option value="3">3x</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" id="exportBtn">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Help Modal -->
+    <div class="help-modal" id="helpModal">
+        <div class="help-content">
+            <div class="help-header">
+                <h2>Advanced Cursor Creator Help</h2>
+                <button class="close-btn" id="closeHelpBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="help-sections">
+                <div class="help-section">
+                    <h3>Getting Started</h3>
+                    <ul>
+                        <li>Choose a cursor template from the Templates section</li>
+                        <li>Apply a color palette or customize colors manually</li>
+                        <li>Adjust layer properties and blend modes</li>
+                        <li>Set the cursor hotspot using the crosshair tool</li>
+                    </ul>
+                </div>
+                <div class="help-section">
+                    <h3>Working with Layers</h3>
+                    <ul>
+                        <li>Each template creates multiple layers for detailed control</li>
+                        <li>Toggle layer visibility with the eye icon</li>
+                        <li>Lock layers to prevent accidental changes</li>
+                        <li>Drag layers to reorder them</li>
+                    </ul>
+                </div>
+                <div class="help-section">
+                    <h3>Animation</h3>
+                    <ul>
+                        <li>Add keyframes to create animations</li>
+                        <li>Adjust properties at different keyframes</li>
+                        <li>Preview animation with play/pause controls</li>
+                        <li>Toggle animation loop with the loop button</li>
+                    </ul>
+                </div>
+                <div class="help-section">
+                    <h3>Exporting</h3>
+                    <ul>
+                        <li>Export as PNG for static cursors</li>
+                        <li>Use SVG export for scalable cursors</li>
+                        <li>Export CSS for web integration</li>
+                        <li>Create animated cursors with the ANI format</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Keyframe Modal Template -->
+    <template id="keyframeModal">
+        <div class="modal keyframe-modal">
+            <div class="modal-content">
+                <h3>Edit Keyframe</h3>
+                <div class="keyframe-properties">
+                    <!-- Keyframe properties will be inserted here -->
+                </div>
+                <div class="modal-actions">
+                    <button class="btn" data-action="cancel">Cancel</button>
+                    <button class="btn btn-primary" data-action="save">Save</button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        // Core Classes
+        class CursorLayer {
+    constructor(id, name, svgContent, color = '#000000', blendMode = 'normal', opacity = 1) {
+        this.id = id;
+        this.name = name;
+        this.svgContent = svgContent;
+        this.color = color;
+        this.blendMode = blendMode;
+        this.opacity = opacity;
+        this.visible = true;
+        this.locked = false;
+        this.transforms = {
+            translateX: 0,
+            translateY: 0,
+            rotate: 0,
+            scaleX: 1,
+            scaleY: 1
+        };
+        this.animation = null;
+    }
+
+    clone() {
+        const clone = new CursorLayer(
+            `${this.id}_clone`,
+            `${this.name} Copy`,
+            this.svgContent,
+            this.color,
+            this.blendMode,
+            this.opacity
+        );
+        clone.transforms = { ...this.transforms };
+        clone.visible = this.visible;
+        clone.locked = this.locked;
+        if (this.animation) {
+            clone.animation = this.animation.clone();
+        }
+        return clone;
+    }
+
+    toSVG() {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        svg.innerHTML = this.svgContent;
+        svg.style.mixBlendMode = this.blendMode;
+        svg.style.opacity = this.opacity;
+        
+        // Apply transforms
+        const transform = [];
+        if (this.transforms.translateX || this.transforms.translateY) {
+            transform.push(`translate(${this.transforms.translateX},${this.transforms.translateY})`);
+        }
+        if (this.transforms.rotate) {
+            transform.push(`rotate(${this.transforms.rotate})`);
+        }
+        if (this.transforms.scaleX !== 1 || this.transforms.scaleY !== 1) {
+            transform.push(`scale(${this.transforms.scaleX},${this.transforms.scaleY})`);
+        }
+        
+        if (transform.length) {
+            svg.setAttribute('transform', transform.join(' '));
+        }
+
+        // Apply color to the path within this layer
+        const path = svg.querySelector('path');
+        if (path) {
+            path.style.fill = this.color;
+        }
+
+        return svg;
+    }
+
+    // Animation support
+    applyAnimationFrame(time) {
+        if (!this.animation) return;
+        
+        const properties = this.animation.getPropertiesAtTime(time);
+        if (!properties) return;
+
+        // Apply animated properties
+        Object.assign(this.transforms, {
+            translateX: properties.translateX ?? this.transforms.translateX,
+            translateY: properties.translateY ?? this.transforms.translateY,
+            rotate: properties.rotate ?? this.transforms.rotate,
+            scaleX: properties.scaleX ?? this.transforms.scaleX,
+            scaleY: properties.scaleY ?? this.transforms.scaleY
+        });
+        
+        if (properties.opacity !== undefined) this.opacity = properties.opacity;
+        if (properties.color !== undefined) this.color = properties.color;
+    }
+}
+        
+class CursorAnimation {
+    constructor() {
+        this.keyframes = new Map();  // time -> properties mapping
+        this.duration = 1000;        // Default 1 second duration
+        this.easing = 'linear';      // Default easing function
+        this.loop = false;           // Animation loop state
+    }
+
+    addKeyframe(time, properties) {
+        this.keyframes.set(time, { ...properties });
+    }
+
+    removeKeyframe(time) {
+        this.keyframes.delete(time);
+    }
+
+    getKeyframeAtTime(time) {
+        return this.keyframes.get(time);
+    }
+
+    clone() {
+        const clone = new CursorAnimation();
+        clone.duration = this.duration;
+        clone.easing = this.easing;
+        clone.loop = this.loop;
+        this.keyframes.forEach((props, time) => {
+            clone.keyframes.set(time, { ...props });
+        });
+        return clone;
+    }
+
+    getPropertiesAtTime(time) {
+        if (this.keyframes.size === 0) return null;
+        
+        // Handle looping
+        if (this.loop) {
+            time = time % this.duration;
+        }
+
+        // Get sorted keyframe times
+        const keyframeTimes = Array.from(this.keyframes.keys()).sort((a, b) => a - b);
+        
+        // Find surrounding keyframes
+        let prevTime = keyframeTimes[0];
+        let nextTime = keyframeTimes[keyframeTimes.length - 1];
+        
+        for (const t of keyframeTimes) {
+            if (t <= time) prevTime = t;
+            if (t >= time && nextTime > t) nextTime = t;
+        }
+
+        // If exactly on a keyframe, return those properties
+        if (prevTime === nextTime) {
+            return { ...this.keyframes.get(prevTime) };
+        }
+
+        // Interpolate between keyframes
+        const prevProps = this.keyframes.get(prevTime);
+        const nextProps = this.keyframes.get(nextTime);
+        const progress = (time - prevTime) / (nextTime - prevTime);
+        
+        return this.interpolateProperties(prevProps, nextProps, this.getEasing(progress));
+    }
+
+    interpolateProperties(start, end, progress) {
+        const result = {};
+        
+        for (const key in start) {
+            if (typeof start[key] === 'number') {
+                result[key] = start[key] + (end[key] - start[key]) * progress;
+            } else if (key === 'color') {
+                // Interpolate colors
+                result[key] = this.interpolateColor(start[key], end[key], progress);
+            } else {
+                result[key] = progress < 0.5 ? start[key] : end[key];
+            }
+        }
+        
+        return result;
+    }
+
+    interpolateColor(start, end, progress) {
+        // Convert hex to RGB for interpolation
+        const startRGB = this.hexToRGB(start);
+        const endRGB = this.hexToRGB(end);
+        
+        const r = Math.round(startRGB.r + (endRGB.r - startRGB.r) * progress);
+        const g = Math.round(startRGB.g + (endRGB.g - startRGB.g) * progress);
+        const b = Math.round(startRGB.b + (endRGB.b - startRGB.b) * progress);
+        
+        return this.rgbToHex(r, g, b);
+    }
+
+    hexToRGB(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : { r: 0, g: 0, b: 0 };
+    }
+
+    rgbToHex(r, g, b) {
+        return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+    }
+
+    getEasing(progress) {
+        // Add more easing functions as needed
+        switch (this.easing) {
+            case 'easeInOut':
+                return progress < 0.5
+                    ? 2 * progress * progress
+                    : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+            case 'easeIn':
+                return progress * progress;
+            case 'easeOut':
+                return 1 - Math.pow(1 - progress, 2);
+            default: // linear
+                return progress;
+        }
+    }
+}
+        
+class CursorManager {
+    constructor() {
+        this.layers = new Map();
+        this.selectedLayerIds = new Set();
+        this.hotspot = { x: 0, y: 0 };
+        this.size = { width: 32, height: 32 };
+        this.zoom = 1;
+        this.isSettingHotspot = false;
+        this.lastMousePosition = null;
+        this.isDragging = false;
+        this.showGrid = true;
+        this.darkBackground = false;
+
+        // Animation state
+        this.timeline = {
+            duration: 1000,
+            currentTime: 0,
+            isPlaying: false,
+            loop: false,
+            lastFrameTime: null
+        };
+
+        // Cache DOM elements
+        this.previewBox = document.getElementById('previewBox');
+        this.cursorPreview = document.getElementById('cursorPreview');
+        this.layerControls = document.getElementById('layerControls');
+        this.propertiesContent = document.getElementById('propertiesContent');
+        this.timelineProgress = document.getElementById('timelineProgress');
+        
+        this.initializeEventListeners();
+        this.initializeSortableLayers();
+        this.initializeCollapsibleSections();
+        this.initializeTemplates();
+        this.initializePaletteUI();
+    }
+
+    clearProject() {
+    // Clear all layers
+    this.layers.clear();
+    this.selectedLayerIds.clear();
+    
+    // Reset timeline and animation
+    this.timeline = {
+        duration: 1000,
+        currentTime: 0,
+        isPlaying: false,
+        loop: false,
+        lastFrameTime: null
+    };
+    
+    // Reset hotspot and size
+    this.hotspot = { x: 0, y: 0 };
+    this.size = { width: 32, height: 32 };
+    
+    // Update UI
+    this.updateLayerControls();
+    this.updatePreview();
+    this.updateProperties();
+    this.updateTimelineUI();
+    
+    // Reset zoom and background
+    document.getElementById('zoomLevel').value = '1';
+    this.setZoom(1);
+    this.previewBox.classList.remove('dark');
+}
+
+    
+
+    // UI Initialization
+    initializeEventListeners() {
+    // Layer management buttons
+    document.getElementById('addLayerBtn').addEventListener('click', () => this.addNewLayer());
+    document.getElementById('groupLayersBtn').addEventListener('click', () => this.groupSelectedLayers());
+    document.getElementById('mergeLayersBtn').addEventListener('click', () => this.mergeSelectedLayers());
+    document.getElementById('clearLayersBtn').addEventListener('click', () => this.clearAllLayers());
+    document.getElementById('newProjectBtn')?.addEventListener('click', () => {
+        if (this.layers.size > 0) {
+            if (confirm('Start a new project? This will clear all current layers and animations.')) {
+                this.clearProject();
+            }
+        }
+    });
+
+    // Preview controls
+    document.getElementById('toggleGridBtn').addEventListener('click', () => this.toggleGrid());
+    document.getElementById('toggleBgBtn').addEventListener('click', () => this.toggleBackground());
+    document.getElementById('setHotspotBtn').addEventListener('click', () => this.startHotspotPlacement());
+
+    // Size controls
+    const updateSize = (dimension, value) => {
+        this.size[dimension] = parseInt(value) || 32;
+        this.updatePreview();
+    };
+    document.getElementById('cursorWidth').addEventListener('change', (e) => updateSize('width', e.target.value));
+    document.getElementById('cursorHeight').addEventListener('change', (e) => updateSize('height', e.target.value));
+
+    // Zoom controls
+    document.getElementById('zoomLevel').addEventListener('change', (e) => this.setZoom(parseFloat(e.target.value)));
+    document.getElementById('zoomInBtn').addEventListener('click', () => this.adjustZoom(0.5));
+    document.getElementById('zoomOutBtn').addEventListener('click', () => this.adjustZoom(-0.5));
+
+    // Animation controls
+    document.getElementById('playAnimationBtn').addEventListener('click', () => this.toggleAnimation());
+    document.getElementById('loopAnimationBtn').addEventListener('click', () => this.toggleAnimationLoop());
+    document.getElementById('addKeyframeBtn').addEventListener('click', () => this.addKeyframe());
+    document.getElementById('removeKeyframeBtn').addEventListener('click', () => this.removeKeyframe());
+    document.getElementById('clearAnimationBtn').addEventListener('click', () => this.clearAnimation());
+
+    // Preview area mouse events
+    this.previewBox.addEventListener('mousemove', (e) => this.handlePreviewMouseMove(e));
+    this.previewBox.addEventListener('mousedown', (e) => this.handlePreviewMouseDown(e));
+    this.previewBox.addEventListener('mouseup', () => this.handlePreviewMouseUp());
+    this.previewBox.addEventListener('mouseleave', () => this.handlePreviewMouseUp());
+
+    // Export button
+    document.getElementById('exportBtn').addEventListener('click', () => this.export());
+
+    // Timeline scrubbing
+    this.timelineProgress.parentElement.addEventListener('mousedown', (e) => this.startTimelineScrubbing(e));
+    document.addEventListener('mousemove', (e) => this.handleTimelineScrubbing(e));
+    document.addEventListener('mouseup', () => this.stopTimelineScrubbing());
+
+    // Help system
+    const helpBtn = document.getElementById('helpBtn');
+    const helpModal = document.getElementById('helpModal');
+    const closeHelpBtn = document.getElementById('closeHelpBtn');
+
+    if (helpBtn && helpModal && closeHelpBtn) {
+        helpBtn.addEventListener('click', () => {
+            helpModal.style.display = 'block';
+        });
+
+        closeHelpBtn.addEventListener('click', () => {
+            helpModal.style.display = 'none';
+        });
+
+        helpModal.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                e.target.style.display = 'none';
+            }
+        });
+    }
+}
+
+    initializeCollapsibleSections() {
+        document.querySelectorAll('.section-toggle').forEach(toggle => {
+            toggle.addEventListener('click', (e) => {
+                const section = e.currentTarget.closest('.collapsible-section');
+                const content = section.querySelector('.section-content');
+                const icon = toggle.querySelector('.toggle-icon');
+                
+                content.classList.toggle('collapsed');
+                icon.classList.toggle('fa-chevron-down');
+                icon.classList.toggle('fa-chevron-up');
+            });
+        });
+    }
+
+    initializeSortableLayers() {
+        new Sortable(this.layerControls, {
+            animation: 150,
+            handle: '.layer-drag-handle',
+            onEnd: (evt) => {
+                const layerIds = Array.from(this.layerControls.children).map(el => el.dataset.layerId);
+                this.reorderLayers(layerIds);
+            }
+        });
+    }
+
+    // Layer Management
+    addNewLayer(template = 'default') {
+    const svgContent = cursorTemplates[template];
+    
+    // Find all layer classes in the template
+    const layerMatch = svgContent.match(/class="layer-\d+"/g);
+    const layerCount = layerMatch ? layerMatch.length : 1;
+
+    // Create a layer for each layer class found in the template
+    for (let i = 1; i <= layerCount; i++) {
+        const id = `layer-${Date.now()}-${i}`;
+        const layerName = `Layer ${this.layers.size + 1}-${i}`;
+        
+        // Extract just this layer's path from the template
+        const layerSvg = `
+            <svg viewBox="0 0 32 32" class="cursor-svg">
+                ${this.extractLayerPath(svgContent, `layer-${i}`)}
+            </svg>
+        `;
+
+        const layer = new CursorLayer(
+            id,
+            layerName,
+            layerSvg,
+            '#000000',  // Default color
+            'normal'    // Default blend mode
+        );
+        
+        this.layers.set(id, layer);
+        this.selectedLayerIds.add(id);
+    }
+    
+    this.updateLayerControls();
+    this.updatePreview();
+    this.updateProperties();
+}
+
+// Helper method to extract a specific layer's path from SVG content
+extractLayerPath(svgContent, layerClass) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgContent, 'image/svg+xml');
+    const path = doc.querySelector(`.${layerClass}`);
+    return path ? path.outerHTML : '';
+}
+
+    deleteLayer(layerId) {
+        this.layers.delete(layerId);
+        this.selectedLayerIds.delete(layerId);
+        this.updateLayerControls();
+        this.updatePreview();
+        this.updateProperties();
+    }
+
+    reorderLayers(layerIds) {
+        const newLayers = new Map();
+        layerIds.forEach(id => {
+            if (this.layers.has(id)) {
+                newLayers.set(id, this.layers.get(id));
+            }
+        });
+        this.layers = newLayers;
+        this.updatePreview();
+    }
+
+    // Selection Management
+    selectLayer(id, multiSelect = false) {
+        if (!multiSelect) {
+            this.selectedLayerIds.clear();
+        }
+        this.selectedLayerIds.add(id);
+        this.updateLayerSelection();
+        this.updateProperties();
+    }
+
+    // Preview Management
+    updatePreview() {
+        this.cursorPreview.innerHTML = '';
+        
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', `0 0 ${this.size.width} ${this.size.height}`);
+        svg.setAttribute('width', this.size.width);
+        svg.setAttribute('height', this.size.height);
+
+        Array.from(this.layers.values()).forEach(layer => {
+            if (layer.visible) {
+                svg.appendChild(layer.toSVG());
+            }
+        });
+
+        if (this.isSettingHotspot) {
+            const hotspotIndicator = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            hotspotIndicator.setAttribute('cx', this.hotspot.x);
+            hotspotIndicator.setAttribute('cy', this.hotspot.y);
+            hotspotIndicator.setAttribute('r', '2');
+            hotspotIndicator.setAttribute('fill', '#FF0000');
+            svg.appendChild(hotspotIndicator);
+        }
+
+        this.cursorPreview.appendChild(svg);
+
+        if (this.lastMousePosition) {
+            this.updatePreviewPosition(this.lastMousePosition.x, this.lastMousePosition.y);
+        }
+    }
+
+    updatePreviewPosition(x, y) {
+        const previewRect = this.previewBox.getBoundingClientRect();
+        const adjustedX = (x - previewRect.left) / this.zoom - this.hotspot.x;
+        const adjustedY = (y - previewRect.top) / this.zoom - this.hotspot.y;
+        
+        this.cursorPreview.style.transform = 
+            `translate(${adjustedX}px, ${adjustedY}px) scale(${this.zoom})`;
+        this.lastMousePosition = { x, y };
+    }
+
+    // Animation System
+    toggleAnimation() {
+        if (this.timeline.isPlaying) {
+            this.stopAnimation();
+        } else {
+            this.startAnimation();
+        }
+    }
+
+    startAnimation() {
+        this.timeline.isPlaying = true;
+        this.timeline.lastFrameTime = performance.now();
+        document.getElementById('playAnimationBtn').innerHTML = '<i class="fas fa-pause"></i>';
+        this.animationFrame = requestAnimationFrame((time) => this.updateAnimation(time));
+    }
+
+    stopAnimation() {
+        this.timeline.isPlaying = false;
+        document.getElementById('playAnimationBtn').innerHTML = '<i class="fas fa-play"></i>';
+        if (this.animationFrame) {
+            cancelAnimationFrame(this.animationFrame);
+            this.animationFrame = null;
+        }
+    }
+
+    updateAnimation(currentTime) {
+        if (!this.timeline.lastFrameTime) {
+            this.timeline.lastFrameTime = currentTime;
+        }
+
+        const deltaTime = currentTime - this.timeline.lastFrameTime;
+        this.timeline.currentTime += deltaTime;
+
+        if (this.timeline.currentTime >= this.timeline.duration) {
+            if (this.timeline.loop) {
+                this.timeline.currentTime %= this.timeline.duration;
+            } else {
+                this.timeline.currentTime = this.timeline.duration;
+                this.stopAnimation();
+                return;
+            }
+        }
+
+        // Update timeline progress
+        const progress = (this.timeline.currentTime / this.timeline.duration) * 100;
+        this.timelineProgress.style.width = `${progress}%`;
+
+        // Update layers with animation
+        this.layers.forEach(layer => {
+            if (layer.animation) {
+                layer.applyAnimationFrame(this.timeline.currentTime);
+            }
+        });
+
+        this.updatePreview();
+        this.timeline.lastFrameTime = currentTime;
+
+        if (this.timeline.isPlaying) {
+            this.animationFrame = requestAnimationFrame((time) => this.updateAnimation(time));
+        }
+    }
+
+    // UI State Toggles
+    toggleGrid() {
+        this.showGrid = !this.showGrid;
+        this.previewBox.classList.toggle('show-grid', this.showGrid);
+        document.getElementById('toggleGridBtn').classList.toggle('active', this.showGrid);
+    }
+
+    toggleBackground() {
+        this.darkBackground = !this.darkBackground;
+        this.previewBox.classList.toggle('dark', this.darkBackground);
+        document.getElementById('toggleBgBtn').classList.toggle('active', this.darkBackground);
+    }
+
+    // Zoom Controls
+    setZoom(value) {
+        this.zoom = Math.max(0.25, Math.min(4, value));
+        document.getElementById('zoomLevel').value = this.zoom;
+        this.updatePreview();
+    }
+
+    adjustZoom(delta) {
+        this.setZoom(this.zoom + delta);
+    }
+
+    updateProperties() {
+        if (this.selectedLayerIds.size === 0) {
+            this.showCursorProperties();
+        } else if (this.selectedLayerIds.size === 1) {
+            this.showLayerProperties(Array.from(this.selectedLayerIds)[0]);
+        } else {
+            this.showMultiLayerProperties();
+        }
+    }
+
+    showCursorProperties() {
+        this.propertiesContent.innerHTML = `
+            <div class="properties-section">
+                <h4>Cursor Properties</h4>
+                <div class="property-group">
+                    <label>Size</label>
+                    <div class="input-group">
+                        <input type="number" id="cursorWidth" value="${this.size.width}">
+                        <span>×</span>
+                        <input type="number" id="cursorHeight" value="${this.size.height}">
+                    </div>
+                </div>
+                <div class="property-group">
+                    <label>Hotspot</label>
+                    <div class="input-group">
+                        <input type="number" id="hotspotX" value="${this.hotspot.x}">
+                        <span>,</span>
+                        <input type="number" id="hotspotY" value="${this.hotspot.y}">
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Set up event listeners for cursor properties
+        this.propertiesContent.querySelectorAll('input').forEach(input => {
+            input.addEventListener('change', () => {
+                if (input.id === 'cursorWidth') this.size.width = parseInt(input.value);
+                if (input.id === 'cursorHeight') this.size.height = parseInt(input.value);
+                if (input.id === 'hotspotX') this.hotspot.x = parseInt(input.value);
+                if (input.id === 'hotspotY') this.hotspot.y = parseInt(input.value);
+                this.updatePreview();
+            });
+        });
+    }
+
+    // showLayerProperties(layerId) {
+    //     const layer = this.layers.get(layerId);
+    //     if (!layer) return;
+
+    //     this.propertiesContent.innerHTML = `
+    //         <div class="properties-section">
+    //             <h4>Layer Properties</h4>
+    showLayerProperties(layerId) {
+    const layer = this.layers.get(layerId);
+    if (!layer) return;
+
+    this.propertiesContent.innerHTML = `
+        <div class="properties-section">
+            <div class="properties-header">
+                <h4>Layer Properties</h4>
+                <button class="tool-btn" data-tooltip="Deselect Layer" id="deselectLayerBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+                <div class="property-group">
+                    <label>Name</label>
+                    <input type="text" id="layerName" value="${layer.name}">
+                </div>
+                <div class="property-group">
+                    <label>Opacity</label>
+                    <input type="range" id="layerOpacity" 
+                           min="0" max="1" step="0.01" value="${layer.opacity}">
+                </div>
+                <div class="property-group">
+                    <label>Transform</label>
+                    <div class="transform-controls">
+                        <div class="input-group">
+                            <label>X</label>
+                            <input type="number" id="translateX" 
+                                   value="${layer.transforms.translateX}">
+                        </div>
+                        <div class="input-group">
+                            <label>Y</label>
+                            <input type="number" id="translateY" 
+                                   value="${layer.transforms.translateY}">
+                        </div>
+                        <div class="input-group">
+                            <label>Rotate</label>
+                            <input type="number" id="rotate" 
+                                   value="${layer.transforms.rotate}">
+                        </div>
+                        <div class="input-group">
+                            <label>Scale X</label>
+                            <input type="number" id="scaleX" step="0.1" 
+                                   value="${layer.transforms.scaleX}">
+                        </div>
+                        <div class="input-group">
+                            <label>Scale Y</label>
+                            <input type="number" id="scaleY" step="0.1" 
+                                   value="${layer.transforms.scaleY}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('deselectLayerBtn')?.addEventListener('click', () => {
+        this.selectedLayerIds.clear();
+        this.updateLayerSelection();
+        this.updateProperties();
+    });
+
+        // Set up event listeners for layer properties
+        this.propertiesContent.querySelectorAll('input').forEach(input => {
+            input.addEventListener('change', () => {
+                if (input.id === 'layerName') layer.name = input.value;
+                if (input.id === 'layerOpacity') layer.opacity = parseFloat(input.value);
+                if (input.id === 'translateX') layer.transforms.translateX = parseFloat(input.value);
+                if (input.id === 'translateY') layer.transforms.translateY = parseFloat(input.value);
+                if (input.id === 'rotate') layer.transforms.rotate = parseFloat(input.value);
+                if (input.id === 'scaleX') layer.transforms.scaleX = parseFloat(input.value);
+                if (input.id === 'scaleY') layer.transforms.scaleY = parseFloat(input.value);
+                
+                this.updateLayerControls();
+                this.updatePreview();
+            });
+        });
+    }
+
+    updateLayerSelection() {
+        this.layerControls.querySelectorAll('.layer-item').forEach(item => {
+            item.classList.toggle('selected', 
+                this.selectedLayerIds.has(item.dataset.layerId));
+        });
+    }
+
+    
+
+    // Add these methods in CursorManager class before the export methods
+    applyColorPalette(paletteName) {
+    const palette = colorPalettes[paletteName];
+    if (!palette) return;
+
+    // Get layers in order (assuming they were created in sequence)
+    const layers = Array.from(this.layers.values());
+    
+    layers.forEach((layer, index) => {
+        if (index < palette.colors.length) {
+            // Apply color and blend mode from palette
+            layer.color = palette.colors[index];
+            layer.blendMode = palette.blendModes[index] || 'normal';
+        }
+    });
+
+    this.updateLayerControls();
+    this.updatePreview();
+}
+
+    initializePaletteUI() {
+    // Get the existing palette grid from our HTML structure
+    const paletteGrid = document.getElementById('paletteGrid');
+    if (!paletteGrid) return;
+
+    paletteGrid.innerHTML = ''; // Clear existing palettes
+    
+    Object.entries(colorPalettes).forEach(([name, palette]) => {
+        const btn = document.createElement('button');
+        btn.className = 'palette-btn';
+        
+        // Create color preview
+        const preview = document.createElement('div');
+        preview.className = 'palette-preview';
+        
+        if (palette.isRandom) {
+            // Create random color preview
+            for (let i = 0; i < 3; i++) {
+                const colorDiv = document.createElement('div');
+                colorDiv.className = 'palette-color';
+                colorDiv.style.backgroundColor = getRandomWebSafeColor();
+                preview.appendChild(colorDiv);
+            }
+        } else {
+            palette.colors.forEach(color => {
+                const colorDiv = document.createElement('div');
+                colorDiv.className = 'palette-color';
+                colorDiv.style.backgroundColor = color;
+                preview.appendChild(colorDiv);
+            });
+        }
+        
+        const label = document.createElement('span');
+        label.textContent = name.replace(/-/g, ' ');
+        
+        btn.appendChild(preview);
+        btn.appendChild(label);
+        btn.onclick = () => this.applyColorPalette(name);
+        
+        paletteGrid.appendChild(btn);
+    });
+
+        // Add palette dropdown toggle functionality
+        const paletteDropdownBtn = document.getElementById('paletteDropdownBtn');
+        if (paletteDropdownBtn) {
+            paletteDropdownBtn.addEventListener('click', () => {
+                paletteGrid.classList.toggle('show');
+                const icon = paletteDropdownBtn.querySelector('i');
+                if (icon) {
+                    icon.classList.toggle('fa-chevron-down');
+                    icon.classList.toggle('fa-chevron-up');
+                }
+            });
+        }
+    }
+ 
+
+// Replace the addToPaletteEventListeners method with this:
+// addToPaletteEventListeners() {
+//         // Create collapsible palette section
+//         const paletteSection = this.createCollapsibleSection(
+//             'Color Palettes',
+//             // 'fa-palette',
+//             'palette-section'
+//         );
+        
+//         // Create scrollable palette grid
+//         const paletteGrid = document.createElement('div');
+//         paletteGrid.className = 'palette-grid collapsed';
+
+//         // Add all palettes
+//         Object.entries(colorPalettes).forEach(([name, palette]) => {
+//             paletteGrid.appendChild(this.createPaletteButton(name, palette));
+//         });
+
+//         paletteSection.content.appendChild(paletteGrid);
+
+//         // Add to layout - insert after templates section
+//         const templatesSection = document.querySelector('.template-grid');
+//         if (templatesSection && templatesSection.parentNode) {
+//             templatesSection.parentNode.insertBefore(paletteSection.container, templatesSection.nextSibling);
+//         }
+//     }
+
+    // Add this new helper method to CursorManager
+    createCollapsibleSection(title, iconClass, sectionClass) {
+        const container = document.createElement('div');
+        container.className = `collapsible-section ${sectionClass}`;
+
+        const header = document.createElement('div');
+        header.className = 'section-header';
+        
+        const headerButton = document.createElement('button');
+        headerButton.className = 'section-toggle';
+        headerButton.innerHTML = `
+            <i class="fas ${iconClass}"></i>
+            <span>${title}</span>
+            <i class="fas fa-chevron-down toggle-icon"></i>
+        `;
+
+        const content = document.createElement('div');
+        content.className = 'section-content collapsed';
+
+        header.appendChild(headerButton);
+        container.appendChild(header);
+        container.appendChild(content);
+
+        headerButton.addEventListener('click', () => {
+            content.classList.toggle('collapsed');
+            headerButton.querySelector('.toggle-icon').classList.toggle('fa-chevron-down');
+            headerButton.querySelector('.toggle-icon').classList.toggle('fa-chevron-up');
+        });
+
+        return { container, content };
+    }
+
+    createPaletteButton(name, palette) {
+        const btn = document.createElement('button');
+        btn.className = 'palette-btn';
+        btn.setAttribute('data-tooltip', name.replace(/-/g, ' '));
+        
+        const preview = document.createElement('div');
+        preview.className = 'palette-preview';
+        
+        if (palette.isRandom) {
+            // Create random color preview
+            for (let i = 0; i < 3; i++) {
+                const colorDiv = document.createElement('div');
+                colorDiv.className = 'palette-color';
+                colorDiv.style.backgroundColor = getRandomWebSafeColor();
+                preview.appendChild(colorDiv);
+            }
+        } else {
+            palette.colors.forEach(color => {
+                const colorDiv = document.createElement('div');
+                colorDiv.className = 'palette-color';
+                colorDiv.style.backgroundColor = color;
+                preview.appendChild(colorDiv);
+            });
+        }
+        
+        const label = document.createElement('span');
+        label.textContent = name.replace(/-/g, ' ');
+        
+        btn.appendChild(preview);
+        btn.appendChild(label);
+        btn.onclick = () => this.applyColorPalette(name);
+        
+        return btn;
+    }
+
+    // Add this to your constructor
+    // addToPaletteInitialization() {
+    //     this.initializePaletteUI();
+    // }
+
+    initializeTemplates() {
+    const templateGrid = document.getElementById('templateGrid');
+    templateGrid.innerHTML = ''; // Clear existing templates
+    
+    Object.keys(cursorTemplates).forEach(template => {
+        const div = document.createElement('div');
+        div.className = 'cursor-template';
+        div.setAttribute('data-tooltip', template.replace(/_/g, ' '));
+        div.innerHTML = cursorTemplates[template];
+        div.onclick = () => this.addNewLayer(template);
+        templateGrid.appendChild(div);
+    });
+}
+
+
+    // Add this new helper method to CursorManager
+
+        // Export functionality
+
+
+        showMultiLayerProperties() {
+    const selectedLayers = Array.from(this.selectedLayerIds)
+        .map(id => this.layers.get(id))
+        .filter(Boolean);
+
+    this.propertiesContent.innerHTML = `
+        <div class="properties-section">
+            <h4>${selectedLayers.length} Layers Selected</h4>
+            <div class="property-group">
+                <label>Bulk Actions</label>
+                <div class="bulk-actions">
+                    <button class="tool-btn" data-tooltip="Align Left" data-action="align" data-align="left">
+                        <i class="fas fa-align-left"></i>
+                    </button>
+                    <button class="tool-btn" data-tooltip="Align Center" data-action="align" data-align="center">
+                        <i class="fas fa-align-center"></i>
+                    </button>
+                    <button class="tool-btn" data-tooltip="Align Right" data-action="align" data-align="right">
+                        <i class="fas fa-align-right"></i>
+                    </button>
+                    <button class="tool-btn" data-tooltip="Distribute Vertically" data-action="distribute" data-distribute="vertical">
+                        <i class="fas fa-arrows-alt-v"></i>
+                    </button>
+                    <button class="tool-btn" data-tooltip="Distribute Horizontally" data-action="distribute" data-distribute="horizontal">
+                        <i class="fas fa-arrows-alt-h"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="property-group">
+                <label>Shared Properties</label>
+                <div class="shared-properties">
+                    <div class="input-group">
+                        <label>Opacity</label>
+                        <input type="range" id="bulkOpacity" 
+                               min="0" max="1" step="0.01" value="1">
+                    </div>
+                    <div class="input-group">
+                        <label>Blend Mode</label>
+                        <select id="bulkBlendMode">
+                            ${blendModes.map(mode => 
+                                `<option value="${mode}">${mode}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Set up bulk action handlers
+    this.propertiesContent.querySelectorAll('[data-action]').forEach(button => {
+        button.addEventListener('click', () => {
+            const action = button.dataset.action;
+            if (action === 'align') {
+                this.alignLayers(button.dataset.align);
+            } else if (action === 'distribute') {
+                this.distributeLayers(button.dataset.distribute);
+            }
+        });
+    });
+
+    // Set up shared property handlers
+    this.propertiesContent.querySelector('#bulkOpacity')?.addEventListener('change', (e) => {
+        selectedLayers.forEach(layer => {
+            layer.opacity = parseFloat(e.target.value);
+        });
+        this.updatePreview();
+    });
+
+    this.propertiesContent.querySelector('#bulkBlendMode')?.addEventListener('change', (e) => {
+        selectedLayers.forEach(layer => {
+            layer.blendMode = e.target.value;
+        });
+        this.updatePreview();
+    });
+}
+
+    updateLayerControls() {
+    this.layerControls.innerHTML = '';
+    Array.from(this.layers.entries()).reverse().forEach(([id, layer]) => {
+        const layerEl = document.createElement('div');
+        layerEl.className = 'layer-item';
+        layerEl.dataset.layerId = id;
+        
+        layerEl.innerHTML = `
+            <div class="layer-item-row layer-item-top">
+    <span class="layer-name">${layer.name}</span>
+    <div class="layer-visibility-buttons">  <!-- Changed class name here -->
+        <button class="tool-btn" data-action="visibility" data-tooltip="${layer.visible ? 'Hide' : 'Show'} Layer">
+            <i class="fas fa-${layer.visible ? 'eye' : 'eye-slash'}"></i>
+        </button>
+        <button class="tool-btn" data-action="lock" data-tooltip="${layer.locked ? 'Unlock' : 'Lock'} Layer">
+            <i class="fas fa-${layer.locked ? 'lock' : 'lock-open'}"></i>
+        </button>
+    </div>
+</div>
+            <div class="layer-item-row layer-item-bottom">
+                <div class="color-picker-wrapper" data-layer-id="${id}"></div>
+                <select class="blend-mode-select" data-tooltip="Blend Mode">
+                    ${blendModes.map(mode => 
+                        `<option value="${mode}" ${layer.blendMode === mode ? 'selected' : ''}>
+                            ${mode}
+                        </option>`
+                    ).join('')}
+                </select>
+                <div class="layer-actions">
+                    <button class="tool-btn" data-action="duplicate" data-tooltip="Duplicate Layer">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                    <button class="tool-btn" data-action="delete" data-tooltip="Delete Layer">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // Set up color picker
+        const pickerWrapper = layerEl.querySelector('.color-picker-wrapper');
+        const pickr = createResponsiveColorPicker(pickerWrapper, layer.color, (color) => {
+            layer.color = color;
+            this.updatePreview();
+        });
+
+        // Set up event listeners
+        layerEl.addEventListener('click', (e) => {
+            const action = e.target.closest('[data-action]')?.dataset.action;
+            if (action) {
+                e.stopPropagation();
+                this.handleLayerAction(action, id);
+            } else if (!e.target.closest('select, .color-picker-wrapper')) {
+                this.selectLayer(id, e.ctrlKey || e.metaKey);
+            }
+        });
+
+        layerEl.querySelector('.blend-mode-select').addEventListener('change', (e) => {
+            layer.blendMode = e.target.value;
+            this.updatePreview();
+        });
+
+        this.layerControls.appendChild(layerEl);
+    });
+}
+
+    handleKeyframe() {
+        const selectedLayers = Array.from(this.selectedLayerIds)
+            .map(id => this.layers.get(id))
+            .filter(Boolean);
+
+        selectedLayers.forEach(layer => {
+            if (!layer.animation) {
+                layer.animation = new CursorAnimation();
+            }
+
+            layer.animation.addKeyframe(this.timeline.currentTime, {
+                translateX: layer.transforms.translateX,
+                translateY: layer.transforms.translateY,
+                rotate: layer.transforms.rotate,
+                scaleX: layer.transforms.scaleX,
+                scaleY: layer.transforms.scaleY,
+                opacity: layer.opacity,
+                color: layer.color
+            });
+        });
+
+        this.updateTimelineUI();
+    }
+
+    updateTimelineUI() {
+        const timelineLayers = document.querySelector('.timeline-layers');
+        timelineLayers.innerHTML = '';
+
+        this.layers.forEach((layer, id) => {
+            if (!layer.animation) return;
+
+            const layerTrack = document.createElement('div');
+            layerTrack.className = 'timeline-track';
+            layerTrack.dataset.layerId = id;
+
+            // Add keyframe markers
+            layer.animation.keyframes.forEach((props, time) => {
+                const keyframe = document.createElement('div');
+                keyframe.className = 'keyframe-marker';
+                keyframe.style.left = `${(time / this.timeline.duration) * 100}%`;
+                keyframe.addEventListener('click', () => this.editKeyframe(layer, time));
+                layerTrack.appendChild(keyframe);
+            });
+
+            timelineLayers.appendChild(layerTrack);
+        });
+
+        // Update playhead position
+        const progress = (this.timeline.currentTime / this.timeline.duration) * 100;
+        this.timelineProgress.style.width = `${progress}%`;
+    }
+
+    editKeyframe(layer, time) {
+        const keyframeProps = layer.animation.getKeyframeAtTime(time);
+        if (!keyframeProps) return;
+
+        const modal = document.querySelector('.keyframe-modal');
+        modal.style.display = 'block';
+
+        const modalContent = modal.querySelector('.keyframe-properties');
+        modalContent.innerHTML = `
+            <div class="property-group">
+                <label>Position</label>
+                <div class="input-group">
+                    <input type="number" id="kf-translateX" value="${keyframeProps.translateX}">
+                    <input type="number" id="kf-translateY" value="${keyframeProps.translateY}">
+                </div>
+            </div>
+            <div class="property-group">
+                <label>Rotation</label>
+                <input type="number" id="kf-rotate" value="${keyframeProps.rotate}">
+            </div>
+            <div class="property-group">
+                <label>Scale</label>
+                <div class="input-group">
+                    <input type="number" id="kf-scaleX" value="${keyframeProps.scaleX}" step="0.1">
+                    <input type="number" id="kf-scaleY" value="${keyframeProps.scaleY}" step="0.1">
+                </div>
+            </div>
+            <div class="property-group">
+                <label>Opacity</label>
+                <input type="range" id="kf-opacity" value="${keyframeProps.opacity}" min="0" max="1" step="0.01">
+            </div>
+            <div class="property-group">
+                <label>Color</label>
+                <div class="color-picker-wrapper" id="kf-color"></div>
+            </div>
+        `;
+
+        // Initialize color picker for keyframe
+        createResponsiveColorPicker(
+            modalContent.querySelector('#kf-color'),
+            keyframeProps.color,
+            (color) => keyframeProps.color = color
+        );
+
+        // Save and cancel handlers
+        modal.querySelector('[data-action="save"]').onclick = () => {
+            Object.assign(keyframeProps, {
+                translateX: parseFloat(modal.querySelector('#kf-translateX').value),
+                translateY: parseFloat(modal.querySelector('#kf-translateY').value),
+                rotate: parseFloat(modal.querySelector('#kf-rotate').value),
+                scaleX: parseFloat(modal.querySelector('#kf-scaleX').value),
+                scaleY: parseFloat(modal.querySelector('#kf-scaleY').value),
+                opacity: parseFloat(modal.querySelector('#kf-opacity').value)
+            });
+
+            modal.style.display = 'none';
+            this.updatePreviewAtTime(this.timeline.currentTime);
+        };
+
+        modal.querySelector('[data-action="cancel"]').onclick = () => {
+            modal.style.display = 'none';
+        };
+    }
+    handleLayerAction(action, layerId) {
+        const layer = this.layers.get(layerId);
+        if (!layer || layer.locked) return;
+
+        switch (action) {
+            case 'visibility':
+                layer.visible = !layer.visible;
+                break;
+            case 'lock':
+                layer.locked = !layer.locked;
+                break;
+            case 'duplicate':
+                const clone = layer.clone();
+                clone.transforms.translateX += 10;
+                clone.transforms.translateY += 10;
+                this.layers.set(clone.id, clone);
+                break;
+            case 'delete':
+                this.deleteLayer(layerId);
+                break;
+        }
+
+        this.updateLayerControls();
+        this.updatePreview();
+    }
+
+    alignLayers(alignment) {
+        const selectedLayers = Array.from(this.selectedLayerIds)
+            .map(id => this.layers.get(id))
+            .filter(Boolean);
+
+        if (selectedLayers.length < 2) return;
+
+        const bounds = this.calculateLayersBounds(selectedLayers);
+        
+        selectedLayers.forEach(layer => {
+            switch (alignment) {
+                case 'left':
+                    layer.transforms.translateX = bounds.left;
+                    break;
+                case 'center':
+                    layer.transforms.translateX = bounds.left + (bounds.width - this.size.width) / 2;
+                    break;
+                case 'right':
+                    layer.transforms.translateX = bounds.left + bounds.width - this.size.width;
+                    break;
+                case 'top':
+                    layer.transforms.translateY = bounds.top;
+                    break;
+                case 'middle':
+                    layer.transforms.translateY = bounds.top + (bounds.height - this.size.height) / 2;
+                    break;
+                case 'bottom':
+                    layer.transforms.translateY = bounds.top + bounds.height - this.size.height;
+                    break;
+            }
+        });
+
+        this.updatePreview();
+    }
+
+    distributeLayers(direction) {
+        const selectedLayers = Array.from(this.selectedLayerIds)
+            .map(id => this.layers.get(id))
+            .filter(Boolean);
+
+        if (selectedLayers.length < 3) return;
+
+        const bounds = this.calculateLayersBounds(selectedLayers);
+        const sortedLayers = [...selectedLayers].sort((a, b) => {
+            return direction === 'vertical' 
+                ? a.transforms.translateY - b.transforms.translateY 
+                : a.transforms.translateX - b.transforms.translateX;
+        });
+
+        const first = sortedLayers[0];
+        const last = sortedLayers[sortedLayers.length - 1];
+        const gap = direction === 'vertical'
+            ? (last.transforms.translateY - first.transforms.translateY) / (selectedLayers.length - 1)
+            : (last.transforms.translateX - first.transforms.translateX) / (selectedLayers.length - 1);
+
+        sortedLayers.forEach((layer, index) => {
+            if (index === 0 || index === sortedLayers.length - 1) return;
+            
+            if (direction === 'vertical') {
+                layer.transforms.translateY = first.transforms.translateY + gap * index;
+            } else {
+                layer.transforms.translateX = first.transforms.translateX + gap * index;
+            }
+        });
+
+        this.updatePreview();
+    }
+
+    calculateLayersBounds(layers) {
+        let left = Infinity;
+        let top = Infinity;
+        let right = -Infinity;
+        let bottom = -Infinity;
+
+        layers.forEach(layer => {
+            left = Math.min(left, layer.transforms.translateX);
+            top = Math.min(top, layer.transforms.translateY);
+            right = Math.max(right, layer.transforms.translateX + this.size.width);
+            bottom = Math.max(bottom, layer.transforms.translateY + this.size.height);
+        });
+
+        return {
+            left,
+            top,
+            right,
+            bottom,
+            width: right - left,
+            height: bottom - top
+        };
+    }
+
+    startHotspotPlacement() {
+        this.isSettingHotspot = true;
+        document.getElementById('setHotspotBtn').classList.add('active');
+        this.previewBox.querySelector('.hotspot-editor').classList.add('active');
+    }
+
+    stopHotspotPlacement() {
+        this.isSettingHotspot = false;
+        document.getElementById('setHotspotBtn').classList.remove('active');
+        this.previewBox.querySelector('.hotspot-editor').classList.remove('active');
+    }
+
+    handlePreviewMouseMove(e) {
+        const rect = this.previewBox.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        if (this.isSettingHotspot && this.isDragging) {
+            this.hotspot.x = Math.round(x / this.zoom);
+            this.hotspot.y = Math.round(y / this.zoom);
+            this.updatePreview();
+        } else {
+            this.updatePreviewPosition(e.clientX, e.clientY);
+        }
+    }
+
+    handlePreviewMouseDown(e) {
+        if (this.isSettingHotspot) {
+            this.isDragging = true;
+            this.handlePreviewMouseMove(e);
+        }
+    }
+
+    handlePreviewMouseUp() {
+        if (this.isSettingHotspot && this.isDragging) {
+            this.isDragging = false;
+            this.stopHotspotPlacement();
+        }
+    }
+
+    startTimelineScrubbing(e) {
+        const timeline = this.timelineProgress.parentElement;
+        const rect = timeline.getBoundingClientRect();
+        const position = (e.clientX - rect.left) / rect.width;
+        this.timeline.currentTime = Math.max(0, Math.min(this.timeline.duration, position * this.timeline.duration));
+        this.updateTimelineUI();
+        this.updatePreviewAtTime(this.timeline.currentTime);
+    }
+
+    handleTimelineScrubbing(e) {
+        if (!this.isDragging) return;
+        
+        const timeline = this.timelineProgress.parentElement;
+        const rect = timeline.getBoundingClientRect();
+        const position = (e.clientX - rect.left) / rect.width;
+        this.timeline.currentTime = Math.max(0, Math.min(this.timeline.duration, position * this.timeline.duration));
+        this.updateTimelineUI();
+        this.updatePreviewAtTime(this.timeline.currentTime);
+    }
+
+    stopTimelineScrubbing() {
+        this.isDragging = false;
+    }
+
+    updatePreviewAtTime(time) {
+        this.layers.forEach(layer => {
+            if (layer.animation) {
+                layer.applyAnimationFrame(time);
+            }
+        });
+        this.updatePreview();
+    }
+
+    clearAnimation() {
+        this.timeline.currentTime = 0;
+        this.stopAnimation();
+        
+        this.layers.forEach(layer => {
+            layer.animation = null;
+        });
+        
+        this.updateTimelineUI();
+        this.updatePreview();
+    }
+
+    toggleAnimationLoop() {
+        this.timeline.loop = !this.timeline.loop;
+        document.getElementById('loopAnimationBtn').classList.toggle('active', this.timeline.loop);
+    }
+
+
+    // Export functionality
+    async exportPNG(scale = 1) {
+        const canvas = document.createElement('canvas');
+        canvas.width = this.size.width * scale;
+        canvas.height = this.size.height * scale;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.scale(scale, scale);
+
+        const svgData = new XMLSerializer().serializeToString(
+            this.cursorPreview.querySelector('svg')
+        );
+        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+        const svgUrl = URL.createObjectURL(svgBlob);
+
+        const img = new Image();
+        img.src = svgUrl;
+        
+        await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+        });
+
+        ctx.drawImage(img, 0, 0);
+        URL.revokeObjectURL(svgUrl);
+
+        const link = document.createElement('a');
+        link.download = `cursor-${Date.now()}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    }
+
+async exportSVG() {
+        const svg = this.cursorPreview.querySelector('svg').cloneNode(true);
+        
+        // Add metadata
+        svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        svg.setAttribute('version', '1.1');
+        svg.setAttribute('data-hotspot-x', this.hotspot.x);
+        svg.setAttribute('data-hotspot-y', this.hotspot.y);
+
+        // Convert to string and create blob
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+        
+        // Download
+        const link = document.createElement('a');
+        link.download = `cursor-${Date.now()}.svg`;
+        link.href = URL.createObjectURL(svgBlob);
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+
+    async exportCSS() {
+        const svg = this.cursorPreview.querySelector('svg');
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const encodedSvg = encodeURIComponent(svgData);
+        
+        const css = `
+/* Cursor CSS - Generated by Advanced Cursor Creator */
+.custom-cursor {
+    cursor: url('data:image/svg+xml;utf8,${encodedSvg}') ${this.hotspot.x} ${this.hotspot.y}, auto;
+}
+
+/* Fallback cursor for older browsers */
+.custom-cursor {
+    cursor: default;
+}
+
+@supports (cursor: url('data:image/svg+xml;utf8,${encodedSvg}') ${this.hotspot.x} ${this.hotspot.y}, auto) {
+    .custom-cursor {
+        cursor: url('data:image/svg+xml;utf8,${encodedSvg}') ${this.hotspot.x} ${this.hotspot.y}, auto;
+    }
+}
+        `.trim();
+
+        // Download CSS file
+        const blob = new Blob([css], { type: 'text/css' });
+        const link = document.createElement('a');
+        link.download = `cursor-${Date.now()}.css`;
+        link.href = URL.createObjectURL(blob);
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+
+    async exportAnimated() {
+        // Check if we have any animations
+        const hasAnimations = Array.from(this.layers.values()).some(layer => layer.animation);
+        if (!hasAnimations) {
+            alert('No animations found. Add some keyframes first!');
+            return;
+        }
+
+        // Create animated cursor frames
+        const frames = [];
+        const frameDuration = 50; // 20fps
+        const totalFrames = Math.ceil(this.timeline.duration / frameDuration);
+
+        for (let i = 0; i < totalFrames; i++) {
+            const time = i * frameDuration;
+            this.updatePreviewAtTime(time);
+            
+            // Create canvas for this frame
+            const canvas = document.createElement('canvas');
+            canvas.width = this.size.width;
+            canvas.height = this.size.height;
+            
+            const ctx = canvas.getContext('2d');
+            const svgData = new XMLSerializer().serializeToString(this.cursorPreview.querySelector('svg'));
+            const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+            const svgUrl = URL.createObjectURL(svgBlob);
+
+            // Wait for frame to render
+            await new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    ctx.drawImage(img, 0, 0);
+                    URL.revokeObjectURL(svgUrl);
+                    frames.push({
+                        data: ctx.getImageData(0, 0, this.size.width, this.size.height),
+                        delay: frameDuration
+                    });
+                    resolve();
+                };
+                img.src = svgUrl;
+            });
+        }
+
+        // Create animated formats
+        await Promise.all([
+            this.exportGIF(frames),
+            this.exportAPNG(frames),
+            this.exportAnimatedCSS(frames)
+        ]);
+    }
+
+    async exportGIF(frames) {
+        // Using gif.js library for GIF creation
+        const gif = new GIF({
+            workers: 4,
+            quality: 10,
+            width: this.size.width,
+            height: this.size.height
+        });
+
+        frames.forEach(frame => {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = this.size.width;
+            tempCanvas.height = this.size.height;
+            const ctx = tempCanvas.getContext('2d');
+            ctx.putImageData(frame.data, 0, 0);
+            gif.addFrame(tempCanvas, { delay: frame.delay });
+        });
+
+        gif.on('finished', blob => {
+            const link = document.createElement('a');
+            link.download = `cursor-${Date.now()}.gif`;
+            link.href = URL.createObjectURL(blob);
+            link.click();
+            URL.revokeObjectURL(link.href);
+        });
+
+        gif.render();
+    }
+
+    async exportAPNG(frames) {
+        // Using UPNG.js for APNG creation
+        const frameData = frames.map(frame => {
+            const data = new Uint8ClampedArray(frame.data.data);
+            return [data.buffer];
+        });
+
+        const delays = frames.map(frame => frame.delay);
+        const pngData = UPNG.encode(frameData, this.size.width, this.size.height, 0, delays);
+        
+        const blob = new Blob([pngData], { type: 'image/png' });
+        const link = document.createElement('a');
+        link.download = `cursor-${Date.now()}.png`;
+        link.href = URL.createObjectURL(blob);
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+
+    async exportAnimatedCSS(frames) {
+        let css = '/* Animated Cursor CSS */\n\n';
+        css += '.animated-cursor {\n';
+        
+        // Convert frames to data URLs
+        const dataUrls = await Promise.all(frames.map(async frame => {
+            const canvas = document.createElement('canvas');
+            canvas.width = this.size.width;
+            canvas.height = this.size.height;
+            const ctx = canvas.getContext('2d');
+            ctx.putImageData(frame.data, 0, 0);
+            return canvas.toDataURL('image/png');
+        }));
+
+        // Create animation steps
+        const totalDuration = this.timeline.duration;
+        dataUrls.forEach((dataUrl, i) => {
+            const percentage = Math.round((i * 100) / (frames.length - 1));
+            css += `    ${percentage}% { cursor: url(${dataUrl}) ${this.hotspot.x} ${this.hotspot.y}, auto; }\n`;
+        });
+
+        css += '}\n\n';
+        css += '@keyframes cursor-animation {\n';
+        dataUrls.forEach((_, i) => {
+            const percentage = Math.round((i * 100) / (frames.length - 1));
+            css += `    ${percentage}% { }\n`;
+        });
+        css += '}\n\n';
+        css += '.animated-cursor {\n';
+        css += `    animation: cursor-animation ${totalDuration}ms steps(1) infinite;\n`;
+        css += '}\n';
+
+        // Download CSS file
+        const blob = new Blob([css], { type: 'text/css' });
+        const link = document.createElement('a');
+        link.download = `cursor-animated-${Date.now()}.css`;
+        link.href = URL.createObjectURL(blob);
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+} // End of CursorManager class}
+// Cursor Templates and Constants
+// Color palette presets with layer assignments
+const colorPalettes = {
+    monochrome: {
+        colors: ['#000000', '#404040', '#808080'],
+        blendModes: ['normal', 'multiply', 'overlay']
+    },
+    neon: {
+        colors: ['#FF00FF', '#00FFFF', '#FFFF00'],
+        blendModes: ['screen', 'overlay', 'color-dodge'] 
+    },
+    nature: {
+        colors: ['#2E7D32', '#81C784', '#C8E6C9'],
+        blendModes: ['normal', 'multiply', 'soft-light']
+    },
+    ocean: {
+        colors: ['#0277BD', '#4FC3F7', '#B3E5FC'],
+        blendModes: ['normal', 'screen', 'overlay']
+    },
+    sunset: {
+        colors: ['#FF6F00', '#FFA726', '#FFE0B2'],
+        blendModes: ['normal', 'soft-light', 'color-dodge']
+    },
+    cyberpunk: {
+        colors: ['#FF0055', '#00FF66', '#33CCFF'],
+        blendModes: ['screen', 'color-dodge', 'overlay']
+    },
+    retro: {
+        colors: ['#FFB74D', '#9575CD', '#4DB6AC'],
+        blendModes: ['soft-light', 'multiply', 'screen']
+    },
+    forest: {
+        colors: ['#1B5E20', '#388E3C', '#81C784'],
+        blendModes: ['normal', 'multiply', 'overlay']
+    },
+    desert: {
+        colors: ['#BF360C', '#E64A19', '#FF8A65'],
+        blendModes: ['normal', 'soft-light', 'screen']
+    },
+    arctic: {
+        colors: ['#B3E5FC', '#81D4FA', '#4FC3F7'],
+        blendModes: ['screen', 'overlay', 'soft-light']
+    },
+    // Modern UI Inspired
+    material: {
+        colors: ['#1976D2', '#2196F3', '#BBDEFB'],
+        blendModes: ['normal', 'soft-light', 'screen']
+    },
+    windows: {
+        colors: ['#00A4EF', '#7FBA00', '#F25022'],
+        blendModes: ['screen', 'overlay', 'color-dodge']
+    },
+    macos: {
+        colors: ['#007AFF', '#5856D6', '#FF2D55'],
+        blendModes: ['normal', 'screen', 'overlay']
+    },
+    ubuntu: {
+        colors: ['#E95420', '#772953', '#77216F'],
+        blendModes: ['normal', 'multiply', 'screen']
+    },
+    // Classic Colors
+    candy: {
+        colors: ['#FF80AB', '#82B1FF', '#B388FF'],
+        blendModes: ['screen', 'soft-light', 'overlay']
+    },
+    autumn: {
+        colors: ['#BF360C', '#F57F17', '#FFA000'],
+        blendModes: ['normal', 'multiply', 'soft-light']
+    },
+    galaxy: {
+        colors: ['#311B92', '#6200EA', '#B388FF'],
+        blendModes: ['screen', 'color-dodge', 'overlay']
+    },
+    tropical: {
+        colors: ['#00BFA5', '#FFD740', '#FF3D00'],
+        blendModes: ['normal', 'soft-light', 'screen']
+    },
+    // Precious Metals and Gems
+    gold: {
+        colors: ['#FFD700', '#FFC107', '#FFB300'],
+        blendModes: ['normal', 'soft-light', 'overlay']
+    },
+    silver: {
+        colors: ['#9E9E9E', '#BDBDBD', '#E0E0E0'],
+        blendModes: ['screen', 'soft-light', 'overlay']
+    },
+    bronze: {
+        colors: ['#8D6E63', '#A1887F', '#BCAAA4'],
+        blendModes: ['multiply', 'soft-light', 'overlay']
+    },
+    emerald: {
+        colors: ['#004D40', '#00695C', '#00796B'],
+        blendModes: ['normal', 'multiply', 'overlay']
+    },
+    ruby: {
+        colors: ['#B71C1C', '#C62828', '#D32F2F'],
+        blendModes: ['screen', 'soft-light', 'overlay']
+    },
+    sapphire: {
+        colors: ['#0D47A1', '#1565C0', '#1976D2'],
+        blendModes: ['normal', 'screen', 'overlay']
+    },
+    amethyst: {
+        colors: ['#4A148C', '#6A1B9A', '#7B1FA2'],
+        blendModes: ['screen', 'color-dodge', 'overlay']
+    },
+    // Effects
+    plasma: {
+        colors: ['#E91E63', '#9C27B0', '#673AB7'],
+        blendModes: ['screen', 'color-dodge', 'overlay']
+    },
+    fire: {
+        colors: ['#FF5722', '#FF9800', '#FFC107'],
+        blendModes: ['screen', 'color-dodge', 'overlay']
+    },
+    ice: {
+        colors: ['#B3E5FC', '#81D4FA', '#4FC3F7'],
+        blendModes: ['screen', 'soft-light', 'overlay']
+    },
+    toxic: {
+        colors: ['#64DD17', '#76FF03', '#B2FF59'],
+        blendModes: ['screen', 'color-dodge', 'overlay']
+    },
+    // Basic
+    grayscale: {
+        colors: ['#212121', '#424242', '#616161'],
+        blendModes: ['normal', 'multiply', 'overlay']
+    },
+    rainbow: {
+        colors: ['#FF0000', '#00FF00', '#0000FF'],
+        blendModes: ['screen', 'color-dodge', 'overlay']
+    },
+    random: {
+        colors: [],
+        blendModes: ['normal', 'multiply', 'overlay'],
+        isRandom: true
+    }
+};
+
+// Additional blend modes
+const blendModes = [
+    'normal', 
+    'multiply', 
+    'screen', 
+    'overlay', 
+    'darken', 
+    'lighten',
+    'color-dodge', 
+    'color-burn', 
+    'hard-light', 
+    'soft-light',
+    'difference', 
+    'exclusion',
+    'hue', 
+    'saturation', 
+    'color', 
+    'luminosity',
+    'gradient-above', 
+    'gradient-below'
+];
+
+// Helper function for web-safe random colors
+function getRandomWebSafeColor() {
+    const values = [0, 51, 102, 153, 204, 255];
+    const r = values[Math.floor(Math.random() * values.length)];
+    const g = values[Math.floor(Math.random() * values.length)];
+    const b = values[Math.floor(Math.random() * values.length)];
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
+// Add this to replace/extend your cursorTemplates object
+const cursorTemplates = {
+    // Classic OS Cursors
+    default: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M8 2l14 14-6 2-2 6z" />
+            <path class="layer-2" d="M9 4l12 12-5 1.5-1.5 5z" />
+            <path class="layer-3" d="M10 6l10 10-4 1-1 4z" />
+        </svg>
+    `,
+    macos_pointer: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M8 2l16 12-7 2-3 8z"/>
+            <path class="layer-2" d="M10 5l12 9-5 1.5-2.5 6z"/>
+            <path class="layer-3" d="M12 8l8 6-3 1-2 4z"/>
+        </svg>
+    `,
+    win_pointer: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M7 2l3 24 4-4 4 8 4-2-4-8 7-3z"/>
+            <path class="layer-2" d="M9 6l2 18 3-3 3 6 2-1-3-6 5-2z"/>
+            <path class="layer-3" d="M11 10l1 12 2-2 2 4 1-0.5-2-4 3-1z"/>
+        </svg>
+    `,
+    linux_pointer: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M6 2l4 20 4-4 4 8 4-2-4-8 6-2z"/>
+            <path class="layer-2" d="M8 6l3 15 3-3 3 6 2-1-3-6 4-1z"/>
+            <path class="layer-3" d="M10 10l2 10 2-2 2 4 1-0.5-2-4 2-0.5z"/>
+        </svg>
+    `,
+
+    // Standard Actions
+    pointer: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M12 2v20l3-3 3 7 3-1-3-7h6z" />
+            <path class="layer-2" d="M14 4v16l2-2 2.5 6 1.5-0.5-2.5-6h5z" />
+            <path class="layer-3" d="M16 6v12l1-1 2 5 1-0.3-2-5h4z" />
+        </svg>
+    `,
+    text: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M4 4v6h8v18h8V10h8V4z"/>
+            <path class="layer-2" d="M6 6v2h8v18h4V8h8V6z"/>
+            <path class="layer-3" d="M8 8v1h8v16h2V9h6V8z"/>
+        </svg>
+    `,
+    crosshair: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M15 2v12H3v4h12v12h4V18h12v-4H19V2z" />
+            <path class="layer-2" d="M16 4v11H5v2h11v11h2V17h11v-2H18V4z" />
+            <path class="layer-3" d="M17 6v10H7v1h10v10h1V17h10v-1H18V6z" />
+        </svg>
+    `,
+
+    // Creative Tools
+    brush: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M24 2c-4 0-8 4-8 4l10 10s4-4 4-8-2-6-6-6zM14 8L2 20l10 10 12-12z"/>
+            <path class="layer-2" d="M22 6c-2 0-4 2-4 2l6 6s2-2 2-4-2-4-4-4zM16 12L6 22l4 4 10-10z"/>
+            <path class="layer-3" d="M20 10l2 2-10 10-2-2z"/>
+        </svg>
+    `,
+    pencil: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M22 2l8 8-16 16-8 2 2-8z"/>
+            <path class="layer-2" d="M24 6l4 4-14 14-4-4z"/>
+            <path class="layer-3" d="M8 24l2 2-3 1z"/>
+        </svg>
+    `,
+    eyedropper: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M20 2l10 10-12 12-6-6z"/>
+            <path class="layer-2" d="M22 6l6 6-8 8-4-4z"/>
+            <path class="layer-3" d="M24 10l2 2-4 4-2-2z"/>
+        </svg>
+    `,
+    
+    // Navigation Tools
+    zoom_in: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M14 2a12 12 0 100 24 12 12 0 000-24zm8 20l8 8M12 8h4v12h-4z"/>
+            <path class="layer-2" d="M14 6a8 8 0 100 16 8 8 0 000-16zM8 12h12v4H8z"/>
+            <path class="layer-3" d="M14 8a6 6 0 100 12 6 6 0 000-12z"/>
+        </svg>
+    `,
+    zoom_out: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M14 2a12 12 0 100 24 12 12 0 000-24zm8 20l8 8"/>
+            <path class="layer-2" d="M14 6a8 8 0 100 16 8 8 0 000-16zM8 12h12v4H8z"/>
+            <path class="layer-3" d="M14 8a6 6 0 100 12 6 6 0 000-12z"/>
+        </svg>
+    `,
+    move: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M16 2l-6 6h4v8H6v-4l-6 6 6 6v-4h8v8h-4l6 6 6-6h-4v-8h8v4l6-6-6-6v4h-8V8h4z"/>
+            <path class="layer-2" d="M16 4l-4 4h2v10H4v-2l-4 4 4 4v-2h10v10h-2l4 4 4-4h-2V14h10v2l4-4-4-4v2H18V8h2z"/>
+        </svg>
+    `,
+    grab: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M8 12v8l2-2v-4l2 2v-6l2 2v-4l2 2v-4l2 2v4l2-2v6l2-2v4l2 2v-8l-8-8z"/>
+            <path class="layer-2" d="M10 14v6l2-2v-2l2 2v-4l2 2v-2l2 2v-2l2 2v4l2-2v2l2 2v-6l-7-7z"/>
+        </svg>
+    `,
+    rotate: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M16 4C9.4 4 4 9.4 4 16h4c0-4.4 3.6-8 8-8s8 3.6 8 8h4c0-6.6-5.4-12-12-12z"/>
+            <path class="layer-2" d="M22 14l6 4-6 4z"/>
+        </svg>
+    `,
+
+    // System States
+    wait: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M16 2A14 14 0 1016 30 14 14 0 0016 2zm0 4A10 10 0 1116 26 10 10 0 0116 6z"/>
+            <path class="layer-2" d="M16 6v10l6 6"/>
+            <path class="layer-3" d="M16 8v8l4 4"/>
+        </svg>
+    `,
+    not_allowed: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M16 2C8.3 2 2 8.3 2 16s6.3 14 14 14 14-6.3 14-14S23.7 2 16 2zM4 16c0-6.6 5.4-12 12-12 2.6 0 5 .8 7 2.2L7.2 23C5.8 21 4 18.6 4 16zm12 12c-2.6 0-5-.8-7-2.2L24.8 9c1.4 2 2.2 4.4 2.2 7 0 6.6-5.4 12-12 12z"/>
+            <path class="layer-2" d="M16 6c2.6 0 5 .8 7 2.2L7.2 23C5.8 21 4 18.6 4 16c0-5.5 4.5-10 12-10z"/>
+        </svg>
+    `,
+    help: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M16 2C8.3 2 2 8.3 2 16s6.3 14 14 14 14-6.3 14-14S23.7 2 16 2zm0 4c2.2 0 4 1.8 4 4 0 2-1 3-2 4-1 1-2 2-2 4h-4c0-3 1-4 2-5s2-2 2-3c0-1.1-.9-2-2-2s-2 .9-2 2h-4c0-2.2 1.8-4 4-4zm-2 16h4v4h-4v-4z"/>
+            <path class="layer-2" d="M16 8c1.1 0 2 .9 2 2 0 1.5-1 2-2 3s-2 2-2 4h2c0-1.5 1-2 2-3s2-2 2-4c0-2.2-1.8-4-4-4s-4 1.8-4 4h2c0-1.1.9-2 2-2zm-1 10h2v2h-2v-2z"/>
+        </svg>
+    `,
+
+    // Resize Handles
+    resize_ns: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M16 2L8 10h16L16 2zM8 22l8 8 8-8H8z"/>
+            <path class="layer-2" d="M16 6l-4 4h8l-4-4zM12 24l4 4 4-4h-8z"/>
+        </svg>
+    `,
+    resize_ew: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M2 16l8-8v16l-8-8zM22 8v16l8-8-8-8z"/>
+            <path class="layer-2" d="M6 16l4-4v8l-4-4zM26 12v8l4-4-4-4z"/>
+        </svg>
+    `,
+    resize_nwse: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M4 4v12l4-4 6 6-6 6 4 4h12L4 4z"/>
+            <path class="layer-2" d="M6 6v8l2-2 6 6-6 6 2 2h8L6 6z"/>
+        </svg>
+    `,
+    resize_nesw: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M28 4L16 16l12 12V16z M4 16l12-12v24z"/>
+            <path class="layer-2" d="M24 8L16 16l8 8v-8z M8 16l8-8v16z"/>
+        </svg>
+    `,
+    // Gaming Cursors
+    select_unit: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M4 4v24h24V4H4zm2 2h20v20H6V6z"/>
+            <path class="layer-2" d="M8 8v16h16V8H8zm2 2h12v12H10V10z"/>
+            <path class="layer-3" d="M12 12h8v8h-8v-8z"/>
+        </svg>
+    `,
+    attack: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M16 2l-4 8-8 4 8 4 4 8 4-8 8-4-8-4z"/>
+            <path class="layer-2" d="M16 6l-3 6-6 3 6 3 3 6 3-6 6-3-6-3z"/>
+            <path class="layer-3" d="M16 10l-2 4-4 2 4 2 2 4 2-4 4-2-4-2z"/>
+        </svg>
+    `,
+    harvest: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M6 26c4-8 12-8 16-16 2 2 4 8 0 12-4 4-10 2-12 0-2 2-4 4-4 4z"/>
+            <path class="layer-2" d="M8 24c3-6 10-6 14-14 1 1 3 6 0 9-3 3-8 2-10 0-1 2-4 5-4 5z"/>
+            <path class="layer-3" d="M10 22c2-4 8-4 12-12 0 0 2 4 0 6-2 2-6 1-8 0-1 1-4 6-4 6z"/>
+        </svg>
+    `,
+    build: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M4 28V12l12-8 12 8v16H4z"/>
+            <path class="layer-2" d="M7 26V14l9-6 9 6v12H7z"/>
+            <path class="layer-3" d="M10 24V16l6-4 6 4v8H10z"/>
+        </svg>
+    `,
+    spell: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M16 2l4 10 10 4-10 4-4 10-4-10-10-4 10-4z"/>
+            <path class="layer-2" d="M16 6l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/>
+            <path class="layer-3" d="M16 10l2 4 4 2-4 2-2 4-2-4-4-2 4-2z"/>
+        </svg>
+    `,
+    heal: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M13 4v9H4v6h9v9h6v-9h9v-6h-9V4z"/>
+            <path class="layer-2" d="M14 6v9H5v4h9v9h4v-9h9v-4h-9V6z"/>
+            <path class="layer-3" d="M15 8v9H6v2h9v9h2v-9h9v-2h-9V8z"/>
+        </svg>
+    `,
+
+    // Modern App Cursors
+    drag_drop: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M8 2v8H2v12h6v8l8-8h6l8-8-8-8h-6z"/>
+            <path class="layer-2" d="M10 4v8H4v8h6v8l6-6h6l6-6-6-6h-6z"/>
+            <path class="layer-3" d="M12 6v8H6v4h6v8l4-4h6l4-4-4-4h-6z"/>
+        </svg>
+    `,
+    paint_bucket: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M10 2l4 4-6 6-4-4v16l8 6 12-16-4-4 2-2-4-4zm12 12l6 6c0 4-3 8-6 8s-6-4-6-8z"/>
+            <path class="layer-2" d="M12 4l2 2-6 6-2-2v12l6 4 10-14-4-4 2-2-2-2zm10 12l4 4c0 3-2 6-4 6s-4-3-4-6z"/>
+            <path class="layer-3" d="M8 16l4 2 8-12-2-2 2-2zm12 4c0 2-1 4-2 4s-2-2-2-4z"/>
+        </svg>
+    `,
+    eraser: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M26 4L16 14 6 24l-2 4h8l14-14z"/>
+            <path class="layer-2" d="M24 6L16 14l-8 8-1 2h6l11-11z"/>
+            <path class="layer-3" d="M22 8l-6 6-6 6h4l8-8z"/>
+        </svg>
+    `,
+
+    // Special Effects
+    sparkle: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M16 2l2 10 10 2-10 2-2 10-2-10-10-2 10-2z"/>
+            <path class="layer-2" d="M16 6l1 6 6 1-6 1-1 6-1-6-6-1 6-1z"/>
+            <path class="layer-3" d="M16 10v4l4 0-4 0v4l0-4-4 0 4 0z"/>
+        </svg>
+    `,
+    portal: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M16 2C8.3 2 2 8.3 2 16s6.3 14 14 14 14-6.3 14-14S23.7 2 16 2zm0 4c5.5 0 10 4.5 10 10s-4.5 10-10 10S6 21.5 6 16 10.5 6 16 6z"/>
+            <path class="layer-2" d="M16 6c-5.5 0-10 4.5-10 10s4.5 10 10 10 10-4.5 10-10S21.5 6 16 6zm0 4c3.3 0 6 2.7 6 6s-2.7 6-6 6-6-2.7-6-6 2.7-6 6-6z"/>
+            <path class="layer-3" d="M16 10c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6zm0 4c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z"/>
+        </svg>
+    `,
+    energy: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M16 2C8.3 2 2 8.3 2 16s6.3 14 14 14 14-6.3 14-14S23.7 2 16 2zm0 6l8 12H8l8-12z"/>
+            <path class="layer-2" d="M16 4C9.4 4 4 9.4 4 16s5.4 12 12 12 12-5.4 12-12S22.6 4 16 4zm0 8l6 8h-12l6-8z"/>
+            <path class="layer-3" d="M16 8l4 6h-8l4-6z"/>
+        </svg>
+    `,
+
+    // Modern OS Styles
+    win11_pointer: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M7 2l2 22 4-4 3 8 4-2-3-8 8-2z"/>
+            <path class="layer-2" d="M9 6l1.5 16 3-3 2.5 6 2-1-2.5-6 6-1.5z"/>
+            <path class="layer-3" d="M11 10l1 10 2-2 2 4 1-0.5-2-4 4-1z"/>
+        </svg>
+    `,
+    macos_modern: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M8 2l16 12-8 2.5-2.5 7.5z"/>
+            <path class="layer-2" d="M10 5l12 9-6 2-2 5.5z"/>
+            <path class="layer-3" d="M12 8l8 6-4 1.5-1.5 3.5z"/>
+        </svg>
+    `,
+
+    // Game Genre Specific
+    mmo_target: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M16 2C8.3 2 2 8.3 2 16s6.3 14 14 14 14-6.3 14-14S23.7 2 16 2zm0 4v4m0 12v4m-10-14h4m12 0h4"/>
+            <path class="layer-2" d="M16 6c-5.5 0-10 4.5-10 10s4.5 10 10 10 10-4.5 10-10S21.5 6 16 6zm0 2v4m0 8v4m-8-10h4m8 0h4"/>
+            <path class="layer-3" d="M16 10c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6zm0 2v2m0 4v2m-4-6h2m4 0h2"/>
+        </svg>
+    `,
+    rts_select: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M2 2v28h28V2H2zm2 2h24v24H4V4z"/>
+            <path class="layer-2" d="M6 6v20h20V6H6zm2 2h16v16H8V8z"/>
+            <path class="layer-3" d="M4 4l6 6m12-6l6 6m-6 12l6 6m-18 0l6-6"/>
+        </svg>
+    `,
+    rpg_interact: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M16 2l4 8h8l-6 6 2 8-8-4-8 4 2-8-6-6h8z"/>
+            <path class="layer-2" d="M16 6l3 6h6l-4 4 1 6-6-3-6 3 1-6-4-4h6z"/>
+            <path class="layer-3" d="M16 10l2 4h4l-3 3 1 4-4-2-4 2 1-4-3-3h4z"/>
+        </svg>
+    `,
+
+    // More Special Effects
+    pixelate: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M4 4h8v8H4zm8 8h8v8h-8zm8-8h8v8h-8zM4 20h8v8H4zm16 0h8v8h-8z"/>
+            <path class="layer-2" d="M6 6h4v4H6zm8 8h4v4h-4zm8-8h4v4h-4zM6 22h4v4H6zm16 0h4v4h-4z"/>
+            <path class="layer-3" d="M8 8h2v2H8zm8 8h2v2h-2zm8-8h2v2h-2zM8 24h2v2H8zm16 0h2v2h-2z"/>
+        </svg>
+    `,
+    glitch: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M8 2l14 14-6 2-2 6zM4 8h4m12 8h4M6 20h4"/>
+            <path class="layer-2" d="M9 4l12 12-5 1.5-1.5 5zM8 6h2m8 12h2M10 18h2"/>
+            <path class="layer-3" d="M10 6l10 10-4 1-1 4zM12 4h2m4 16h2M8 14h2"/>
+        </svg>
+    `,
+    hologram: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M16 2l8 4v20l-8 4-8-4V6l8-4zM8 6h16M8 26h16"/>
+            <path class="layer-2" d="M16 6l6 3v14l-6 3-6-3V9l6-3zM10 9h12M10 23h12"/>
+            <path class="layer-3" d="M16 10l4 2v8l-4 2-4-2v-8l4-2zM12 12h8M12 20h8"/>
+        </svg>
+    `,
+
+    // Additional Utility Cursors
+    // Continuing Additional Utility Cursors
+    link: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M12 8l-4 4c-4 4-4 10 0 14s10 4 14 0l4-4m-6-14l4-4c4-4 10-4 14 0"/>
+            <path class="layer-2" d="M14 10l-4 4c-3 3-3 7 0 10s7 3 10 0l4-4m-4-10l4-4c3-3 7-3 10 0"/>
+            <path class="layer-3" d="M16 12l-4 4c-2 2-2 4 0 6s4 2 6 0l4-4m-2-6l4-4c2-2 4-2 6 0"/>
+        </svg>
+    `,
+    pin: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M20 2l10 10-6 6-4-4-8 8 4 4-4 4-10-10 4-4 4 4 8-8-4-4z"/>
+            <path class="layer-2" d="M20 6l6 6-4 4-4-4-10 10 4 4-2 2-6-6 2-2 4 4 10-10-4-4z"/>
+            <path class="layer-3" d="M20 10l2 2-2 2-2-2-12 12 2 2-1 1-2-2 1-1 2 2 12-12-2-2z"/>
+        </svg>
+    `,
+
+    // Creative Tool Variations
+    brush_round: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M22 2c-6 0-10 4-10 4l2 2c0 0 4-4 8-4s6 2 6 6-6 8-6 8l-8 8c-4 4-12 4-12 4s0-8 4-12l8-8s6-2 8-6c2-2 2-4 0-6z"/>
+            <path class="layer-2" d="M22 6c-4 0-8 4-8 4l2 2c0 0 4-4 6-4s4 2 4 4-4 6-4 6l-6 6c-3 3-9 3-9 3s0-6 3-9l6-6s4-2 6-4c1-1 1-2 0-2z"/>
+            <path class="layer-3" d="M22 10c-2 0-4 2-4 2l1 1s2-2 3-2 2 1 2 2-2 3-2 3l-4 4c-2 2-6 2-6 2s0-4 2-6l4-4s2-1 3-2c0 0 1 0 1 0z"/>
+        </svg>
+    `,
+    spray: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M20 2l4 4-4 4m-4-4l4-4m0 16c-4 4-10 4-14 0s-4-10 0-14zm-2-2a6 6 0 1 1-8.5 8.5"/>
+            <path class="layer-2" d="M18 8c-3 3-7 3-10 0s-3-7 0-10m8 16c-3 3-7 3-10 0s-3-7 0-10"/>
+            <path class="layer-3" d="M16 10c-2 2-4 2-6 0s-2-4 0-6m4 12c-2 2-4 2-6 0s-2-4 0-6"/>
+        </svg>
+    `,
+
+    // Modern Device Gestures
+    touch_tap: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M12 4v16c0 4 8 4 8 0v-8c0-4-8-4-8 0m-4 8c0 8 16 8 16 0"/>
+            <path class="layer-2" d="M14 8v12c0 2 4 2 4 0v-6c0-2-4-2-4 0m-2 6c0 4 8 4 8 0"/>
+            <path class="layer-3" d="M16 12v8c0 1 0 1 0 0v-4c0-1 0-1 0 0m0 4c0 2 0 2 0 0"/>
+        </svg>
+    `,
+    touch_swipe: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M4 16h24m-4-4l4 4-4 4"/>
+            <path class="layer-2" d="M8 16h16m-4-2l4 2-4 2"/>
+            <path class="layer-3" d="M12 16h8m-2-1l2 1-2 1"/>
+        </svg>
+    `,
+
+    // More Gaming Cursors
+    radar_scan: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M16 2C8.3 2 2 8.3 2 16h4A10 10 0 0 1 16 6V2zM2 16c0 7.7 6.3 14 14 14s14-6.3 14-14h-4c0 5.5-4.5 10-10 10S6 21.5 6 16H2z"/>
+            <path class="layer-2" d="M16 6c-5.5 0-10 4.5-10 10h3a7 7 0 0 1 7-7V6zM6 16c0 5.5 4.5 10 10 10s10-4.5 10-10h-3c0 3.9-3.1 7-7 7s-7-3.1-7-7H6z"/>
+            <path class="layer-3" d="M16 10c-3.3 0-6 2.7-6 6h2c0-2.2 1.8-4 4-4v-2zm-6 6c0 3.3 2.7 6 6 6s6-2.7 6-6h-2c0 2.2-1.8 4-4 4s-4-1.8-4-4h-2z"/>
+        </svg>
+    `,
+    shield: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M16 2L4 8v8c0 8 12 14 12 14s12-6 12-14V8L16 2z"/>
+            <path class="layer-2" d="M16 6L8 10v6c0 6 8 10 8 10s8-4 8-10v-6l-8-4z"/>
+            <path class="layer-3" d="M16 10l-4 2v4c0 4 4 6 4 6s4-2 4-6v-4l-4-2z"/>
+        </svg>
+    `,
+    sword: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M26 2L16 12l-4 2-8 8 2 2 2-2 2 2-2 2 4 4 2-2 2 2 8-8 2-4 10-10h-8z"/>
+            <path class="layer-2" d="M24 4L16 12l-4 2-6 6 2 2 2-2 2 2-2 2 2 2 2-2 2 2 6-6 2-4 8-8h-6z"/>
+            <path class="layer-3" d="M22 6L16 12l-4 2-4 4 2 2 2-2 2 2-2 2 2 2 4-4 2-4 6-6h-4z"/>
+        </svg>
+    `,
+
+    // Social Media Style
+    like: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M16 4c0 0-6-6-12 0s-2 12 12 20c14-8 18-14 12-20s-12 0-12 0z"/>
+            <path class="layer-2" d="M16 8c0 0-4-4-8 0s-2 8 8 14c10-6 12-10 8-14s-8 0-8 0z"/>
+            <path class="layer-3" d="M16 12c0 0-2-2-4 0s-2 4 4 8c6-4 6-6 4-8s-4 0-4 0z"/>
+        </svg>
+    `,
+    share: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M24 4c-2.2 0-4 1.8-4 4 0 .7.2 1.4.5 2L12 16c-.7-.6-1.5-1-2.5-1-2.2 0-4 1.8-4 4s1.8 4 4 4c1 0 1.8-.4 2.5-1l8.5 6c-.3.6-.5 1.3-.5 2 0 2.2 1.8 4 4 4s4-1.8 4-4-1.8-4-4-4c-1 0-1.8.4-2.5 1L13 21c.3-.6.5-1.3.5-2s-.2-1.4-.5-2l8.5-6c.7.6 1.5 1 2.5 1 2.2 0 4-1.8 4-4s-1.8-4-4-4z"/>
+            <path class="layer-2" d="M24 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-14 8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm14 8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+            <path class="layer-3" d="M24 8c-.5 0-1 .5-1 1s.5 1 1 1 1-.5 1-1-.5-1-1-1zm-14 8c-.5 0-1 .5-1 1s.5 1 1 1 1-.5 1-1-.5-1-1-1zm14 8c-.5 0-1 .5-1 1s.5 1 1 1 1-.5 1-1-.5-1-1-1z"/>
+        </svg>
+    `,
+
+    // Developer Tools
+    code: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M10 8l-8 8 8 8m12-16l8 8-8 8"/>
+            <path class="layer-2" d="M12 10l-6 6 6 6m8-12l6 6-6 6"/>
+            <path class="layer-3" d="M14 12l-4 4 4 4m4-8l4 4-4 4"/>
+        </svg>
+    `,
+    debug: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M16 2l4 4-4 4-4-4zm0 20l4 4-4 4-4-4zM6 12l4 4-4 4-4-4zm20 0l4 4-4 4-4-4z"/>
+            <path class="layer-2" d="M16 4l2 2-2 2-2-2zm0 20l2 2-2 2-2-2zM8 14l2 2-2 2-2-2zm16 0l2 2-2 2-2-2z"/>
+            <path class="layer-3" d="M16 6l1 1-1 1-1-1zm0 18l1 1-1 1-1-1zm-6-8l1 1-1 1-1-1zm12 0l1 1-1 1-1-1z"/>
+        </svg>
+    `,
+    // Final batch of cursor templates
+    retro_pointer: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M4 4h4v4h4v4h4v4h4v4h-4v4h-4v-4h-4v-4H4z"/>
+            <path class="layer-2" d="M8 8h4v4h4v4h4v4h-4v4h-4v-4h-4z"/>
+            <path class="layer-3" d="M12 12h4v4h4v4h-4v4h-4z"/>
+        </svg>
+    `,
+    pixel_sword: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M8 4h4v4h4v4h4v4h4v4h-4v4h-4v-4h-4v-4H8z"/>
+            <path class="layer-2" d="M12 8h4v4h4v4h4v4h-4v4h-4v-4h-4z"/>
+            <path class="layer-3" d="M16 12h4v4h4v4h-4v4h-4z"/>
+        </svg>
+    `,
+    pixel_magic: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M4 4h4v4H4zm8 0h4v4h-4zm8 0h4v4h-4zm8 0h4v4h-4zM8 8h4v4H8zm8 0h4v4h-4zm8 0h4v4h-4zM4 12h4v4H4zm8 0h4v4h-4zm8 0h4v4h-4z"/>
+            <path class="layer-2" d="M8 8h4v4H8zm8 0h4v4h-4zm8 0h4v4h-4zM4 16h4v4H4zm8 0h4v4h-4zm8 0h4v4h-4z"/>
+            <path class="layer-3" d="M12 12h4v4h-4zm8 0h4v4h-4zM8 20h4v4H8zm8 0h4v4h-4z"/>
+        </svg>
+    `,
+    voxel_select: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M4 4h8v8H4zm16 0h8v8h-8zM4 20h8v8H4zm16 0h8v8h-8z"/>
+            <path class="layer-2" d="M6 6h4v4H6zm16 0h4v4h-4zM6 22h4v4H6zm16 0h4v4h-4z"/>
+            <path class="layer-3" d="M8 8h2v2H8zm16 0h2v2h-2zM8 24h2v2H8zm16 0h2v2h-2z"/>
+        </svg>
+    `,
+    matrix_rain: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M4 4h4v4H4zm8 4h4v4h-4zm8 0h4v4h-4zM8 16h4v4H8zm8 4h4v4h-4zm8 4h4v4h-4z"/>
+            <path class="layer-2" d="M6 6h2v2H6zm8 4h2v2h-2zm8 0h2v2h-2zM10 18h2v2h-2zm8 4h2v2h-2zm8 4h2v2h-2z"/>
+            <path class="layer-3" d="M7 7h1v1H7zm8 4h1v1h-1zm8 0h1v1h-1zM11 19h1v1h-1zm8 4h1v1h-1zm8 4h1v1h-1z"/>
+        </svg>
+    `,
+    synthwave: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M2 24l14-20 14 20zm0-8l14-12 14 12zm0-8l14-4 14 4"/>
+            <path class="layer-2" d="M4 24l12-16 12 16zm0-8l12-8 12 8zm0-8l12-2 12 2"/>
+            <path class="layer-3" d="M6 24l10-12 10 12zm0-8l10-4 10 4zm0-8l10-1 10 1"/>
+        </svg>
+    `,
+    quantum: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M16 2v28m-7-21l14 14m-14 0l14-14"/>
+            <path class="layer-2" d="M16 4v24m-5-17l10 10m-10 0l10-10"/>
+            <path class="layer-3" d="M16 6v20m-3-13l6 6m-6 0l6-6"/>
+        </svg>
+    `,
+    neural: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M4 16h24M16 4v24m-8-4l16-16m-16 0l16 16"/>
+            <path class="layer-2" d="M8 16h16M16 8v16m-6-3l12-12m-12 0l12 12"/>
+            <path class="layer-3" d="M12 16h8M16 12v8m-4-2l8-8m-8 0l8 8"/>
+        </svg>
+    `,
+    future_edit: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M24 2l6 6-16 16-8 2 2-8 16-16zM4 28h24"/>
+            <path class="layer-2" d="M24 4l4 4-14 14-6 2 2-6 14-14zM8 26h16"/>
+            <path class="layer-3" d="M24 6l2 2-12 12-4 1 1-4 13-11zM12 24h8"/>
+        </svg>
+    `,
+    holo_select: `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="M4 4h4v4H4zm20 0h4v4h-4zM4 24h4v4H4zm20 0h4v4h-4z"/>
+            <path class="layer-2" d="M6 6h2v2H6zm18 0h2v2h-2zM6 24h2v2H6zm18 0h2v2h-2z"/>
+            <path class="layer-3" d="M8 8h16v16H8z"/>
+        </svg>
+    `
+};
+
+// Helper function for color picker creation
+function createResponsiveColorPicker(container, initialColor, onChange) {
+    return Pickr.create({
+        el: container,
+        theme: 'nano',
+        default: initialColor,
+        components: {
+            preview: true,
+            opacity: true,
+            hue: true,
+            interaction: {
+                hex: true,
+                rgba: true,
+                hsla: true,
+                input: true,
+                save: true
+            }
+        }
+    }).on('save', (color) => {
+        if (color) {
+            onChange(color.toHEXA().toString());
+        }
+    });
+}
+
+// Image import and conversion helper
+async function importImage(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const img = new Image();
+            img.onload = async () => {
+                try {
+                    const svg = await imageToSVG(img);
+                    resolve(svg);
+                } catch (err) {
+                    reject(err);
+                }
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+async function imageToSVG(img) {
+    // Create a canvas to process the image
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 32;
+    canvas.height = 32;
+    
+    // Draw and process image
+    ctx.drawImage(img, 0, 0, 32, 32);
+    const imageData = ctx.getImageData(0, 0, 32, 32);
+    
+    // Create SVG paths using image data
+    const paths = [];
+    const visited = new Set();
+    
+    for (let y = 0; y < 32; y++) {
+        for (let x = 0; x < 32; x++) {
+            const idx = (y * 32 + x) * 4;
+            const alpha = imageData.data[idx + 3];
+            
+            if (alpha > 128 && !visited.has(`${x},${y}`)) {
+                const path = tracePath(imageData, x, y, visited);
+                if (path) {
+                    paths.push(path);
+                }
+            }
+        }
+    }
+    
+    // Generate SVG with multiple layers
+    return `
+        <svg viewBox="0 0 32 32" class="cursor-svg">
+            <path class="layer-1" d="${paths.join(' ')}" />
+            <path class="layer-2" d="${paths.join(' ')}" />
+            <path class="layer-3" d="${paths.join(' ')}" />
+        </svg>
+    `.trim();
+}
+
+function tracePath(imageData, startX, startY, visited) {
+    // Implementation of path tracing algorithm
+    // This is a simplified version - you might want to use a more sophisticated algorithm
+    const points = [];
+    let x = startX;
+    let y = startY;
+    
+    while (points.length < 100) { // Prevent infinite loops
+        visited.add(`${x},${y}`);
+        points.push(`${points.length === 0 ? 'M' : 'L'} ${x} ${y}`);
+        
+        // Look for next unvisited pixel
+        let found = false;
+        for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+                const nx = x + dx;
+                const ny = y + dy;
+                if (nx >= 0 && nx < 32 && ny >= 0 && ny < 32) {
+                    const idx = (ny * 32 + nx) * 4;
+                    if (imageData.data[idx + 3] > 128 && !visited.has(`${nx},${ny}`)) {
+                        x = nx;
+                        y = ny;
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if (found) break;
+        }
+        
+        if (!found) break;
+    }
+    
+    return points.length > 1 ? points.join(' ') + ' Z' : null;
+}
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', () => {
+    const cursorManager = new CursorManager();
+    
+    // Initialize the first layer with default template
+    cursorManager.addNewLayer('default');
+    
+    // Initialize templates
+    // const templateGrid = document.getElementById('templateGrid');
+    // Object.keys(cursorTemplates).forEach(template => {
+    //     const div = document.createElement('div');
+    //     div.className = 'cursor-template';
+    //     div.innerHTML = cursorTemplates[template];
+    //     div.onclick = () => cursorManager.addNewLayer(template);
+    //     templateGrid.appendChild(div);
+    // });
+
+    // Set up image import functionality
+    const importBtn = document.createElement('button');
+    importBtn.className = 'btn btn-primary';
+    importBtn.innerHTML = '<i class="fas fa-file-import"></i> Import Image';
+    importBtn.onclick = async () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = async (e) => {
+            if (e.target.files && e.target.files[0]) {
+                try {
+                    const svg = await importImage(e.target.files[0]);
+                    cursorTemplates.imported = svg;
+                    cursorManager.addNewLayer('imported');
+                } catch (err) {
+                    console.error('Failed to import image:', err);
+                    alert('Failed to import image. Please try a different image.');
+                }
+            }
+        };
+        input.click();
+    };
+    document.querySelector('.tool-controls').appendChild(importBtn);
+});
+
+</script>
+</body>
+</html>

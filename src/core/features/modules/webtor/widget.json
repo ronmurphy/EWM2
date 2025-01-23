@@ -1,0 +1,13 @@
+{
+    "name": "WebTorrent Widget",
+    "description": "A simple web torrent video player",
+    "version": "1.0.0",
+    "icon": "smart_display",
+    "settings": {
+        "size": {
+            "width": 800,
+            "height": 600
+        },
+        "autoload": false
+    }
+}

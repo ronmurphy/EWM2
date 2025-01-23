@@ -1,0 +1,850 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas Media Player</title>
+    <meta name="description" content="Elegant HTML5 media player supporting both audio and video playback">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/artplayer/dist/artplayer.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: #1a1a1a;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        #playlist-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(76, 175, 80, 0.3);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1000;
+            transition: background 0.3s;
+        }
+
+        #playlist-toggle:hover {
+            background: rgba(76, 175, 80, 0.8);
+        }
+
+        #playlist-panel {
+            position: fixed;
+            left: -50%;
+            top: 0;
+            width: 50%;
+            height: 100vh;
+            background: rgba(26, 26, 26, 0.95);
+            transition: left 0.3s ease;
+            z-index: 999;
+            padding: 20px;
+            padding-top: 80px;
+        }
+
+        #playlist-panel.open {
+            left: 0;
+        }
+
+        .playlist-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(76, 175, 80, 0.2);
+            border-radius: 5px;
+            cursor: move;
+            transition: background 0.3s;
+        }
+
+        .playlist-item:hover {
+            background: rgba(76, 175, 80, 0.4);
+        }
+
+        .playlist-item.dragging {
+            opacity: 0.5;
+        }
+
+        #visualizer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        #playerContainer {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            display: none;
+        }
+
+        #audioPlayer {
+            width: 100%;
+            max-width: 800px;
+            background: #2a2a2a;
+            border-radius: 10px;
+            padding: 20px;
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: opacity 0.3s ease, transform 0.5s ease;
+            opacity: 0.05;
+        }
+
+        #audioPlayer.mini {
+            top: unset;
+            bottom: 0;
+            padding: 10px;
+            background: rgba(42, 42, 42, 0.95);
+            opacity: 0.01;
+        }
+
+        #audioPlayer.mini:hover {
+            opacity: 1;
+        }
+
+        .color-picker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            padding: 20px;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .color-swatch {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.2);
+        }
+
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 5px;
+            background: #444;
+            border-radius: 5px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .progress {
+            height: 100%;
+            background: #4CAF50;
+            border-radius: 5px;
+            width: 0;
+        }
+
+        .file-button {
+            padding: 15px 30px;
+            background: #4CAF50;
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .file-button:hover {
+            background: #45a049;
+        }
+
+        .control-button {
+            background: none;
+            border: 2px solid #4CAF50;
+            color: #4CAF50;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .control-label {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #4CAF50;
+            white-space: nowrap;
+        }
+
+        .control-button:hover {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .time-display {
+            font-size: 14px;
+            color: #888;
+        }
+
+        #audioTitle {
+            margin-bottom: 15px;
+            color: #4CAF50;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="visualizer"></canvas>
+    <button id="playlist-toggle">☰</button>
+    <div id="playlist-panel">
+        <button class="file-button" onclick="document.getElementById('fileInput').click()">
+            Add Files
+        </button>
+        <input type="file" id="fileInput" style="display: none" accept="audio/*,video/*" multiple>
+        <div id="playlist"></div>
+        <div class="color-picker">
+            <div class="color-swatch" style="background: #ff0000" data-color="#ff0000"></div>
+            <div class="color-swatch" style="background: #ff8800" data-color="#ff8800"></div>
+            <div class="color-swatch" style="background: #ffff00" data-color="#ffff00"></div>
+            <div class="color-swatch" style="background: #4CAF50" data-color="#4CAF50"></div>
+            <div class="color-swatch" style="background: #2196F3" data-color="#2196F3"></div>
+            <div class="color-swatch" style="background: #3F51B5" data-color="#3F51B5"></div>
+            <div class="color-swatch" style="background: #9C27B0" data-color="#9C27B0"></div>
+            <div class="color-swatch" style="background: #E91E63" data-color="#E91E63"></div>
+            <div class="color-swatch" style="background: #DDA0DD" data-color="#DDA0DD"></div>
+            <div class="color-swatch" style="background: #D3D3D3" data-color="#D3D3D3"></div>
+            <div class="color-swatch" style="background: #424242" data-color="#424242"></div>
+            <div class="color-swatch" style="background: #ffffff" data-color="#ffffff"></div>
+        </div>
+    </div>
+
+    <div id="playerContainer"></div>
+
+    <div id="audioPlayer">
+        <div id="audioTitle"></div>
+        <div class="audio-controls">
+            <button class="control-button" id="visualizerBtn">
+                <span class="material-icons-outlined">visibility</span>
+                <span class="control-label" id="visualizerLabel">Bars</span>
+            </button>
+            <button class="control-button" id="equalizerBtn">
+                <span class="material-icons-outlined">equalizer</span>
+                <span class="control-label" id="equalizerLabel">None</span>
+            </button>
+            <button class="control-button" id="playPauseBtn">
+                <span class="material-icons-outlined">play_arrow</span>
+            </button>
+            <button class="control-button" id="nextBtn">
+                <span class="material-icons-outlined">skip_next</span>
+                <span class="control-label">Next</span>
+            </button>
+            <button class="control-button" id="shuffleBtn">
+                <span class="material-icons-outlined">shuffle</span>
+                <span class="control-label">Off</span>
+            </button>
+            <div class="time-display" id="currentTime">0:00</div>
+            <div class="progress-bar" id="progressBar">
+                <div class="progress" id="progress"></div>
+            </div>
+            <div class="time-display" id="duration">0:00</div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/artplayer/dist/artplayer.js"></script>
+    <script>
+        let art = null;
+        let audio = new Audio();
+        let isPlaying = false;
+        let playlist = [];
+        let currentIndex = 0;
+        let audioContext;
+        let analyser;
+        let visualizer;
+        let animationFrame;
+        let currentVisualizer = 'bars';
+        let currentEqualizer = 'None';
+        let shuffleMode = false;
+        const equalizers_list = ['None', 'Rock', 'Pop', 'Classical', 'Jazz'];
+        
+        const visualizers = ['bars', 'rainbowBars', 'geometricShapes', 'fireEffect', 'waves', 'spectrum', 'particles', 'circles'];
+        let equalizerPresets = {
+            'None': [],
+            'Rock': [
+                {frequency: 60, gain: 4}, {frequency: 170, gain: 3},
+                {frequency: 310, gain: -2}, {frequency: 600, gain: 1},
+                {frequency: 1000, gain: 2}, {frequency: 3000, gain: 3},
+                {frequency: 6000, gain: 4}, {frequency: 12000, gain: 4},
+                {frequency: 14000, gain: 4}, {frequency: 16000, gain: 4}
+            ],
+            'Pop': [
+                {frequency: 60, gain: -1}, {frequency: 170, gain: 2},
+                {frequency: 310, gain: 3}, {frequency: 600, gain: 2},
+                {frequency: 1000, gain: 1}, {frequency: 3000, gain: -1},
+                {frequency: 6000, gain: 2}, {frequency: 12000, gain: 3},
+                {frequency: 14000, gain: 2}, {frequency: 16000, gain: 1}
+            ],
+            'Classical': [
+                {frequency: 60, gain: 4}, {frequency: 170, gain: 3},
+                {frequency: 310, gain: 2}, {frequency: 600, gain: 0},
+                {frequency: 1000, gain: -1}, {frequency: 3000, gain: -1},
+                {frequency: 6000, gain: 1}, {frequency: 12000, gain: 2},
+                {frequency: 14000, gain: 3}, {frequency: 16000, gain: 3}
+            ],
+            'Jazz': [
+                {frequency: 60, gain: 3}, {frequency: 170, gain: 2},
+                {frequency: 310, gain: 1}, {frequency: 600, gain: 2},
+                {frequency: 1000, gain: -2}, {frequency: 3000, gain: -1},
+                {frequency: 6000, gain: 2}, {frequency: 12000, gain: 3},
+                {frequency: 14000, gain: 3}, {frequency: 16000, gain: 3}
+            ]
+        };
+        let equalizers = [];
+
+        const fileInput = document.getElementById('fileInput');
+        const playerContainer = document.getElementById('playerContainer');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progress = document.getElementById('progress');
+        const currentTimeDisplay = document.getElementById('currentTime');
+        const durationDisplay = document.getElementById('duration');
+        const audioTitle = document.getElementById('audioTitle');
+
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // Initialize playlist panel
+        const playlistToggle = document.getElementById('playlist-toggle');
+        const playlistPanel = document.getElementById('playlist-panel');
+        const playlistContainer = document.getElementById('playlist');
+
+        playlistToggle.addEventListener('click', function() {
+            playlistPanel.classList.toggle('open');
+            // Force repaint to ensure transition works
+            playlistPanel.offsetHeight;
+        });
+
+        // Setup drag and drop for playlist
+        let draggedItem = null;
+
+        function handleDragStart(e) {
+            draggedItem = e.target;
+            e.target.classList.add('dragging');
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            const afterElement = getDragAfterElement(playlistContainer, e.clientY);
+            const draggable = document.querySelector('.dragging');
+            if (afterElement == null) {
+                playlistContainer.appendChild(draggable);
+            } else {
+                playlistContainer.insertBefore(draggable, afterElement);
+            }
+        }
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.playlist-item:not(.dragging)')]
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            if (!files.length) return;
+
+            for (const file of files) {
+                const fileType = file.type.split('/')[0];
+                const fileUrl = URL.createObjectURL(file);
+                playlist.push({ type: fileType, url: fileUrl, name: file.name });
+                
+                const item = document.createElement('div');
+                item.className = 'playlist-item';
+                item.draggable = true;
+                item.textContent = file.name;
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragend', handleDragEnd);
+                item.addEventListener('click', () => playFile(playlist.length - 1));
+                playlistContainer.appendChild(item);
+            }
+
+            if (!isPlaying) {
+                playFile(0);
+            }
+        }
+
+        playlistContainer.addEventListener('dragover', handleDragOver);
+
+        function setupAudioVisualizer() {
+
+            visualizer = document.getElementById('visualizer');
+            visualizer.width = window.innerWidth;
+            visualizer.height = window.innerHeight;
+            const ctx = visualizer.getContext('2d');
+
+            function drawBars(ctx, dataArray, bufferLength) {
+                const barWidth = (visualizer.width / bufferLength) * 2.5;
+                let x = 0;
+
+                for (let i = 0; i < bufferLength; i++) {
+                    const barHeight = dataArray[i] / 2;
+                    const gradient = ctx.createLinearGradient(0, 0, 0, visualizer.height);
+                    gradient.addColorStop(0, '#6c5ce7');
+                    gradient.addColorStop(1, '#a29bfe');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(x, visualizer.height - barHeight, barWidth, barHeight);
+                    x += barWidth + 1;
+                }
+            }
+
+            function drawRainbowBars(ctx, dataArray, bufferLength) {
+                const barWidth = (visualizer.width / bufferLength) * 2.5;
+                let x = 0;
+
+                for (let i = 0; i < bufferLength; i++) {
+                    const barHeight = dataArray[i] / 2;
+                    const hue = (i / bufferLength) * 360;
+                    ctx.fillStyle = `hsl(${hue}, 80%, 50%)`;
+                    ctx.fillRect(x, visualizer.height - barHeight, barWidth, barHeight);
+                    x += barWidth + 1;
+                }
+            }
+
+            function drawGeometricShapes(ctx, dataArray, bufferLength) {
+                const centerX = visualizer.width / 2;
+                const centerY = visualizer.height / 2;
+                const maxSize = Math.min(visualizer.width, visualizer.height) / 4;
+
+                const triangleSize = (dataArray[0] / 256) * maxSize;
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY - triangleSize);
+                ctx.lineTo(centerX - triangleSize, centerY + triangleSize);
+                ctx.lineTo(centerX + triangleSize, centerY + triangleSize);
+                ctx.closePath();
+                ctx.strokeStyle = `hsl(${performance.now() / 20}, 70%, 50%)`;
+                ctx.stroke();
+
+                const circleSize = (dataArray[Math.floor(bufferLength/3)] / 256) * maxSize;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, circleSize, 0, Math.PI * 2);
+                ctx.strokeStyle = `hsl(${performance.now() / 30 + 120}, 70%, 50%)`;
+                ctx.stroke();
+
+                const squareSize = (dataArray[Math.floor(bufferLength/2)] / 256) * maxSize;
+                ctx.strokeStyle = `hsl(${performance.now() / 40 + 240}, 70%, 50%)`;
+                ctx.strokeRect(centerX - squareSize/2, centerY - squareSize/2, squareSize, squareSize);
+            }
+
+            function drawFireEffect(ctx, dataArray, bufferLength) {
+                const particles = 50;
+                const centerY = visualizer.height;
+                
+                for (let i = 0; i < particles; i++) {
+                    const amplitude = dataArray[i % bufferLength] / 256;
+                    const x = (i / particles) * visualizer.width;
+                    const height = amplitude * visualizer.height * 0.8;
+                    
+                    const gradient = ctx.createLinearGradient(x, centerY, x, centerY - height);
+                    gradient.addColorStop(0, 'rgba(255, 50, 0, 0.8)');
+                    gradient.addColorStop(0.5, 'rgba(255, 150, 0, 0.6)');
+                    gradient.addColorStop(1, 'rgba(255, 255, 0, 0)');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(x, centerY - height, visualizer.width/particles, height);
+                    
+                    if (amplitude > 0.6) {
+                        ctx.beginPath();
+                        ctx.arc(x + Math.random() * 10, centerY - height + Math.random() * 20,
+                            1, 0, Math.PI * 2);
+                        ctx.fillStyle = '#fff';
+                        ctx.fill();
+                    }
+                }
+            }
+
+            function drawWaves(ctx, dataArray, bufferLength) {
+                ctx.beginPath();
+                ctx.moveTo(0, visualizer.height / 2);
+
+                for (let i = 0; i < bufferLength; i++) {
+                    const x = (i / bufferLength) * visualizer.width;
+                    const y = (visualizer.height / 2) + ((dataArray[i] - 128) * 0.8);
+                    
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+
+                ctx.strokeStyle = '#6c5ce7';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            function drawSpectrum(ctx, dataArray, bufferLength) {
+                const barWidth = (visualizer.width / bufferLength) * 2.5;
+                const centerY = visualizer.height / 2;
+                
+                for (let i = 0; i < bufferLength; i++) {
+                    const height = dataArray[i] * 0.5;
+                    const x = i * barWidth;
+                    
+                    const hue = (i / bufferLength) * 360;
+                    ctx.fillStyle = `hsl(${hue}, 80%, 50%)`;
+                    ctx.fillRect(x, centerY - height/2, barWidth-1, height);
+                }
+            }
+
+            function drawParticles(ctx, dataArray, bufferLength) {
+                const particles = 50;
+                const angleStep = (2 * Math.PI) / particles;
+                
+                for (let i = 0; i < particles; i++) {
+                    const amplitude = dataArray[i % bufferLength] / 256;
+                    const angle = i * angleStep;
+                    const radius = amplitude * Math.min(visualizer.width, visualizer.height) / 3;
+                    
+                    const x = visualizer.width/2 + Math.cos(angle) * radius;
+                    const y = visualizer.height/2 + Math.sin(angle) * radius;
+                    
+                    ctx.beginPath();
+                    ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                    ctx.fillStyle = `hsl(${(amplitude * 360)}, 70%, 50%)`;
+                    ctx.fill();
+                }
+            }
+
+            function drawCircles(ctx, dataArray, bufferLength) {
+                const centerX = visualizer.width / 2;
+                const centerY = visualizer.height / 2;
+                const radius = Math.min(centerX, centerY) - 20;
+                const angleStep = (2 * Math.PI) / bufferLength;
+
+                for (let i = 0; i < bufferLength; i++) {
+                    const amplitude = dataArray[i] / 256;
+                    const angle = i * angleStep;
+                    const x = centerX + Math.cos(angle) * (radius * amplitude);
+                    const y = centerY + Math.sin(angle) * (radius * amplitude);
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, 3, 0, 2 * Math.PI);
+                    ctx.fillStyle = `hsl(${(i / bufferLength) * 360}, 70%, 50%)`;
+                    ctx.fill();
+                }
+            }
+
+            function draw() {
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+                analyser.getByteFrequencyData(dataArray);
+
+                ctx.fillStyle = 'rgba(26, 26, 26, 0.2)';
+                ctx.fillRect(0, 0, visualizer.width, visualizer.height);
+
+                switch(currentVisualizer) {
+                    case 'bars': drawBars(ctx, dataArray, bufferLength); break;
+                    case 'rainbowBars': drawRainbowBars(ctx, dataArray, bufferLength); break;
+                    case 'geometricShapes': drawGeometricShapes(ctx, dataArray, bufferLength); break;
+                    case 'fireEffect': drawFireEffect(ctx, dataArray, bufferLength); break;
+                    case 'waves': drawWaves(ctx, dataArray, bufferLength); break;
+                    case 'spectrum': drawSpectrum(ctx, dataArray, bufferLength); break;
+                    case 'particles': drawParticles(ctx, dataArray, bufferLength); break;
+                    case 'circles': drawCircles(ctx, dataArray, bufferLength); break;
+                }
+
+                animationFrame = requestAnimationFrame(draw);
+            }
+
+            draw();
+        }
+
+        function playFile(index) {
+            currentIndex = index;
+            const file = playlist[index];
+            
+            if (file.type === 'video') {
+                setupVideoPlayer(file.url, file.name);
+            } else if (file.type === 'audio') {
+                setupAudioPlayer(file.url, file.name);
+            }
+        }
+
+        function setupVideoPlayer(url, filename) {
+            audioPlayer.classList.add('mini');
+            audioPlayer.style.display = 'block';
+            playerContainer.style.display = 'block';
+            
+            if (art) {
+                art.destroy();
+            }
+
+            art = new Artplayer({
+                cssVar: true,
+                backdrop: true,
+                fullscreen: true,
+                fullscreenWeb: true,
+                autoSize: false,
+                container: '#playerContainer',
+                url: url,
+                title: filename,
+                volume: 0.5,
+                isLive: false,
+                muted: false,
+                autoplay: false,
+                pip: true,
+                autoSize: true,
+                autoMini: true,
+                screenshot: true,
+                setting: true,
+                loop: false,
+                flip: true,
+                rotate: true,
+                playbackRate: true,
+                aspectRatio: true,
+                fullscreen: true,
+                fullscreenWeb: true,
+                subtitleOffset: true,
+                miniProgressBar: true,
+                mutex: true,
+                backdrop: true,
+                playsInline: true,
+                autoPlayback: true,
+                airplay: true
+            });
+        }
+
+        function setupAudioPlayer(url, filename) {
+            playerContainer.style.display = 'none';
+            audioPlayer.style.display = 'block';
+            
+            if (art) {
+                art.destroy();
+                art = null;
+            }
+
+            audio.src = url;
+            audioTitle.textContent = filename;
+            isPlaying = false;
+            playPauseBtn.innerHTML = '▶';
+
+            // Initialize audio context and analyser if not already done
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                const source = audioContext.createMediaElementSource(audio);
+                source.connect(analyser);
+                analyser.connect(audioContext.destination);
+            }
+
+            // Setup visualizer after context is initialized
+            setupAudioVisualizer();
+
+            audio.addEventListener('loadedmetadata', () => {
+                durationDisplay.textContent = formatTime(audio.duration);
+            });
+
+            audio.addEventListener('timeupdate', updateProgress);
+        }
+
+        playPauseBtn.addEventListener('click', togglePlayPause);
+        progressBar.addEventListener('click', seek);
+
+        // Setup next and shuffle buttons
+        const nextBtn = document.getElementById('nextBtn');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        
+        nextBtn.addEventListener('click', () => {
+            if (playlist.length > 1) {
+                let nextIndex;
+                if (shuffleMode) {
+                    do {
+                        nextIndex = Math.floor(Math.random() * playlist.length);
+                    } while (nextIndex === currentIndex && playlist.length > 1);
+                } else {
+                    nextIndex = (currentIndex + 1) % playlist.length;
+                }
+                playFile(nextIndex);
+            }
+        });
+        
+        shuffleBtn.addEventListener('click', () => {
+            shuffleMode = !shuffleMode;
+            shuffleBtn.querySelector('.control-label').textContent = shuffleMode ? 'On' : 'Off';
+        });
+
+        const visualizerBtn = document.getElementById('visualizerBtn');
+        const equalizerBtn = document.getElementById('equalizerBtn');
+        const visualizerLabel = document.getElementById('visualizerLabel');
+        const equalizerLabel = document.getElementById('equalizerLabel');
+
+        visualizerBtn.addEventListener('click', () => {
+            const currentIndex = visualizers.indexOf(currentVisualizer);
+            const nextIndex = (currentIndex + 1) % visualizers.length;
+            currentVisualizer = visualizers[nextIndex];
+            visualizerLabel.textContent = currentVisualizer.charAt(0).toUpperCase() + 
+                                        currentVisualizer.slice(1).replace(/([A-Z])/g, ' $1');
+        });
+
+        equalizerBtn.addEventListener('click', () => {
+            const currentIndex = equalizers_list.indexOf(currentEqualizer);
+            const nextIndex = (currentIndex + 1) % equalizers_list.length;
+            currentEqualizer = equalizers_list[nextIndex];
+            equalizerLabel.textContent = currentEqualizer.charAt(0).toUpperCase() + 
+                                       currentEqualizer.slice(1);
+            
+            setupEqualizer();
+        });
+
+        function setupEqualizer() {
+            if (audioContext) {
+                // Disconnect all existing nodes
+                equalizers.forEach(eq => {
+                    try {
+                        eq.disconnect();
+                    } catch(e) {}
+                });
+                equalizers = [];
+                
+                // Create a new audio source
+                const source = audioContext.createMediaElementSource(audio);
+                
+                if (currentEqualizer !== 'None') {
+                    const preset = equalizerPresets[currentEqualizer];
+                    preset.forEach(({frequency, gain}) => {
+                        const eq = audioContext.createBiquadFilter();
+                        eq.type = 'peaking';
+                        eq.frequency.value = frequency;
+                        eq.gain.value = gain;
+                        eq.Q.value = 1;
+                        equalizers.push(eq);
+                    });
+                    
+                    // Connect nodes in series: source -> eq1 -> eq2 -> ... -> analyser -> destination
+                    let prevNode = source;
+                    equalizers.forEach(eq => {
+                        prevNode.connect(eq);
+                        prevNode = eq;
+                    });
+                    prevNode.connect(analyser);
+                } else {
+                    // Direct connection if no equalizer
+                    source.connect(analyser);
+                }
+                analyser.connect(audioContext.destination);
+            }
+        }
+
+        // Add hover effect for audio player
+        audioPlayer.addEventListener('mouseenter', () => {
+            audioPlayer.style.opacity = '1';
+        });
+
+        audioPlayer.addEventListener('mouseleave', () => {
+            audioPlayer.style.opacity = '0.05';
+        });
+
+        function togglePlayPause() {
+            if (isPlaying) {
+                audio.pause();
+                playPauseBtn.innerHTML = '<span class="material-icons-outlined">play_arrow</span>';
+            } else {
+                audio.play();
+                playPauseBtn.innerHTML = '<span class="material-icons-outlined">pause</span>';
+            }
+            isPlaying = !isPlaying;
+        }
+
+        function updateProgress() {
+            const percent = (audio.currentTime / audio.duration) * 100;
+            progress.style.width = percent + '%';
+            currentTimeDisplay.textContent = formatTime(audio.currentTime);
+        }
+
+        function seek(event) {
+            const rect = progressBar.getBoundingClientRect();
+            const pos = (event.clientX - rect.left) / progressBar.offsetWidth;
+            audio.currentTime = pos * audio.duration;
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            seconds = Math.floor(seconds % 60);
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Color theme handling
+        document.querySelectorAll('.color-swatch').forEach(swatch => {
+            swatch.addEventListener('click', () => {
+                const color = swatch.dataset.color;
+                document.documentElement.style.setProperty('--theme-color', color);
+                
+                // Update all elements using the theme color
+                const r = document.querySelector(':root');
+                r.style.setProperty('--theme-color', color);
+                
+                // Update specific elements
+                document.querySelectorAll('.control-button').forEach(btn => {
+                    btn.style.borderColor = color;
+                    btn.style.color = color;
+                });
+                
+                document.querySelectorAll('.progress').forEach(prog => {
+                    prog.style.background = color;
+                });
+                
+                document.querySelectorAll('.file-button').forEach(btn => {
+                    btn.style.background = color;
+                });
+            });
+        });
+    </script></body></html>

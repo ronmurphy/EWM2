@@ -1,0 +1,364 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material Icon CSS Generator</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --secondary-color: #FFC107;
+            --primary-opacity: 1;
+            --secondary-opacity: 1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .color-control {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .color-picker-container {
+            width: 200px;
+        }
+
+        .opacity-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            min-width: 200px;
+        }
+
+        .method-selector {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            min-width: 150px;
+        }
+
+        .opacity-slider {
+            width: 100%;
+        }
+
+        .swap-button {
+            padding: 10px 20px;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            align-self: center;
+        }
+
+        .swap-button:hover {
+            background: #444;
+        }
+
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            height: 400px;
+            overflow-y: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .icon-item {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            aspect-ratio: 1;
+            background: #f8f8f8;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .icon-item:hover {
+            background: #eee;
+        }
+
+        .material-icons {
+            font-size: 32px;
+            background: linear-gradient(135deg, 
+                rgba(var(--primary-r), var(--primary-g), var(--primary-b), var(--primary-opacity)) 0%,
+                rgba(var(--secondary-r), var(--secondary-g), var(--secondary-b), var(--secondary-opacity)) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .css-output {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <div class="control-row">
+                <div class="color-control">
+                    <div class="color-picker-container" id="primaryColorPicker"></div>
+                    <div class="opacity-controls">
+                        <label>Primary Opacity: <span id="primaryOpacityValue">1.0</span></label>
+                        <input type="range" id="primaryOpacity" class="opacity-slider" min="0" max="1" step="0.1" value="1">
+                    </div>
+                </div>
+                <button class="swap-button" id="swapColors">↔ Quick Swap</button>
+            </div>
+            <div class="control-row">
+                <div class="color-control">
+                    <div class="color-picker-container" id="secondaryColorPicker"></div>
+                    <div class="opacity-controls">
+                        <label>Secondary Opacity: <span id="secondaryOpacityValue">1.0</span></label>
+                        <input type="range" id="secondaryOpacity" class="opacity-slider" min="0" max="1" step="0.1" value="1">
+                    </div>
+                </div>
+                <select class="method-selector" id="colorMethod">
+                    <option value="gradient">Gradient</option>
+                    <option value="fill">Fill & Stroke</option>
+                    <option value="overlay">Color Overlay</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="icon-grid" id="iconGrid"></div>
+
+        <div class="css-output">
+            <h3>Generated CSS</h3>
+            <textarea id="cssOutput" readonly></textarea>
+        </div>
+        <div class="css-output">
+            <h3>Source Code</h3>
+            <textarea id="sourceCode" readonly style="height: 300px;"></textarea>
+        </div>
+    </div>
+
+    <script>
+        const icons = [
+            'home', 'search', 'settings', 'favorite', 'account_circle', 'mail', 'notification_important',
+            'shopping_cart', 'visibility', 'delete', 'edit', 'share', 'download', 'upload', 'cloud',
+            'star', 'warning', 'error', 'add', 'remove', 'check', 'close', 'menu', 'refresh', 'person',
+            'lock', 'schedule', 'today', 'folder', 'file_copy', 'image', 'camera', 'video_camera',
+            'music_note', 'volume_up', 'phone', 'message', 'email', 'send', 'attach_file', 'link',
+            'location_on', 'directions', 'access_time', 'date_range', 'event', 'room', 'print'
+        ];
+
+        let primaryPickr, secondaryPickr;
+        const colorMethod = document.getElementById('colorMethod');
+        const primaryOpacitySlider = document.getElementById('primaryOpacity');
+        const secondaryOpacitySlider = document.getElementById('secondaryOpacity');
+        const primaryOpacityValue = document.getElementById('primaryOpacityValue');
+        const secondaryOpacityValue = document.getElementById('secondaryOpacityValue');
+        const swapButton = document.getElementById('swapColors');
+        const iconGrid = document.getElementById('iconGrid');
+        const cssOutput = document.getElementById('cssOutput');
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        // Initialize Pickr
+        const pickrConfig = {
+            theme: 'classic',
+            swatches: [
+                '#2196F3', '#FFC107', '#4CAF50', '#F44336', '#9C27B0',
+                '#FF9800', '#795548', '#607D8B', '#3F51B5', '#009688'
+            ],
+            components: {
+                preview: true,
+                opacity: true,
+                hue: true,
+                interaction: {
+                    hex: true,
+                    rgba: true,
+                    hsla: true,
+                    input: true,
+                    save: true
+                }
+            }
+        };
+
+        primaryPickr = Pickr.create({
+            el: '#primaryColorPicker',
+            default: '#2196F3',
+            ...pickrConfig
+        });
+
+        secondaryPickr = Pickr.create({
+            el: '#secondaryColorPicker',
+            default: '#FFC107',
+            ...pickrConfig
+        });
+
+        function updateStyles() {
+            const primaryColor = primaryPickr.getColor().toRGBA();
+            const secondaryColor = secondaryPickr.getColor().toRGBA();
+            
+            document.documentElement.style.setProperty('--primary-r', primaryColor[0]);
+            document.documentElement.style.setProperty('--primary-g', primaryColor[1]);
+            document.documentElement.style.setProperty('--primary-b', primaryColor[2]);
+            document.documentElement.style.setProperty('--secondary-r', secondaryColor[0]);
+            document.documentElement.style.setProperty('--secondary-g', secondaryColor[1]);
+            document.documentElement.style.setProperty('--secondary-b', secondaryColor[2]);
+            document.documentElement.style.setProperty('--primary-opacity', primaryOpacitySlider.value);
+            document.documentElement.style.setProperty('--secondary-opacity', secondaryOpacitySlider.value);
+
+            updateCssOutput();
+        }
+
+        function updateCssOutput() {
+            const primaryColor = primaryPickr.getColor().toHEXA().toString();
+            const secondaryColor = secondaryPickr.getColor().toHEXA().toString();
+            const primaryOpacity = primaryOpacitySlider.value;
+            const secondaryOpacity = secondaryOpacitySlider.value;
+            
+            let css = '';
+            
+            switch(colorMethod.value) {
+                case 'gradient':
+                    css = `.material-icons {
+    background: linear-gradient(135deg, 
+        ${primaryColor}${Math.round(primaryOpacity * 255).toString(16).padStart(2, '0')} 0%,
+        ${secondaryColor}${Math.round(secondaryOpacity * 255).toString(16).padStart(2, '0')} 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}`;
+                    break;
+                case 'fill':
+                    css = `.material-icons {
+    color: ${primaryColor}${Math.round(primaryOpacity * 255).toString(16).padStart(2, '0')};
+    text-shadow: -1px -1px 0 ${secondaryColor}${Math.round(secondaryOpacity * 255).toString(16).padStart(2, '0')},
+                 1px -1px 0 ${secondaryColor}${Math.round(secondaryOpacity * 255).toString(16).padStart(2, '0')},
+                 -1px 1px 0 ${secondaryColor}${Math.round(secondaryOpacity * 255).toString(16).padStart(2, '0')},
+                 1px 1px 0 ${secondaryColor}${Math.round(secondaryOpacity * 255).toString(16).padStart(2, '0')};
+}`;
+                    break;
+                case 'overlay':
+                    css = `.material-icons {
+    color: ${primaryColor}${Math.round(primaryOpacity * 255).toString(16).padStart(2, '0')};
+    filter: drop-shadow(2px 2px 0 ${secondaryColor}${Math.round(secondaryOpacity * 255).toString(16).padStart(2, '0')});
+}`;
+                    break;
+            }
+
+            cssOutput.value = css;
+            
+            // Update source code display
+            sourceCode.value = document.documentElement.innerHTML;
+        }
+
+        function createIconGrid() {
+            icons.forEach(icon => {
+                const iconItem = document.createElement('div');
+                iconItem.className = 'icon-item';
+                iconItem.innerHTML = `<span class="material-icons">${icon}</span>`;
+                iconItem.addEventListener('click', () => {
+                    const specificCss = `/* Icon: ${icon} */
+.material-icons.${icon} {
+    content: "${icon}";
+    ${cssOutput.value}
+}`;
+                    cssOutput.value = specificCss;
+                });
+                iconGrid.appendChild(iconItem);
+            });
+        }
+
+        swapButton.addEventListener('click', () => {
+            const tempColor = primaryPickr.getColor();
+            const tempOpacity = primaryOpacitySlider.value;
+            
+            primaryPickr.setColor(secondaryPickr.getColor());
+            primaryOpacitySlider.value = secondaryOpacitySlider.value;
+            secondaryPickr.setColor(tempColor);
+            secondaryOpacitySlider.value = tempOpacity;
+
+            primaryOpacityValue.textContent = secondaryOpacitySlider.value;
+            secondaryOpacityValue.textContent = tempOpacity;
+
+            updateStyles();
+        });
+
+        primaryPickr.on('change', updateStyles);
+        secondaryPickr.on('change', updateStyles);
+        colorMethod.addEventListener('change', updateStyles);
+
+        [primaryOpacitySlider, secondaryOpacitySlider].forEach(slider => {
+            slider.addEventListener('input', (e) => {
+                const valueSpan = e.target.id === 'primaryOpacity' ? 
+                    primaryOpacityValue : secondaryOpacityValue;
+                valueSpan.textContent = e.target.value;
+                updateStyles();
+            });
+        });
+
+        createIconGrid();
+        updateStyles();
+    </script>
+</body>
+</html>

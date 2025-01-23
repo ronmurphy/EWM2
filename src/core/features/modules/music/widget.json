@@ -1,0 +1,13 @@
+{
+    "name": "Music",
+    "description": "A music media player",
+    "version": "1.1.0",
+    "icon": "music_note",
+    "settings": {
+        "size": {
+            "width": 500,
+            "height": 500
+        },
+        "autoload": true
+    }
+}

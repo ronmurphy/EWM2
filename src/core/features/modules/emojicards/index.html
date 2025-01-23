@@ -1,0 +1,3637 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Emoji RPG Battle</title>
+    <meta
+      name="description"
+      content="An interactive card-based RPG battle game with emoji avatars and elemental powers."
+    />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        background-color: #1a1a2e;
+        color: #ffffff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        touch-action: manipulation;
+      }
+      #gameCanvas {
+        border: 2px solid #ffffff;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+      }
+      #startMenu,
+      #tutorialOverlay,
+      #attackConfirmation,
+      #gameOverMenu,
+      #assignmentConfirmation,
+      #deckOptions,
+      #cardBrowser {
+        position: absolute;
+        background-color: rgba(0, 0, 0, 0.8);
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+      }
+      #readyButton,
+      #surrenderButton,
+      #nextButton,
+      #yesButton,
+      #noButton,
+      #newGameButton,
+      #saveDeckButton,
+      #loadDeckButton,
+      #tutorialButton,
+      #cardBrowserButton,
+      #cardTutorialButton,
+      #yesAssign,
+      #yesAssignButton,
+      #noAssignButton
+       {
+        background-color: #4caf50;
+        border: none;
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 5px;
+      }
+      #surrenderButton {
+        background-color: #f44336;
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 10px 20px;
+        font-size: 14px;
+        display: none;
+      }
+      #cardTutorialButton,
+      #cardBrowserButton {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 10px;
+        font-size: 20px;
+      }
+      #cardBrowserButton {
+        top: 60px;
+      }
+      #tutorialOverlay {
+        display: none;
+        max-width: 80%;
+        max-height: 80%;
+        overflow-y: auto;
+      }
+      #attackConfirmation,
+      #gameOverMenu,
+      #assignmentConfirmation,
+      #deckOptions {
+        display: none;
+        position: absolute;
+        background-color: rgba(0, 0, 0, 0.8);
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+      }
+      #aStatsBox,
+      #cardInfoBox {
+        position: absolute;
+        background-color: rgba(0, 0, 0, 0.9);
+        padding: 20px;
+        border-radius: 10px;
+        display: none;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        max-width: 80%;
+        max-height: 80%;
+      }
+      #aStatsBox .card-column,
+      #cardInfoBox .card-column {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      #aStatsBox .stats-column,
+      #cardInfoBox .stats-column {
+        overflow-y: auto;
+      }
+      @keyframes fireExplosion {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+@keyframes icefall {
+    0% {
+        transform: translateY(-100vh);
+    }
+    100% {
+        transform: translateY(100vh);
+    }
+}
+
+@keyframes lightning {
+    0%, 100% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+@keyframes earthQuake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-5px);
+    }
+    75% {
+        transform: translateX(5px);
+    }
+}
+
+@keyframes waterSplash {
+    0% {
+        transform: scale(0) rotate(0deg);
+    }
+    50% {
+        transform: scale(1.5) rotate(180deg);
+    }
+    100% {
+        transform: scale(0) rotate(360deg);
+    }
+}
+
+@keyframes windGust {
+    0% {
+        transform: translateX(-100vw) rotate(0deg);
+    }
+    100% {
+        transform: translateX(100vw) rotate(360deg);
+    }
+}
+
+.elemental-effect {
+    position: absolute;
+    pointer-events: none;
+}
+
+
+
+      @keyframes rainbow {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+      .lucky-star {
+        background: linear-gradient(
+          124deg,
+          #ff2400,
+          #e81d1d,
+          #e8b71d,
+          #e3e81d,
+          #1de840,
+          #1ddde8,
+          #2b1de8,
+          #dd00f3,
+          #dd00f3
+        );
+        background-size: 1800% 1800%;
+        animation: rainbow 18s ease infinite;
+      }
+      .effect-button {
+        background-color: #4caf50;
+        border: none;
+        color: white;
+        padding: 5px 10px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 12px;
+        margin: 2px;
+        cursor: pointer;
+        border-radius: 3px;
+      }
+      @keyframes flipCard {
+        0% {
+          transform: rotateY(0deg);
+        }
+        100% {
+          transform: rotateY(180deg);
+        }
+      }
+      @keyframes confetti {
+        0% {
+          transform: translate(0, 0);
+          opacity: 1;
+        }
+        100% {
+          transform: translate(var(--tx), var(--ty));
+          opacity: 0;
+        }
+      }
+      .confetti {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background-color: #f00;
+        animation: confetti 2s forwards;
+      }
+      @keyframes shakeCard {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-5px);
+        }
+        75% {
+          transform: translateX(5px);
+        }
+      }
+      .elemental-weapon {
+        background-color: #ffebcd;
+      }
+      @keyframes fireRain {
+        0% {
+          transform: translateY(-100%);
+          opacity: 0;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(100%);
+          opacity: 0;
+        }
+      }
+      @keyframes iceSweep {
+        0% {
+          transform: translateX(-100%);
+          opacity: 0;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+      }
+      @keyframes lightningStrike {
+        0%,
+        100% {
+          opacity: 0;
+        }
+        10%,
+        90% {
+          opacity: 1;
+        }
+      }
+      @keyframes earthQuake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-5px) rotate(-5deg);
+        }
+        75% {
+          transform: translateX(5px) rotate(5deg);
+        }
+      }
+      @keyframes waterSplash {
+        0% {
+          transform: scale(0);
+          opacity: 0;
+        }
+        50% {
+          transform: scale(1.5);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(2);
+          opacity: 0;
+        }
+      }
+      @keyframes shakeDamage {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-2px);
+        }
+        75% {
+          transform: translateX(2px);
+        }
+      }
+      @keyframes cycleHeartColors {
+        0% {
+          color: red;
+        }
+        20% {
+          color: blue;
+        }
+        40% {
+          color: green;
+        }
+        60% {
+          color: orange;
+        }
+        80% {
+          color: yellow;
+        }
+        100% {
+          color: red;
+        }
+
+        
+
+        
+      }
+      .damage-text {
+        position: absolute;
+        color: red;
+        font-weight: bold;
+        animation: shakeDamage 0.5s ease-in-out;
+      }
+      .healing-heart {
+        animation: cycleHeartColors 2s infinite;
+      }
+      #cardBrowser {
+        display: none;
+        width: 80%;
+        height: 80%;
+        position: fixed;
+        top: 10%;
+        left: 10%;
+        background-color: rgba(0, 0, 0, 0.9);
+        z-index: 1000;
+      }
+      #cardGrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 10px;
+        overflow-y: auto;
+        height: 100%;
+        width: 66%;
+        float: left;
+      }
+      #cardDetails {
+        width: 33%;
+        float: right;
+        padding: 10px;
+        box-sizing: border-box;
+      }
+      .card-item {
+        background-color: #ffffff;
+        color: #000000;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        text-align: center;
+      }
+      /* .card-item:hover {
+            transform: scale(1.05);
+        } */
+      .avatar-rarity-indicator {
+        height: 8px;
+        width: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+      .rarity-gold {
+        background-color: gold;
+      }
+      .rarity-green {
+        background-color: green;
+      }
+      .rarity-grey {
+        background-color: grey;
+      }
+      .rarity-rainbow {
+        background: linear-gradient(
+          124deg,
+          #ff2400,
+          #e81d1d,
+          #e8b71d,
+          #e3e81d,
+          #1de840,
+          #1ddde8,
+          #2b1de8,
+          #dd00f3,
+          #dd00f3
+        );
+        background-size: 1800% 1800%;
+        animation: rainbow 18s ease infinite;
+      }
+      .rarity-indicator {
+        height: 5px;
+        width: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+      .rarity-common {
+        background-color: #b0b0b0;
+      }
+      .rarity-uncommon {
+        background-color: #00ff00;
+      }
+      .rarity-rare {
+        background-color: #0000ff;
+      }
+      .rarity-legendary {
+        background-color: #ffd700;
+      }
+      .special-card {
+        box-shadow: 0 0 10px gold;
+      }
+      .tutorial-card {
+    width: 200px;
+    height: 300px;
+    background-color: white;
+    border-radius: 10px;
+    margin: 20px auto;
+    position: relative;
+    color: black;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.tutorial-card .avatar {
+    font-size: 80px;
+    text-align: center;
+}
+.tutorial-card .stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 16px;
+}
+.tutorial-card .attached-cards {
+    display: flex;
+    justify-content: center;
+    font-size: 24px;
+    gap: 10px;
+}
+.tutorial-highlight {
+    border: 3px solid #ff0000;
+    animation: pulse 1s infinite;
+}
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255,0,0,0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(255,0,0,0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,0,0,0); }
+}
+.tutorial-text {
+    margin-top: 20px;
+    text-align: left;
+    font-size: 18px;
+    line-height: 1.5;
+}
+.avatar-rarity-indicator {
+    height: 8px;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.rarity-gold {
+    background-color: gold;
+}
+.rarity-green {
+    background-color: green;
+}
+.rarity-grey {
+    background-color: grey;
+}
+.rarity-rainbow {
+    background: linear-gradient(124deg, #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #dd00f3);
+    background-size: 1800% 1800%;
+    animation: rainbow 18s ease infinite;
+}
+.game-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    z-index: 1000;
+    display: none;
+}
+
+#cardTutorial {
+    max-width: 80%;
+    max-height: 80%;
+    overflow-y: auto;
+}
+
+#cardTutorialNextButton {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+    </style>
+  </head>
+  <body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="startMenu">
+      <h1>Emoji RPG Battle</h1>
+      <button id="readyButton">Ready</button>
+    </div>
+    <button id="surrenderButton">Surrender</button>
+    <button id="cardTutorialButton">❓</button>
+        <button id="cardBrowserButton">🃏</button>
+    <div id="tutorialOverlay">
+      <h2>Tutorial</h2>
+      <div id="tutorialContent"></div>
+      <button id="nextButton">Next</button>
+    </div>
+    <div id="attackConfirmation">
+      <h2>Do you want to attack?</h2>
+      <button id="yesButton">Yes</button>
+      <button id="noButton">No</button>
+    </div>
+    <div id="assignmentConfirmation">
+      <h2>Skip card assignment and attack?</h2>
+      <button id="yesAssignButton">Yes</button>
+      <button id="noAssignButton">No</button>
+  </div>
+    <div id="gameOverMenu">
+      <h2 id="gameOverMessage"></h2>
+      <button id="newGameButton">New Game</button>
+    </div>
+    <div id="aStatsBox">
+      <div class="card-column"></div>
+      <div class="stats-column"></div>
+    </div>
+    <div id="cardInfoBox">
+      <div class="card-column"></div>
+      <div class="stats-column"></div>
+    </div>
+    <div id="deckOptions">
+      <h2>Deck Options</h2>
+      <button id="saveDeckButton">Save Deck</button>
+      <button id="loadDeckButton">Load Deck</button>
+      <input
+        type="file"
+        id="deckFileInput"
+        style="display: none"
+        accept=".deck"
+      />
+    </div>
+    <div id="cardBrowser">
+      <div id="cardGrid"></div>
+      <div id="cardDetails"></div>
+    </div>
+    <div id="cardTutorial" class="game-overlay">
+      <h2>Card Tutorial</h2>
+      <div id="cardTutorialContent"></div>
+      <button id="cardTutorialNextButton">Next</button>
+  </div>
+  <!-- <div id="attachmentOverflow">
+      <h2>Max Attachments Reached</h2>
+      <p>Click an attached card to remove and discard it, then attach the new card.</p>
+      <div id="attachedCards"></div>
+      <button id="attachmentOverflowButton">Close</button>
+  </div> -->
+  <!-- <button id="showDeckButton">Show Deck</button> -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+    <script>
+      const canvas = document.getElementById('gameCanvas')
+      const ctx = canvas.getContext('2d')
+      const startMenu = document.getElementById('startMenu')
+      const readyButton = document.getElementById('readyButton')
+      const surrenderButton = document.getElementById('surrenderButton')
+      const tutorialButton = document.getElementById('tutorialButton')
+      const tutorialOverlay = document.getElementById('tutorialOverlay')
+      const tutorialContent = document.getElementById('tutorialContent')
+      const nextButton = document.getElementById('nextButton')
+      const attackConfirmation = document.getElementById('attackConfirmation')
+      const yesButton = document.getElementById('yesButton')
+      const noButton = document.getElementById('noButton')
+      const assignmentConfirmation = document.getElementById(
+        'assignmentConfirmation'
+      )
+      document.getElementById('yesAssignButton').addEventListener('click', () => skipAssignmentPhase(true));
+      document.getElementById('noAssignButton').addEventListener('click', () => skipAssignmentPhase(false));
+      const gameOverMenu = document.getElementById('gameOverMenu')
+      const gameOverMessage = document.getElementById('gameOverMessage')
+      const newGameButton = document.getElementById('newGameButton')
+      const aStatsBox = document.getElementById('aStatsBox')
+      const cardInfoBox = document.getElementById('cardInfoBox')
+      const deckOptions = document.getElementById('deckOptions')
+      const saveDeckButton = document.getElementById('saveDeckButton')
+      const loadDeckButton = document.getElementById('loadDeckButton')
+      const deckFileInput = document.getElementById('deckFileInput')
+      const cardBrowserButton = document.getElementById('cardBrowserButton')
+      const cardBrowser = document.getElementById('cardBrowser')
+      const cardGrid = document.getElementById('cardGrid')
+      const cardDetails = document.getElementById('cardDetails')
+      const cardTutorialButton = document.getElementById('cardTutorialButton');
+      const showDeckButton = document.getElementById('showDeckButton');
+
+      let gameStarted = false
+      let bgm
+      let tutorialStep = 0
+      let currentTurn = 'player'
+      let attackingAvatar = null
+      let currentPhase = 1
+      let elementalCards, utilityCards, elementalWeapons, avatarTypes
+      let isCardBrowserDebugMode = false
+      let isCardBrowserVisible = false
+      let isViewingPlayerDeck = false
+      let allTemplateCards = []
+      let currentPlayerDeck = []
+      let overflowAvatar = null;
+
+      // Global variables
+      let allCards = []
+      let playerDeck = []
+
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+
+      window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth
+        canvas.height = window.innerHeight
+        if (gameStarted) {
+          drawGame()
+        }
+      })
+
+      readyButton.addEventListener('click', startGame)
+      surrenderButton.addEventListener('click', surrender)
+      cardTutorialButton.addEventListener('click', startCardTutorial);
+
+      nextButton.addEventListener('click', nextTutorialStep)
+      yesButton.addEventListener('click', () => confirmAttack(true))
+      noButton.addEventListener('click', () => confirmAttack(false))
+      yesAssignButton.addEventListener('click', () => skipAssignmentPhase(true))
+      noAssignButton.addEventListener('click', () => skipAssignmentPhase(false))
+      newGameButton.addEventListener('click', startNewGame)
+      saveDeckButton.addEventListener('click', saveDeck)
+      loadDeckButton.addEventListener('click', () => deckFileInput.click())
+      deckFileInput.addEventListener('change', e => loadDeck(e.target.files[0]))
+      cardBrowserButton.addEventListener('click', showCardBrowser)
+      cardBrowserButton.addEventListener('click', function (event) {
+        event.stopPropagation() // Prevent event from bubbling up
+        toggleCardBrowserDebug()
+      })
+cardTutorialNextButton.addEventListener('click', nextCardTutorialStep);
+// attachmentOverflowButton.addEventListener('click', () => {
+//     attachmentOverflow.style.display = 'none';
+//     overflowAvatar = null;
+// });
+
+function startGame() {
+    gameStarted = true;
+    startMenu.style.display = 'none';
+    initializeGame();
+    bgm = new Howl({
+        src: ['https://assets.caisual.com/games/zqfqt5j5yt3lzb0v/rpg_battle_bgm.webp'],
+        loop: true,
+        volume: 0.5
+    });
+    bgm.play();
+    
+    if (getCookie('cardTutorialCompleted') !== 'true') {
+        startCardTutorial();
+    }
+    
+    gameLoop();
+}
+
+      function surrender() {
+        endGame('You surrendered!')
+      }
+
+      const emojis = {
+        // Elemental cards
+        fire: '🔥',
+        water: '💧',
+        earth: '🌿',
+        ice: '❄️',
+        lightning: '⚡',
+        darkness: '🌑',
+        radiant: '☀️',
+        luck: '🍀',
+        heal: '💖',
+        wind: '🌪️',
+        metal: '🔩',
+        nature: '🍃',
+        poison: '☠️',
+        crystal: '💎',
+
+        // Utility cards
+        sword: '🗡️',
+        shield: '🛡️',
+        bow: '🏹',
+        wand: '🪄',
+        axe: '🪓',
+        hammer: '🔨',
+        dagger: '🔪',
+        staff: '🦯',
+        spear: '🥢',
+        mace: '🎚️',
+        crossbow: '🏹',
+        scythe: '🌙',
+        sling: '🧶',
+        boomerang: '🪃',
+        katana: '🗡️',
+        shuriken: '✴️',
+        potion: '🧪',
+        scroll: '📜',
+        trap: '🕸️',
+
+        // Special cards
+        thirdhand: '✋',
+    luckystar: '🌟',
+    tombstone: '🪦',
+        mimic: '📦',
+        time_warp: '⏳',
+        elemental_fusion: '🌈',
+        mana_burst: '✨',
+        shapeshifter: '🦎',
+        blood: '🩸',
+        redleaf: '🍁',
+        fall: '🍂',
+        blossom: '🌸',
+        sakura: '💮',
+        bone: '🦴',
+
+        // Avatar types (if needed)
+        elf: '🧝',
+        dwarf: '🧔',
+        wizard: '🧙',
+        fairy: '🧚',
+        vampire: '🧛',
+        merperson: '🧜',
+        genie: '🧞',
+        zombie: '🧟',
+        superhero: '🦸',
+        supervillain: '🦹',
+
+        // Fallback
+        unknown: '❓'
+      }
+
+      class Card {
+        constructor(type, emoji, effect) {
+          this.type = type
+          this.emoji = emoji
+          this.effect = effect
+          this.x = 0
+          this.y = 0
+          this.width = 80
+          this.height = 120
+          this.selected = false
+          this.rotation = 0
+          this.scale = 1
+          this.targetX = 0
+          this.targetY = 0
+          this.moving = false
+          this.isLuckyStar = type === 'utility' && effect.type === 'luckyStar'
+          this.isThirdHand = type === 'utility' && effect.type === 'thirdHand'
+          this.isElementalWeapon =
+            type === 'utility' && effect.isElementalWeapon
+          this.isHeal = type === 'elemental' && effect.element === 'heal'
+
+            // For elemental cards, store the element emoji
+  if (this.type === 'elemental') {
+    this.elementEmoji = emojis[this.effect.element] || '❓'
+  }
+        }
+
+        draw() {
+          ctx.save()
+          ctx.translate(this.x + this.width / 2, this.y + this.height / 2)
+          ctx.rotate((this.rotation * Math.PI) / 180)
+          ctx.scale(this.scale, this.scale)
+
+          // Draw card back
+          if (this.type === 'elemental') {
+            ctx.fillStyle = this.getLighterColor(this.effect.color)
+          } else if (this.type === 'utility') {
+            if (this.isElementalWeapon) {
+              ctx.fillStyle = '#ffebcd' // Light orange for elemental weapons
+            } else {
+              ctx.fillStyle = '#d3d3d3' // Light grey for normal utility cards
+            }
+          } else {
+            ctx.fillStyle = '#ffffff' // White for avatar cards
+          }
+          ctx.fillRect(
+            -this.width / 2,
+            -this.height / 2,
+            this.width,
+            this.height
+          )
+
+          // Draw card face
+          if (this.isLuckyStar || this.isThirdHand) {
+            const gradient = ctx.createLinearGradient(
+              -this.width / 2,
+              -this.height / 2,
+              this.width / 2,
+              this.height / 2
+            )
+            gradient.addColorStop(0, 'red')
+            gradient.addColorStop(0.17, 'orange')
+            gradient.addColorStop(0.33, 'yellow')
+            gradient.addColorStop(0.5, 'green')
+            gradient.addColorStop(0.67, 'blue')
+            gradient.addColorStop(0.83, 'indigo')
+            gradient.addColorStop(1, 'violet')
+            ctx.fillStyle = gradient
+          } else {
+            ctx.fillStyle = this.selected ? '#4CAF50' : '#ffffff'
+          }
+          ctx.fillRect(
+            -this.width / 2 + 5,
+            -this.height / 2 + 5,
+            this.width - 10,
+            this.height - 10
+          )
+          ctx.fillStyle = '#000000'
+          ctx.font = '40px Arial'
+          if (this.type === 'elemental') {
+    ctx.fillText(this.elementEmoji, -20, 15)
+  } else {
+    ctx.fillText(this.emoji, -20, 15)
+  }
+          // Draw elemental effect for elemental weapons
+          if (this.isElementalWeapon) {
+            ctx.font = '20px Arial'
+            ctx.fillText(
+              this.effect.elementEmoji,
+              this.width / 2 - 25,
+              this.height / 2 - 25
+            )
+          }
+
+          // Draw heal animation for heal cards
+          if (this.isHeal) {
+            ctx.font = '20px Arial'
+            ctx.fillStyle = this.getHealColor()
+            ctx.fillText('❤️', this.width / 2 - 25, this.height / 2 - 25)
+          }
+
+          ctx.restore()
+        }
+
+        getLighterColor(color) {
+          const r = parseInt(color.slice(1, 3), 16)
+          const g = parseInt(color.slice(3, 5), 16)
+          const b = parseInt(color.slice(5, 7), 16)
+          return `rgb(${Math.min(r + 50, 255)}, ${Math.min(
+            g + 50,
+            255
+          )}, ${Math.min(b + 50, 255)})`
+        }
+
+        getHealColor() {
+          const colors = ['red', 'blue', 'green', 'orange', 'yellow']
+          const index = Math.floor(Date.now() / 500) % colors.length
+          return colors[index]
+        }
+
+        isPointInside(x, y) {
+          const scaledWidth = this.width * this.scale
+          const scaledHeight = this.height * this.scale
+          return (
+            x >= this.x &&
+            x <= this.x + scaledWidth &&
+            y >= this.y &&
+            y <= this.y + scaledHeight
+          )
+        }
+
+        moveTo(targetX, targetY, callback) {
+          this.targetX = targetX
+          this.targetY = targetY
+          this.moving = true
+
+          const animate = () => {
+            const dx = this.targetX - this.x
+            const dy = this.targetY - this.y
+            const distance = Math.sqrt(dx * dx + dy * dy)
+
+            if (distance > 1) {
+              this.x += dx * 0.1
+              this.y += dy * 0.1
+              requestAnimationFrame(animate)
+            } else {
+              this.x = this.targetX
+              this.y = this.targetY
+              this.moving = false
+              if (callback) callback()
+            }
+          }
+
+          animate()
+        }
+      }
+
+      class Avatar {
+    constructor(race, emoji, isPlayer) {
+        this.race = race;
+        this.emoji = emoji;
+        this.isPlayer = isPlayer;
+        this.hp = Math.floor(Math.random() * 6) + 5; // 5-10 HP
+        this.maxHp = this.hp;
+        this.attack = Math.floor(Math.random() * 5) + 5; // 5-9 attack
+        this.defense = Math.floor(Math.random() * 5) + 1; // 1-5 defense
+        this.mana = Math.floor(Math.random() * 41) + 10; // 10-50 mana
+        this.luck = Math.floor(Math.random() * 10) + 1; // 1-10 luck
+        this.x = 0;
+        this.y = 0;
+        this.width = 100;
+        this.height = 150;
+        this.attachedCards = [];
+        this.rotation = 0;
+        this.scale = 1;
+        this.isDead = false;
+        this.luckBonus = 0;
+        this.luckBonusTurns = 0;
+        this.maxAttachedCards = 2;
+        this.hasThirdHand = false;
+        this.rarityIndicator = this.getRarityIndicator();
+    }
+
+    getRarityIndicator() {
+        if (this.hp >= 8 && this.attack >= 8) {
+            return 'rarity-gold';
+        } else if ((this.hp >= 5 && this.hp <= 7 && this.attack >= 5 && this.attack <= 7) || 
+                   (this.luck >= 5 && this.hp >= 5)) {
+            return 'rarity-green';
+        } else if (this.hp <= 4 && this.attack <= 4) {
+            return 'rarity-grey';
+        } else if (this.luck === 10 && this.attack === 10) {
+            return 'rarity-rainbow';
+        } else {
+            return 'rarity-grey'; // Default to grey if no condition is met
+        }
+    }
+
+    getRarityColor() {
+        switch (this.rarityIndicator) {
+            case 'rarity-gold':
+                return 'gold';
+            case 'rarity-green':
+                return 'green';
+            case 'rarity-grey':
+                return 'grey';
+            case 'rarity-rainbow':
+                return this.getRainbowGradient();
+            default:
+                return 'grey';
+        }
+    }
+
+    getRainbowGradient() {
+        const gradient = ctx.createLinearGradient(-this.width / 2, 0, this.width / 2, 0);
+        gradient.addColorStop(0, "red");
+        gradient.addColorStop(0.17, "orange");
+        gradient.addColorStop(0.33, "yellow");
+        gradient.addColorStop(0.5, "green");
+        gradient.addColorStop(0.67, "blue");
+        gradient.addColorStop(0.83, "indigo");
+        gradient.addColorStop(1, "violet");
+        return gradient;
+    }
+
+    draw() {
+        ctx.save();
+        ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+        ctx.rotate(this.rotation * Math.PI / 180);
+        ctx.scale(this.scale, this.scale);
+        
+        if (this.isDead) {
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '50px Arial';
+            ctx.fillText(emojis.tombstone, -25, 0);
+        } else {
+            // Set card background color based on HP
+            if (this.hp <= 2) {
+                ctx.fillStyle = '#ff0000'; // Red
+            } else if (this.hp <= 5) {
+                ctx.fillStyle = '#ffa500'; // Orange
+            } else {
+                ctx.fillStyle = '#ffffff'; // White
+            }
+            ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+            
+            // Draw rarity indicator as a line at the top of the card
+            ctx.fillStyle = this.getRarityColor();
+            ctx.fillRect(-this.width / 2, -this.height / 2, this.width, 5);
+            
+            ctx.fillStyle = '#000000';
+            ctx.font = '50px Arial';
+            ctx.fillText(this.emoji, -25, -this.height / 3);
+            
+            // Draw stats at the bottom of the card
+
+            ctx.font = '14px Arial';
+            // Only show other stats for player avatars
+            if (this.isPlayer) {
+                const statsY1 = this.height / 2 - 30; // Position for first row of stats
+        const statsY2 = this.height / 2 - 10; // Position for second row of stats
+        ctx.fillText(`❤️:${this.hp}/${this.maxHp}  👊:${this.attack}`, -this.width / 2 + 5, statsY1);
+        ctx.fillText(`🍀:${this.luck + this.luckBonus}  🛡️:${this.defense}`, -this.width / 2 + 5, statsY2);
+    } else {
+                    ctx.font = '14px Arial';
+            ctx.fillText(`❤️: ${this.hp}/${this.maxHp}`, -this.width / 2 + 5, this.height / 2 - 10);
+            }
+        }
+
+        this.attachedCards.forEach((card, index) => {
+            ctx.font = '20px Arial';
+            ctx.fillText(card.emoji, -40 + 20 * index, -this.height / 2 - 10);
+
+            if (card.isElementalWeapon) {
+                ctx.font = '14px Arial';
+                ctx.fillText(emojis[card.effect.element], -40 + 20 * index, -this.height / 2 + 10);
+            }
+        });
+
+        if (this.hasThirdHand) {
+            ctx.font = '20px Arial';
+            ctx.fillText(emojis.thirdHand, this.width / 2 - 25, this.height / 2 - 25);
+        }
+
+        ctx.restore();
+    }
+
+    isPointInside(x, y) {
+        const scaledWidth = this.width * this.scale;
+        const scaledHeight = this.height * this.scale;
+        return x >= this.x && x <= this.x + scaledWidth && y >= this.y && y <= this.y + scaledHeight;
+    }
+
+    attachCard(card) {
+        if (card.isHeal) {
+            this.hp = Math.min(this.hp + 3, this.maxHp);
+            this.showHealingAnimation();
+            return true;
+        }
+
+        if (this.attachedCards.length < this.maxAttachedCards || card.isThirdHand) {
+            this.attachedCards.push(card);
+            this.applyCardEffect(card);
+            return true;
+        }
+        return false;
+    }
+
+    applyCardEffect(card) {
+        switch (card.type) {
+            case 'elemental':
+                this.applyElementalEffect(card);
+                break;
+            case 'utility':
+                this.applyUtilityEffect(card);
+                break;
+        }
+    }
+
+        applyElementalEffect(card) {
+          switch (card.effect.element) {
+            case 'fire':
+              this.attack += 2
+              break
+            case 'water':
+              this.defense += 1
+              break
+            case 'earth':
+              this.hp = Math.min(this.hp + 2, this.maxHp)
+              break
+            case 'ice':
+              this.attack += 1
+              this.defense += 1
+              break
+            case 'lightning':
+              this.attack += 3
+              break
+            case 'darkness':
+              this.attack += 2
+              this.defense -= 1
+              break
+            case 'radiant':
+              this.hp = Math.min(this.hp + 3, this.maxHp)
+              this.defense += 1
+              break
+            case 'luck':
+              this.luckBonus += 2
+              this.luckBonusTurns = 2
+              break
+          }
+        }
+
+        applyUtilityEffect(card) {
+          switch (card.effect.type) {
+            case 'sword':
+              this.attack += 3
+              break
+            case 'shield':
+              this.defense += 2
+              break
+            case 'heal':
+              this.hp = Math.min(this.hp + 4, this.maxHp)
+              break
+            case 'bow':
+              this.attack += 2
+              break
+            case 'wand':
+              this.mana += 20
+              break
+            case 'luckyStar':
+              this.attack += 5
+              break
+            case 'thirdHand':
+              this.maxAttachedCards += 1
+              this.hasThirdHand = true
+              break
+            case 'axe':
+              this.attack += 4
+              break
+            case 'hammer':
+              this.attack += 3
+              this.defense += 1
+              break
+            case 'dagger':
+              this.attack += 2
+              this.luck += 1
+              break
+            case 'staff':
+              this.attack += 2
+              this.mana += 10
+              break
+            case 'spear':
+              this.attack += 3
+              this.defense += 1
+              break
+            case 'mace':
+              this.attack += 4
+              this.defense -= 1
+              break
+            case 'crossbow':
+              this.attack += 3
+              this.luck += 1
+              break
+            case 'scythe':
+              this.attack += 5
+              this.defense -= 2
+              break
+            case 'sling':
+              this.attack += 1
+              this.luck += 2
+              break
+            case 'boomerang':
+              this.attack += 2
+              this.defense += 1
+              this.luck += 1
+              break
+          }
+
+          // Apply additional effects for elemental weapons
+          if (card.isElementalWeapon) {
+            switch (card.effect.element) {
+              case 'fire':
+                this.attack += 1
+                break
+              case 'water':
+                this.defense += 1
+                break
+              case 'earth':
+                this.hp = Math.min(this.hp + 1, this.maxHp)
+                break
+              case 'ice':
+                this.attack += 1
+                break
+              case 'lightning':
+                this.attack += 2
+                break
+              case 'darkness':
+                this.attack += 1
+                this.luck += 1
+                break
+              case 'radiant':
+                this.defense += 1
+                this.hp = Math.min(this.hp + 1, this.maxHp)
+                break
+              case 'luck':
+                this.luck += 1
+                break
+            }
+          }
+        }
+
+        removeEffect(effectIndex) {
+          if (effectIndex >= 0 && effectIndex < this.attachedCards.length) {
+            const removedCard = this.attachedCards.splice(effectIndex, 1)[0]
+            this.revertCardEffect(removedCard)
+            return removedCard
+          }
+          return null
+        }
+
+        revertCardEffect(card) {
+          switch (card.type) {
+            case 'elemental':
+              this.revertElementalEffect(card)
+              break
+            case 'utility':
+              this.revertUtilityEffect(card)
+              break
+          }
+        }
+
+        revertElementalEffect(card) {
+          switch (card.effect.element) {
+            case 'fire':
+              this.attack -= 2
+              break
+            case 'water':
+              this.defense -= 1
+              break
+            case 'earth':
+              // No reversion needed for HP boost
+              break
+            case 'ice':
+              this.attack -= 1
+              this.defensethis.defense -= 1
+              break
+            case 'lightning':
+              this.attack -= 3
+              break
+            case 'darkness':
+              this.attack -= 2
+              this.defense += 1
+              break
+            case 'radiant':
+              this.defense -= 1
+              break
+            case 'luck':
+              this.luckBonus -= 2
+              this.luckBonusTurns = 0
+              break
+          }
+        }
+
+        revertUtilityEffect(card) {
+          switch (card.effect.type) {
+            case 'sword':
+              this.attack -= 3
+              break
+            case 'shield':
+              this.defense -= 2
+              break
+            case 'heal':
+              // No reversion needed for healing
+              break
+            case 'bow':
+              this.attack -= 2
+              break
+            case 'wand':
+              this.mana -= 20
+              break
+            case 'luckyStar':
+              this.attack -= 5
+              break
+            case 'thirdHand':
+              this.maxAttachedCards -= 1
+              this.hasThirdHand = false
+              break
+            case 'axe':
+              this.attack -= 4
+              break
+            case 'hammer':
+              this.attack -= 3
+              this.defense -= 1
+              break
+            case 'dagger':
+              this.attack -= 2
+              this.luck -= 1
+              break
+            case 'staff':
+              this.attack -= 2
+              this.mana -= 10
+              break
+            case 'spear':
+              this.attack -= 3
+              this.defense -= 1
+              break
+            case 'mace':
+              this.attack -= 4
+              this.defense += 1
+              break
+            case 'crossbow':
+              this.attack -= 3
+              this.luck -= 1
+              break
+            case 'scythe':
+              this.attack -= 5
+              this.defense += 2
+              break
+            case 'sling':
+              this.attack -= 1
+              this.luck -= 2
+              break
+            case 'boomerang':
+              this.attack -= 2
+              this.defense -= 1
+              this.luck -= 1
+              break
+          }
+
+          // Revert additional effects for elemental weapons
+          if (card.isElementalWeapon) {
+            switch (card.effect.element) {
+              case 'fire':
+                this.attack -= 1
+                break
+              case 'water':
+                this.defense -= 1
+                break
+              case 'earth':
+                // No reversion needed for HP boost
+                break
+              case 'ice':
+                this.attack -= 1
+                break
+              case 'lightning':
+                this.attack -= 2
+                break
+              case 'darkness':
+                this.attack -= 1
+                this.luck -= 1
+                break
+              case 'radiant':
+                this.defense -= 1
+                break
+              case 'luck':
+                this.luck -= 1
+                break
+            }
+          }
+        }
+
+        updateLuckBonus() {
+          if (this.luckBonusTurns > 0) {
+            this.luckBonusTurns--
+            if (this.luckBonusTurns === 0) {
+              this.luckBonus = 0
+            }
+          }
+        }
+
+       
+
+        getAttackAnimation(target) {
+        const elementalCard = this.attachedCards.find(card => card.type === 'elemental');
+        const weaponCard = this.attachedCards.find(card => card.type === 'utility' || card.isElementalWeapon);
+
+        let animationFunction;
+        let soundEffect = 'attack_sound.webp';
+
+        if (elementalCard) {
+            switch (elementalCard.effect.element) {
+                case 'fire':
+                    animationFunction = this.fireAnimation;
+                    soundEffect = 'fire_attack.webp';
+                    break;
+                case 'ice':
+                    animationFunction = this.iceAnimation;
+                    soundEffect = 'ice_attack.webp';
+                    break;
+                case 'lightning':
+                    animationFunction = this.lightningAnimation;
+                    soundEffect = 'lightning_attack.webp';
+                    break;
+                case 'earth':
+                    animationFunction = this.earthAnimation;
+                    soundEffect = 'earth_attack.webp';
+                    break;
+                case 'water':
+                    animationFunction = this.waterAnimation;
+                    soundEffect = 'water_attack.webp';
+                    break;
+                case 'wind':
+                    animationFunction = this.windAnimation;
+                    soundEffect = 'wind_attack.webp';
+                    break;
+                default:
+                    animationFunction = this.defaultAnimation;
+            }
+        } else if (weaponCard) {
+            animationFunction = this.weaponAnimation;
+            soundEffect = `${weaponCard.effect.type}_attack.webp`;
+        } else {
+            animationFunction = this.defaultAnimation;
+        }
+
+        return {
+            animate: (callback) => animationFunction.call(this, target, callback),
+            sound: soundEffect
+        };
+    }
+
+    fireAnimation(target, callback) {
+        const numEmbers = 20;
+        for (let i = 0; i < numEmbers; i++) {
+            const ember = document.createElement('div');
+            ember.textContent = '🔥';
+            ember.className = 'elemental-effect';
+            ember.style.left = `${target.x + target.width / 2}px`;
+            ember.style.top = `${target.y + target.height / 2}px`;
+            ember.style.animation = `fireExplosion 1s ease-out`;
+            ember.style.animationFillMode = 'forwards';
+            document.body.appendChild(ember);
+
+            ember.style.transform = `translate(${(Math.random() - 0.5) * 100}px, ${(Math.random() - 0.5) * 100}px)`;
+
+            setTimeout(() => ember.remove(), 1000);
+        }
+        setTimeout(callback, 1000);
+    }
+
+    iceAnimation(target, callback) {
+        const numIcicles = 10;
+        for (let i = 0; i < numIcicles; i++) {
+            const icicle = document.createElement('div');
+            icicle.textContent = '❄️';
+            icicle.className = 'elemental-effect';
+            icicle.style.left = `${target.x + Math.random() * target.width}px`;
+            icicle.style.animation = `icefall 1s linear`;
+            document.body.appendChild(icicle);
+
+            setTimeout(() => icicle.remove(), 1000);
+        }
+        setTimeout(callback, 1000);
+    }
+
+    lightningAnimation(target, callback) {
+        const bolt = document.createElement('div');
+        bolt.textContent = '⚡';
+        bolt.className = 'elemental-effect';
+        bolt.style.left = `${target.x + target.width / 2}px`;
+        bolt.style.top = `${target.y}px`;
+        bolt.style.fontSize = '100px';
+        bolt.style.animation = `lightning 0.5s linear 3`;
+        document.body.appendChild(bolt);
+
+        setTimeout(() => {
+            bolt.remove();
+            callback();
+        }, 1500);
+    }
+
+    earthAnimation(target, callback) {
+        target.element.style.animation = `earthQuake 0.1s linear 10`;
+        setTimeout(() => {
+            target.element.style.animation = '';
+            callback();
+        }, 1000);
+    }
+
+    waterAnimation(target, callback) {
+        const splash = document.createElement('div');
+        splash.textContent = '💧';
+        splash.className = 'elemental-effect';
+        splash.style.left = `${target.x + target.width / 2}px`;
+        splash.style.top = `${target.y + target.height / 2}px`;
+        splash.style.fontSize = '100px';
+        splash.style.animation = `waterSplash 1s ease-out`;
+        document.body.appendChild(splash);
+
+        setTimeout(() => {
+            splash.remove();
+            callback();
+        }, 1000);
+    }
+
+    windAnimation(target, callback) {
+        const gust = document.createElement('div');
+        gust.textContent = '💨';
+        gust.className = 'elemental-effect';
+        gust.style.top = `${target.y + target.height / 2}px`;
+        gust.style.fontSize = '50px';
+        gust.style.animation = `windGust 1s linear`;
+        document.body.appendChild(gust);
+
+        setTimeout(() => {
+            gust.remove();
+            callback();
+        }, 1000);
+    }
+
+    weaponAnimation(target, callback) {
+        const weapon = this.attachedCards.find(card => card.type === 'utility' || card.isElementalWeapon);
+        const weaponElement = document.createElement('div');
+        weaponElement.textContent = weapon.emoji;
+        weaponElement.className = 'elemental-effect';
+        weaponElement.style.left = `${this.x + this.width / 2}px`;
+        weaponElement.style.top = `${this.y + this.height / 2}px`;
+        weaponElement.style.fontSize = '50px';
+        document.body.appendChild(weaponElement);
+
+        const animation = weaponElement.animate([
+            { transform: `translate(0, 0) rotate(0deg)` },
+            { transform: `translate(${target.x - this.x}px, ${target.y - this.y}px) rotate(360deg)` }
+        ], {
+            duration: 500,
+            easing: 'ease-in-out'
+        });
+
+        animation.onfinish = () => {
+            weaponElement.remove();
+            callback();
+        };
+    }
+
+    defaultAnimation(target, callback) {
+        const effect = document.createElement('div');
+        effect.textContent = '💥';
+        effect.className = 'elemental-effect';
+        effect.style.left = `${target.x + target.width / 2}px`;
+        effect.style.top = `${target.y + target.height / 2}px`;
+        effect.style.fontSize = '100px';
+        effect.style.animation = 'fireExplosion 0.5s ease-out';
+        document.body.appendChild(effect);
+
+        setTimeout(() => {
+            effect.remove();
+            callback();
+        }, 500);
+    }
+
+
+
+        
+        shake() {
+          const originalX = this.x
+          let shakeCount = 0
+          const shakeAnimation = () => {
+            if (shakeCount < 10) {
+              this.x = originalX + (shakeCount % 2 === 0 ? 5 : -5)
+              shakeCount++
+              requestAnimationFrame(shakeAnimation)
+            } else {
+              this.x = originalX
+            }
+          }
+          shakeAnimation()
+        }
+
+        showHealingAnimation() {
+          const healingHeart = document.createElement('div')
+          healingHeart.textContent = '❤️'
+          healingHeart.className = 'healing-heart'
+          healingHeart.style.position = 'absolute'
+          healingHeart.style.left = `${this.x + this.width / 2}px`
+          healingHeart.style.top = `${this.y}px`
+          healingHeart.style.fontSize = '40px'
+          document.body.appendChild(healingHeart)
+
+          setTimeout(() => {
+            healingHeart.remove()
+          }, 2000)
+        }
+
+        showDamageAnimation(damage) {
+          const damageText = document.createElement('div')
+          damageText.textContent = `-${damage}`
+          damageText.className = 'damage-text'
+          damageText.style.left = `${this.x + this.width / 2}px`
+          damageText.style.top = this.isPlayer
+            ? `${this.y}px`
+            : `${this.y + this.height}px`
+          document.body.appendChild(damageText)
+
+          setTimeout(() => {
+            damageText.remove()
+          }, 1000)
+        }
+      }
+
+      // let playerDeck = [];
+      let playerHand = []
+      let opponentHand = []
+      let playerAvatars = []
+      let opponentAvatars = []
+      let selectedCard = null
+
+      function initializeGame() {
+        initializeGameVariables() // Call this first to set up global variables
+        initializeCards()
+        applyRarityToCards()
+        createPlayerDeck()
+        createAvatars()
+        positionElements()
+        dealInitialHands()
+        currentPhase = 1
+        currentTurn = 'player'
+        updateSurrenderButtonVisibility()
+      }
+
+      // Initialize global variables
+      function initializeGameVariables() {
+        elementalCards = [
+          { element: 'fire', color: '#FF4500' },
+          { element: 'water', color: '#1E90FF' },
+          { element: 'earth', color: '#8B4513' },
+          { element: 'ice', color: '#E0FFFF' },
+          { element: 'lightning', color: '#FFD700' },
+          { element: 'darkness', color: '#4B0082' },
+          { element: 'radiant', color: '#FFFF00' },
+          { element: 'luck', color: '#32CD32' },
+          { element: 'heal', color: '#FF69B4' },
+          // New elemental cards
+          { element: 'wind', color: '#C0C0C0' },
+          { element: 'metal', color: '#B87333' },
+          { element: 'nature', color: '#228B22' },
+          { element: 'poison', color: '#800080' },
+          { element: 'crystal', color: '#B9F2FF' },
+          { element: 'fall', color: '#ff8000' }
+        ]
+
+        utilityCards = [
+          { type: 'sword' },
+          { type: 'shield' },
+          { type: 'heal' },
+          { type: 'bow' },
+          { type: 'wand' },
+          { type: 'axe' },
+          { type: 'hammer' },
+          { type: 'dagger' },
+          { type: 'staff' },
+          { type: 'spear' },
+          { type: 'mace' },
+          { type: 'crossbow' },
+          { type: 'scythe' },
+          { type: 'sling' },
+          { type: 'boomerang' },
+          // New utility cards
+          { type: 'katana' },
+          { type: 'shuriken' },
+          { type: 'potion' },
+          { type: 'scroll' },
+          { type: 'trap' }
+        ]
+
+        elementalWeapons = [
+          {
+            type: 'fire_sword',
+            element: 'fire',
+            weaponType: 'sword',
+            elementEmoji: emojis.fire
+          },
+          {
+            type: 'ice_bow',
+            element: 'ice',
+            weaponType: 'bow',
+            elementEmoji: emojis.ice
+          },
+          {
+            type: 'lightning_wand',
+            element: 'lightning',
+            weaponType: 'wand',
+            elementEmoji: emojis.lightning
+          },
+          {
+            type: 'water_shield',
+            element: 'water',
+            weaponType: 'shield',
+            elementEmoji: emojis.water
+          },
+          {
+            type: 'earth_axe',
+            element: 'earth',
+            weaponType: 'axe',
+            elementEmoji: emojis.earth
+          },
+          {
+            type: 'darkness_dagger',
+            element: 'darkness',
+            weaponType: 'dagger',
+            elementEmoji: emojis.darkness
+          },
+          {
+            type: 'radiant_staff',
+            element: 'radiant',
+            weaponType: 'staff',
+            elementEmoji: emojis.radiant
+          },
+          {
+            type: 'luck_boomerang',
+            element: 'luck',
+            weaponType: 'boomerang',
+            elementEmoji: emojis.luck
+          },
+          {
+            type: 'fire_mace',
+            element: 'fire',
+            weaponType: 'mace',
+            elementEmoji: emojis.fire
+          },
+          {
+            type: 'ice_spear',
+            element: 'ice',
+            weaponType: 'spear',
+            elementEmoji: emojis.ice
+          },
+          // New elemental weapons
+          {
+            type: 'wind_fan',
+            element: 'wind',
+            weaponType: 'fan',
+            elementEmoji: emojis.wind
+          },
+          {
+            type: 'metal_gauntlet',
+            element: 'metal',
+            weaponType: 'gauntlet',
+            elementEmoji: emojis.metal
+          },
+          {
+            type: 'nature_staff',
+            element: 'nature',
+            weaponType: 'staff',
+            elementEmoji: emojis.nature
+          },
+          {
+            type: 'poison_dagger',
+            element: 'poison',
+            weaponType: 'dagger',
+            elementEmoji: emojis.poison
+          },
+          {
+            type: 'crystal_scepter',
+            element: 'crystal',
+            weaponType: 'scepter',
+            elementEmoji: emojis.crystal
+          }
+        ]
+
+        // New special cards
+        specialCards = [
+          { type: 'luckyStar', emoji: emojis.luckyStar },
+          { type: 'thirdHand', emoji: emojis.thirdHand },
+          { type: 'mimic', emoji: '📦' },
+          { type: 'time_warp', emoji: '⏳' },
+          { type: 'elemental_fusion', emoji: '🌈' },
+          { type: 'mana_burst', emoji: '✨' },
+          { type: 'shapeshifter', emoji: '🦎' }
+        ]
+
+        avatarTypes = [
+          { race: 'elf', emoji: emojis.elf },
+          { race: 'dwarf', emoji: emojis.dwarf },
+          { race: 'wizard', emoji: emojis.wizard },
+          { race: 'fairy', emoji: emojis.fairy },
+          { race: 'vampire', emoji: emojis.vampire },
+          { race: 'merperson', emoji: emojis.merperson },
+          { race: 'genie', emoji: emojis.genie },
+          { race: 'zombie', emoji: emojis.zombie },
+          { race: 'superhero', emoji: emojis.superhero },
+          { race: 'supervillain', emoji: emojis.supervillain }
+        ]
+      }
+      function assignRarity(card) {
+        const rarityRoll = Math.random()
+        if (rarityRoll < 0.6) {
+          card.rarity = 'common'
+        } else if (rarityRoll < 0.85) {
+          card.rarity = 'uncommon'
+        } else if (rarityRoll < 0.95) {
+          card.rarity = 'rare'
+        } else {
+          card.rarity = 'legendary'
+        }
+        return card
+      }
+
+      function applyRarityToCards() {
+        elementalCards = elementalCards.map(assignRarity)
+        utilityCards = utilityCards.map(assignRarity)
+        elementalWeapons = elementalWeapons.map(assignRarity)
+        specialCards = specialCards.map(card => ({
+          ...assignRarity(card),
+          isSpecial: true
+        }))
+      }
+
+      
+
+      function createPlayerDeck() {
+    playerDeck = [];
+    for (let i = 0; i < 40; i++) {
+        let newCard;
+        const roll = Math.random();
+        
+        if (roll < 0.025) {
+            newCard = createCard('special', emojis.luckystar, { type: 'luckyStar' }, 'legendary');
+        } else if (roll < 0.05) {
+            newCard = createCard('special', emojis.thirdhand, { type: 'thirdHand' }, 'legendary');
+        } else if (roll < 0.2) {
+            const elementalWeapon = elementalWeapons[Math.floor(Math.random() * elementalWeapons.length)];
+            newCard = createCard(
+                'Elemental Weapon',
+                emojis[elementalWeapon.weaponType],
+                {
+                    type: elementalWeapon.weaponType,
+                    element: elementalWeapon.element
+                },
+                'rare'
+            );
+        } else if (roll < 0.9) {
+            const elementalEffect = elementalCards[Math.floor(Math.random() * elementalCards.length)];
+            newCard = new Card('elemental', emojis[elementalEffect.element], elementalEffect);
+        } else {
+            const utilityEffect = utilityCards[Math.floor(Math.random() * utilityCards.length)];
+            newCard = createCard('utility', emojis[utilityEffect.type], utilityEffect);
+        }
+        
+        playerDeck.push(newCard);
+    }
+    
+    console.log('Player Deck created:', playerDeck.length, 'cards');
+}
+
+
+function startCardTutorial() {
+    const cardTutorial = document.getElementById('cardTutorial');
+    cardTutorial.style.display = 'block';
+    cardTutorialStep = 0;
+    nextCardTutorialStep();
+}
+
+        let cardTutorialStep = 0;
+        const cardTutorialSteps = [
+            {
+                title: "Avatar Card",
+                content: `
+                    <div class="tutorial-card">
+                        <div class="avatar">🧙</div>
+                        <div class="stats">
+                            <span class="tutorial-highlight">❤️:7/10</span>
+                            <span>👊:6</span>
+                        </div>
+                        <div class="stats">
+                            <span>🍀:4</span>
+                            <span>🛡️:3</span>
+                        </div>
+                    </div>
+                    <div class="tutorial-text">
+                        <p>This is an Avatar Card. It represents a character in battle.</p>
+                        <p>The highlighted stat is the HP (Health Points). It shows current HP / max HP.</p>
+                        <p>HP is crucial as it determines how much damage your avatar can take before being defeated.</p>
+                    </div>
+                `
+            },
+            {
+                title: "Avatar Card Stats",
+                content: `
+                    <div class="tutorial-card">
+                        <div class="avatar">🧙</div>
+                        <div class="stats">
+                            <span>❤️:7/10</span>
+                            <span class="tutorial-highlight">👊:6</span>
+                        </div>
+                        <div class="stats">
+                            <span class="tutorial-highlight">🍀:4</span>
+                            <span class="tutorial-highlight">🛡️:3</span>
+                        </div>
+                    </div>
+                    <div class="tutorial-text">
+                        <p>👊 Attack: Determines the damage dealt to opponents.</p>
+                        <p>🍀 Luck: Affects the chance of a successful attack.</p>
+                        <p>🛡️ Defense: Reduces damage taken from enemy attacks.</p>
+                        <p>These stats are crucial for battle strategy!</p>
+                    </div>
+                `
+            },
+            {
+                title: "Elemental Cards",
+                content: `
+                    <div style="display: flex; justify-content: space-around;">
+                        <div class="tutorial-card" style="width: 100px; height: 150px;">
+                            <div class="avatar">🔥</div>
+                            <div>Fire</div>
+                        </div>
+                        <div class="tutorial-card" style="width: 100px; height: 150px;">
+                            <div class="avatar">💧</div>
+                            <div>Water</div>
+                        </div>
+                        <div class="tutorial-card" style="width: 100px; height: 150px;">
+                            <div class="avatar">🌿</div>
+                            <div>Earth</div>
+                        </div>
+                    </div>
+                    <div class="tutorial-text">
+                        <p>Elemental cards can be attached to avatars to grant special effects:</p>
+                        <p>🔥 Fire: Increases attack power</p>
+                        <p>💧 Water: Boosts defense</p>
+                        <p>🌿 Earth: Heals the avatar</p>
+                        <p>Attaching these cards strategically can turn the tide of battle!</p>
+                    </div>
+                `
+            },
+            {
+                title: "Utility Cards",
+                content: `
+                    <div style="display: flex; justify-content: space-around;">
+                        <div class="tutorial-card" style="width: 100px; height: 150px;">
+                            <div class="avatar">🗡️</div>
+                            <div>Sword</div>
+                        </div>
+                        <div class="tutorial-card" style="width: 100px; height: 150px;">
+                            <div class="avatar">🛡️</div>
+                            <div>Shield</div>
+                        </div>
+                    </div>
+                    <div class="tutorial-text">
+                        <p>Utility cards provide various benefits when attached to avatars:</p>
+                        <p>🗡️ Sword: Significantly increases attack power</p>
+                        <p>🛡️ Shield: Greatly enhances defense</p>
+                        <p>These cards can be combined with elemental cards for powerful effects!</p>
+                    </div>
+                `
+            },
+            {
+                title: "Special Utility Cards",
+                content: `
+                    <div style="display: flex; justify-content: space-around;">
+                        <div class="tutorial-card lucky-star" style="width: 100px; height: 150px;">
+                            <div class="avatar">🌟</div>
+                            <div>Lucky Star</div>
+                        </div>
+                        <div class="tutorial-card" style="width: 100px; height: 150px;">
+                            <div class="avatar">✋</div>
+                            <div>Third Hand</div>
+                        </div>
+                        <div class="tutorial-card elemental-weapon" style="width: 100px; height: 150px;">
+                            <div class="avatar">🗡️</div>
+                            <div>Fire Sword</div>
+                            <div style="position: absolute; bottom: 5px; right: 5px; font-size: 20px;">🔥</div>
+                        </div>
+                    </div>
+                    <div class="tutorial-text">
+                        <p>Special utility cards have unique and powerful effects:</p>
+                        <p>🌟 Lucky Star: Grants a massive attack boost for one turn</p>
+                        <p>✋ Third Hand: Allows an avatar to hold one extra card</p>
+                        <p>🗡️🔥 Elemental Weapons: Combine the effects of weapons and elements</p>
+                        <p>These cards are rare but can dramatically change the course of a battle!</p>
+                    </div>
+                `
+            },
+            {
+                title: "Gameplay Overview",
+                content: `
+                    <div class="tutorial-card" style="width: 300px; height: 200px;">
+                        <div style="display: flex; justify-content: space-around;">
+                            <div class="avatar">🧙</div>
+                            <div class="avatar" style="color: red;">💀</div>
+                            <div class="avatar">🧝</div>
+                        </div>
+                        <div class="attached-cards">
+                            <span>🔥</span>
+                            <span>🗡️</span>
+                        </div>
+                        <div class="stats">
+                            <span>❤️:5/10</span>
+                            <span>👊:8</span>
+                        </div>
+                    </div>
+                    <div class="tutorial-text">
+                        <p>1. Start with 4 cards in your hand</p>
+                        <p>2. Assign up to 2 cards to your avatars</p>
+                        <p>3. Choose an avatar to attack with</p>
+                        <p>4. Luck determines if the attack hits</p>
+                        <p>5. Defeated avatars (💀) can't be used</p>
+                        <p>6. Win by defeating all enemy avatars!</p>
+                    </div>
+                `
+            }
+        ];
+
+        function nextCardTutorialStep() {
+    const cardTutorialContent = document.getElementById('cardTutorialContent');
+    if (cardTutorialStep < cardTutorialSteps.length) {
+        const step = cardTutorialSteps[cardTutorialStep];
+        cardTutorialContent.innerHTML = `
+            <h3>${step.title}</h3>
+            ${step.content}
+        `;
+        cardTutorialStep++;
+    } else {
+        document.getElementById('cardTutorial').style.display = 'none';
+        setCookie('cardTutorialCompleted', 'true', 365); // Set cookie for 1 year
+    }
+}
+
+        function showAttachmentOverflow(avatar) {
+            overflowAvatar = avatar;
+            attachmentOverflow.style.display = 'block';
+            attachedCards.innerHTML = '';
+            avatar.attachedCards.forEach((card, index) => {
+                const cardButton = document.createElement('button');
+                cardButton.textContent = `${card.emoji} (${card.type})`;
+                cardButton.onclick = () => removeAndAttachCard(index);
+                attachedCards.appendChild(cardButton);
+            });
+        }
+
+        function removeAndAttachCard(index) {
+            if (overflowAvatar && selectedCard) {
+                const removedCard = overflowAvatar.removeEffect(index);
+                if (removedCard) {
+                    playerDeck.push(removedCard);
+                    shuffleDeck(playerDeck);
+                }
+                if (overflowAvatar.attachCard(selectedCard)) {
+                    const cardIndex = playerHand.indexOf(selectedCard);
+                    if (cardIndex > -1) {
+                        playerHand.splice(cardIndex, 1);
+                    }
+                    selectedCard = null;
+                    attachmentOverflow.style.display = 'none';
+                    overflowAvatar = null;
+                    positionElements();
+                }
+            }
+        }
+      function dealInitialHands() {
+        for (let i = 0; i < 4; i++) {
+          dealCard(playerHand)
+          dealCard(opponentHand)
+        }
+      }
+
+      function dealCard(hand) {
+        if (hand.length < 4 && playerDeck.length > 0) {
+          const card = playerDeck.pop()
+          card.x = canvas.width / 2
+          card.y = canvas.height + card.height
+          card.scale = 0.1
+          hand.push(card)
+
+          const dealSound = new Howl({
+            src: [
+              'https://assets.caisual.com/games/zqfqt5j5yt3lzb0v/card_deal_sound.webp'
+            ],
+            volume: 0.5
+          })
+          dealSound.play()
+
+          card.moveTo(
+            canvas.width / 2 -
+              1.5 * card.width +
+              hand.length * (card.width + 10),
+            hand === playerHand ? canvas.height - card.height - 10 : 10,
+            () => {
+              card.scale = 1
+              positionElements()
+            }
+          )
+        }
+      }
+
+      function createAvatars() {
+        const avatarTypes = [
+          { race: 'elf', emoji: emojis.elf },
+          { race: 'dwarf', emoji: emojis.dwarf },
+          { race: 'wizard', emoji: emojis.wizard },
+          { race: 'fairy', emoji: emojis.fairy },
+          { race: 'vampire', emoji: emojis.vampire },
+          { race: 'merperson', emoji: emojis.merperson },
+          { race: 'genie', emoji: emojis.genie },
+          { race: 'zombie', emoji: emojis.zombie },
+          { race: 'superhero', emoji: emojis.superhero },
+          { race: 'supervillain', emoji: emojis.supervillain }
+        ]
+
+        for (let i = 0; i < 3; i++) {
+          const playerAvatarType =
+            avatarTypes[Math.floor(Math.random() * avatarTypes.length)]
+          playerAvatars.push(
+            new Avatar(playerAvatarType.race, playerAvatarType.emoji, true)
+          )
+
+          const opponentAvatarType =
+            avatarTypes[Math.floor(Math.random() * avatarTypes.length)]
+          opponentAvatars.push(
+            new Avatar(opponentAvatarType.race, opponentAvatarType.emoji, false)
+          )
+        }
+      }
+
+      function positionElements() {
+        const padding = 10
+        const avatarSpacing = canvas.width / 4
+
+        playerHand.forEach((card, index) => {
+          card.x =
+            canvas.width / 2 - 1.5 * card.width + index * (card.width + 10)
+          card.y = canvas.height - card.height - 10
+        })
+
+        playerAvatars.forEach((avatar, index) => {
+          avatar.x = avatarSpacing * (index + 1) - avatar.width / 2
+          avatar.y = canvas.height - 2 * avatar.height - padding
+        })
+
+        opponentAvatars.forEach((avatar, index) => {
+          avatar.x = avatarSpacing * (index + 1) - avatar.width / 2
+          avatar.y = padding + avatar.height
+        })
+
+        // Position deck placeholder
+        if (playerHand.length > 0) {
+          ctx.fillStyle = '#ffffff'
+          ctx.fillRect(10, canvas.height - playerHand[0].height - 10, 80, 120)
+          ctx.strokeStyle = '#000000'
+          ctx.lineWidth = 2
+          ctx.strokeRect(10, canvas.height - playerHand[0].height - 10, 80, 120)
+          ctx.fillStyle = '#000000'
+          ctx.font = '20px Arial'
+          ctx.fillText('Deck', 25, canvas.height - playerHand[0].height + 50)
+          ctx.fillText(
+            `(${playerDeck.length}/40)`,
+            15,
+            canvas.height - playerHand[0].height + 80
+          )
+        }
+      }
+
+      function drawGame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+        // Draw deck placeholder
+        if (playerHand.length > 0) {
+          ctx.fillStyle = '#ffffff'
+          ctx.fillRect(10, canvas.height - playerHand[0].height - 10, 80, 120)
+          ctx.strokeStyle = '#000000'
+          ctx.lineWidth = 2
+          ctx.strokeRect(10, canvas.height - playerHand[0].height - 10, 80, 120)
+          ctx.fillStyle = '#000000'
+          ctx.font = '20px Arial'
+          ctx.fillText('Deck', 25, canvas.height - playerHand[0].height + 50)
+          ctx.fillText(
+            `(${playerDeck.length}/40)`,
+            15,
+            canvas.height - playerHand[0].height + 80
+          )
+        }
+
+        playerHand.forEach(card => card.draw())
+        playerAvatars.forEach(avatar => avatar.draw())
+        opponentAvatars.forEach(avatar => avatar.draw())
+
+        if (selectedCard) {
+          ctx.strokeStyle = '#ff0000'
+          ctx.lineWidth = 3
+          ctx.strokeRect(
+            selectedCard.x,
+            selectedCard.y,
+            selectedCard.width,
+            selectedCard.height
+          )
+        }
+
+        // Draw turn and phase indicator
+        ctx.fillStyle = '#ffffff'
+        ctx.font = '24px Arial'
+        ctx.fillText(`Current Turn: ${currentTurn}`, 20, 30)
+        ctx.fillText(`Phase: ${currentPhase}`, 20, 60)
+      }
+
+      function gameLoop() {
+        if (!isCardBrowserVisible) {
+          drawGame()
+        }
+        requestAnimationFrame(gameLoop)
+      }
+
+      canvas.addEventListener('click', handleClick)
+      canvas.addEventListener('contextmenu', handleRightClick)
+
+      function handleClick(event) {
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    if (currentTurn === 'player') {
+        playerHand.forEach(card => {
+            if (card.isPointInside(x, y)) {
+                if (selectedCard === card) {
+                    selectedCard.selected = false;
+                    selectedCard = null;
+                } else {
+                    if (selectedCard) selectedCard.selected = false;
+                    card.selected = true;
+                    selectedCard = card;
+                }
+            }
+        });
+
+        playerAvatars.forEach(avatar => {
+            if (avatar.isPointInside(x, y) && !avatar.isDead) {
+                if (selectedCard && currentPhase === 1) {
+                    if (avatar.attachCard(selectedCard)) {
+                        const index = playerHand.indexOf(selectedCard);
+                        if (index > -1) {
+                            playerHand.splice(index, 1);
+                        }
+                        selectedCard = null;
+                        if (avatar.attachedCards.length === avatar.maxAttachedCards) {
+                            currentPhase = 2;
+                        }
+                        positionElements();
+                    } else {
+                        avatar.shake();
+                    }
+                } else if (currentPhase === 1 && !selectedCard) {
+                    showAssignmentConfirmation(avatar);
+                } else if (currentPhase === 2 && !attackingAvatar) {
+                    initiateAttack(avatar);
+                }
+            }
+        });
+    }
+}
+
+      function handleRightClick(event) {
+        event.preventDefault()
+        const rect = canvas.getBoundingClientRect()
+        const x = event.clientX - rect.left
+        const y = event.clientY - rect.top
+
+        playerAvatars.concat(opponentAvatars).forEach(avatar => {
+          if (avatar.isPointInside(x, y)) {
+            showAStatsBox(avatar)
+          }
+        })
+
+        playerHand.forEach(card => {
+          if (card.isPointInside(x, y)) {
+            showCardInfoBox(card)
+          }
+        })
+
+        // Check if the deck was right-clicked
+        if (
+          x >= 10 &&
+          x <= 90 &&
+          y >= canvas.height - 130 &&
+          y <= canvas.height - 10
+        ) {
+          showDeckOptions()
+        }
+      }
+
+      function showAttackConfirmation() {
+        attackConfirmation.style.display = 'block'
+      }
+
+      function confirmAttack(confirmed) {
+        attackConfirmation.style.display = 'none'
+        if (confirmed && attackingAvatar) {
+          const target = getRandomAvatar(
+            opponentAvatars.filter(avatar => !avatar.isDead)
+          )
+          if (target) {
+            performAttack(attackingAvatar, target)
+          } else {
+            endTurn()
+          }
+        } else {
+          if (attackingAvatar) {
+            attackingAvatar.rotation = 0
+          }
+          attackingAvatar = null
+        }
+      }
+
+      function showAssignmentConfirmation(avatar) {
+        assignmentConfirmation.style.display = 'block'
+
+        assignmentConfirmation.avatar = avatar;
+      }
+
+      function skipAssignmentPhase(skip) {
+    assignmentConfirmation.style.display = 'none';
+    if (skip) {
+        currentPhase = 2;
+        // Directly initiate the attack with the stored avatar
+        if (assignmentConfirmation.avatar) {
+            initiateAttack(assignmentConfirmation.avatar);
+        }
+    }
+    // Clear the stored avatar
+    assignmentConfirmation.avatar = null;
+}
+
+function initiateAttack(avatar) {
+    avatar.rotation = 15;
+    attackingAvatar = avatar;
+    showAttackConfirmation();
+}
+
+      function performAttack(attacker, defender) {
+    const hitChance = Math.floor(Math.random() * 10) + 1;
+    if (attacker.luck + attacker.luckBonus >= hitChance) {
+        const rawDamage = attacker.attack;
+        const blockedDamage = Math.floor(defender.defense * 0.5); // Defender blocks half their defense value
+        const damage = Math.max(0, rawDamage - blockedDamage); // Ensure damage doesn't go negative
+
+        const attackAnimation = attacker.getAttackAnimation(defender);
+
+        const attackSound = new Howl({
+            src: [`https://assets.caisual.com/games/zqfqt5j5yt3lzb0v/${attackAnimation.sound}`],
+            volume: 0.5
+        });
+        attackSound.play();
+
+        attackAnimation.animate(() => {
+            defender.hp = Math.max(0, defender.hp - damage);
+            defender.showDamageAnimation(damage);
+
+            // You might want to show a message about blocked damage
+            console.log(`${defender.race} blocked ${blockedDamage} damage!`);
+
+            if (defender.hp === 0) {
+                defender.isDead = true;
+                flipCard(defender);
+            }
+
+            checkGameEnd();
+            if (gameStarted) {
+                endTurn();
+            }
+        });
+    } else {
+          const missSound = new Howl({
+            src: [
+              'https://assets.caisual.com/games/zqfqt5j5yt3lzb0v/attack_miss_sound.webp'
+            ],
+            volume: 0.5
+          })
+          missSound.play()
+
+          ctx.font = '40px Arial'
+          ctx.fillStyle = '#ff0000'
+          ctx.fillText(
+            'MISS!',
+            defender.x + defender.width / 2,
+            defender.y - 20
+          )
+
+          setTimeout(() => {
+            endTurn()
+          }, 1000)
+        }
+
+        if (attackingAvatar) {
+          attackingAvatar.rotation = 0
+        }
+        attackingAvatar = null
+      }
+
+      function flipCard(avatar) {
+        avatar.rotation = 0
+        const flipAnimation = progress => {
+          avatar.scale = Math.abs(Math.cos(progress * Math.PI))
+          if (progress >= 1) {
+            avatar.isDead = true
+          } else {
+            requestAnimationFrame(() => flipAnimation(progress + 0.1))
+          }
+        }
+        flipAnimation(0)
+      }
+
+      function getRandomAvatar(avatars) {
+        return avatars[Math.floor(Math.random() * avatars.length)]
+      }
+
+      function endTurn() {
+        currentTurn = currentTurn === 'player' ? 'opponent' : 'player'
+        currentPhase = 1
+        updateSurrenderButtonVisibility()
+
+        playerAvatars.concat(opponentAvatars).forEach(avatar => {
+          avatar.updateLuckBonus()
+        })
+
+        // Remove any remaining hand cards and shuffle them back into the deck
+        if (currentTurn === 'player') {
+          while (playerHand.length > 0) {
+            playerDeck.push(playerHand.pop())
+          }
+          shuffleDeck(playerDeck)
+          dealInitialHands()
+        } else {
+          while (opponentHand.length > 0) {
+            playerDeck.push(opponentHand.pop())
+          }
+          shuffleDeck(playerDeck)
+          dealInitialHands()
+          setTimeout(opponentTurn, 1000)
+        }
+
+        // Reshuffle if deck is low
+        if (playerDeck.length <= 3) {
+          const usedCards = playerAvatars
+            .concat(opponentAvatars)
+            .flatMap(avatar => avatar.attachedCards)
+          playerDeck = playerDeck.concat(usedCards)
+          playerAvatars
+            .concat(opponentAvatars)
+            .forEach(avatar => (avatar.attachedCards = []))
+          shuffleDeck(playerDeck)
+        }
+      }
+
+      function shuffleDeck(deck) {
+        for (let i = deck.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1))
+          ;[deck[i], deck[j]] = [deck[j], deck[i]]
+        }
+      }
+
+      function opponentTurn() {
+        // Phase 1: Assign cards
+        for (let i = 0; i < 2; i++) {
+          if (opponentHand.length > 0) {
+            const card = opponentHand.pop()
+            const avatar = getRandomAvatar(
+              opponentAvatars.filter(
+                a => !a.isDead && a.attachedCards.length < a.maxAttachedCards
+              )
+            )
+            if (avatar) {
+              avatar.attachCard(card)
+            } else {
+              playerDeck.push(card)
+            }
+          }
+        }
+
+        // Phase 2: Attack
+        const attacker = getRandomAvatar(opponentAvatars.filter(a => !a.isDead))
+        const defender = getRandomAvatar(playerAvatars.filter(a => !a.isDead))
+        if (attacker && defender) {
+          performAttack(attacker, defender)
+        } else {
+          endTurn()
+        }
+      }
+
+      function checkGameEnd() {
+        if (playerAvatars.every(avatar => avatar.isDead)) {
+          endGame('You lost!')
+        } else if (opponentAvatars.every(avatar => avatar.isDead)) {
+          endGame('You won!')
+        }
+      }
+
+      function endGame(message) {
+        gameStarted = false
+        gameOverMessage.textContent = message
+        gameOverMenu.style.display = 'block'
+        bgm.stop()
+
+        if (message === 'You won!') {
+          showConfetti()
+        } else if (message === 'You lost!') {
+          showSkull()
+        }
+      }
+
+      function showConfetti() {
+        for (let i = 0; i < 100; i++) {
+          createConfettiPiece()
+        }
+      }
+
+      function createConfettiPiece() {
+        const confetti = document.createElement('div')
+        confetti.className = 'confetti'
+        confetti.style.left = `${Math.random() * 100}vw`
+        confetti.style.top = `${Math.random() * 100}vh`
+        confetti.style.backgroundColor = `hsl(${
+          Math.random() * 360
+        }, 100%, 50%)`
+        confetti.style.setProperty('--tx', `${(Math.random() - 0.5) * 300}px`)
+        confetti.style.setProperty('--ty', `${Math.random() * 300 + 300}px`)
+        document.body.appendChild(confetti)
+        setTimeout(() => confetti.remove(), 2000)
+      }
+
+      function showSkull() {
+        const skull = document.createElement('div')
+        skull.textContent = '💀'
+        skull.style.position = 'absolute'
+        skull.style.left = '50%'
+        skull.style.top = '50%'
+        skull.style.transform = 'translate(-50%, -50%)'
+        skull.style.fontSize = '100px'
+        document.body.appendChild(skull)
+        setTimeout(() => skull.remove(), 2000)
+      }
+
+      function startNewGame() {
+        gameOverMenu.style.display = 'none'
+        playerDeck = []
+        playerHand = []
+        opponentHand = []
+        playerAvatars = []
+        opponentAvatars = []
+        selectedCard = null
+        currentTurn = 'player'
+        attackingAvatar = null
+        startGame()
+      }
+
+      function showAStatsBox(avatar) {
+        const cardColumn = aStatsBox.querySelector('.card-column');
+    const statsColumn = aStatsBox.querySelector('.stats-column');
+
+    cardColumn.innerHTML = '';
+    statsColumn.innerHTML = '';
+
+    const avatarCard = document.createElement('div');
+    avatarCard.style.width = '100px';
+    avatarCard.style.height = '150px';
+    avatarCard.style.backgroundColor = 'white';
+    avatarCard.style.display = 'flex';
+    avatarCard.style.justifyContent = 'center';
+    avatarCard.style.alignItems = 'center';
+    avatarCard.style.fontSize = '50px';
+    avatarCard.textContent = avatar.emoji;
+
+    cardColumn.appendChild(avatarCard);
+
+    const stats = [
+        `Avatar: ${avatar.race}`,
+        `❤️ HP: ${avatar.hp}/${avatar.maxHp}`,
+        `👊 Attack: ${avatar.attack}`,
+        `🛡️ Defense: ${avatar.defense}`,
+        `🍀 Luck: ${avatar.luck + avatar.luckBonus}`,
+        `Mana: ${avatar.mana}`
+    ];
+
+    stats.forEach(stat => {
+        const statElement = document.createElement('p');
+        statElement.textContent = stat;
+        statsColumn.appendChild(statElement);
+    });
+
+        avatar.attachedCards.forEach((card, index) => {
+          const attachedCardElement = document.createElement('button')
+          attachedCardElement.className = 'effect-button'
+          attachedCardElement.textContent = `${card.emoji} (${card.type})`
+          attachedCardElement.onclick = () => removeEffect(avatar, index)
+          statsColumn.appendChild(attachedCardElement)
+        })
+
+        aStatsBox.style.display = 'grid'
+      }
+
+      function removeEffect(avatar, effectIndex) {
+        const removedCard = avatar.removeEffect(effectIndex)
+        if (removedCard) {
+          playerDeck.push(removedCard)
+          shuffleDeck(playerDeck)
+          showAStatsBox(avatar)
+        }
+      }
+
+      function showCardInfoBox(card) {
+        const cardColumn = cardInfoBox.querySelector('.card-column')
+        const statsColumn = cardInfoBox.querySelector('.stats-column')
+
+        cardColumn.innerHTML = ''
+        statsColumn.innerHTML = ''
+
+        const cardDisplay = document.createElement('div')
+        cardDisplay.style.width = '80px'
+        cardDisplay.style.height = '120px'
+        cardDisplay.style.backgroundColor = 'white'
+        cardDisplay.style.display = 'flex'
+        cardDisplay.style.justifyContent = 'center'
+        cardDisplay.style.alignItems = 'center'
+        cardDisplay.style.fontSize = '40px'
+        cardDisplay.textContent = card.emoji
+
+        if (card.isLuckyStar) {
+          cardDisplay.classList.add('lucky-star')
+        }
+
+        if (card.isElementalWeapon) {
+          cardDisplay.classList.add('elemental-weapon')
+          const elementalEmoji = document.createElement('span')
+          elementalEmoji.style.position = 'absolute'
+          elementalEmoji.style.bottom = '5px'
+          elementalEmoji.style.right = '5px'
+          elementalEmoji.style.fontSize = '20px'
+          elementalEmoji.textContent = card.effect.elementEmoji
+          cardDisplay.appendChild(elementalEmoji)
+        }
+
+        cardColumn.appendChild(cardDisplay)
+
+        const cardInfo = [
+          `Type: ${card.type}`,
+          `Effect: ${
+            card.type === 'elemental' ? card.effect.element : card.effect.type
+          }`
+        ]
+
+        if (card.isElementalWeapon) {
+          cardInfo.push(`Element: ${card.effect.element}`)
+        }
+
+        cardInfo.forEach(info => {
+          const infoElement = document.createElement('p')
+          infoElement.textContent = info.charAt(0).toUpperCase() + info.slice(1)
+          statsColumn.appendChild(infoElement)
+        })
+
+        cardInfoBox.style.display = 'grid'
+      }
+
+      function startTutorial() {
+        tutorialOverlay.style.display = 'block'
+        tutorialStep = 0
+        nextTutorialStep()
+      }
+
+      function nextTutorialStep() {
+        const tutorialSteps = [
+          "Welcome to Emoji RPG Battle! Let's go through the basics.",
+          'Your avatar cards are at the bottom. They represent your characters in battle.',
+          'Your hand of cards is below your avatars. These are elemental and utility cards.',
+          'Click on a card in your hand to select it, then click on an avatar to attach it.',
+          'You can attach up to 2 cards per avatar (3 with the Third Hand card).',
+          'After assigning cards, click on an avatar to attack. Attacks are based on luck.',
+          'Combine elemental and utility cards for powerful combo attacks!',
+          'Right-click or long-press avatars and cards for more information.',
+          'The game ends when all avatars on one side are defeated.',
+          "That's it! Good luck and have fun!"
+        ]
+
+        if (tutorialStep < tutorialSteps.length) {
+          tutorialContent.textContent = tutorialSteps[tutorialStep]
+          tutorialStep++
+        } else {
+          tutorialOverlay.style.display = 'none'
+          setCookie('tutorialCompleted', 'true', 365)
+        }
+      }
+
+      canvas.addEventListener('mousedown', handleLongPress)
+      canvas.addEventListener('mouseup', cancelLongPress)
+      canvas.addEventListener('mouseleave', cancelLongPress)
+
+      let longPressTimer
+
+      function handleLongPress(event) {
+        longPressTimer = setTimeout(() => {
+          const rect = canvas.getBoundingClientRect()
+          const x = event.clientX - rect.left
+          const y = event.clientY - rect.top
+
+          playerAvatars.concat(opponentAvatars).forEach(avatar => {
+            if (avatar.isPointInside(x, y)) {
+              showAStatsBox(avatar)
+            }
+          })
+
+          playerHand.forEach(card => {
+            if (card.isPointInside(x, y)) {
+              showCardInfoBox(card)
+            }
+          })
+
+          // Check if the deck was long-pressed
+          if (
+            x >= 10 &&
+            x <= 90 &&
+            y >= canvas.height - 130 &&
+            y <= canvas.height - 10
+          ) {
+            showDeckOptions()
+          }
+        }, 500)
+      }
+
+      function cancelLongPress() {
+        clearTimeout(longPressTimer)
+      }
+
+      document.addEventListener('click', event => {
+        if (
+          !aStatsBox.contains(event.target) &&
+          !cardInfoBox.contains(event.target) &&
+          !deckOptions.contains(event.target) &&
+          !cardBrowser.contains(event.target)
+        ) {
+          aStatsBox.style.display = 'none'
+          cardInfoBox.style.display = 'none'
+          deckOptions.style.display = 'none'
+          cardBrowser.style.display = 'none'
+        }
+      })
+
+      function updateSurrenderButtonVisibility() {
+        surrenderButton.style.display =
+          currentTurn === 'player' ? 'block' : 'none'
+      }
+
+      function showDeckOptions() {
+        deckOptions.style.display = 'block'
+      }
+
+      function saveDeck() {
+        const gameState = {
+          playerDeck: playerDeck,
+          playerAvatars: playerAvatars
+        }
+        const jsonString = JSON.stringify(gameState)
+        const blob = new Blob([jsonString], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `${playerAvatars
+          .map(avatar => avatar.race)
+          .join('_')}.deck`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      }
+
+      function loadDeck(file) {
+        const reader = new FileReader()
+        reader.onload = function (e) {
+          try {
+            const gameState = JSON.parse(e.target.result)
+            if (gameState.playerDeck && gameState.playerAvatars) {
+              playerDeck = gameState.playerDeck
+              playerAvatars = gameState.playerAvatars
+              initializeGame()
+            } else {
+              throw new Error('Invalid deck file')
+            }
+          } catch (error) {
+            alert('Not a valid deck file')
+          }
+        }
+        reader.readAsText(file)
+      }
+
+      function setCookie(name, value, days) {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+}
+
+function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+}
+
+      function initializeCardBrowser() {
+        if (!cardBrowser) {
+          console.error('cardBrowser element not found in the DOM')
+          return
+        }
+
+        // Set initial styles
+        cardBrowser.style.display = 'none'
+        cardBrowser.style.position = 'fixed'
+        cardBrowser.style.top = '10%'
+        cardBrowser.style.left = '10%'
+        cardBrowser.style.width = '80%'
+        cardBrowser.style.height = '80%'
+        cardBrowser.style.backgroundColor = 'rgba(0, 0, 0, 0.9)'
+        cardBrowser.style.color = 'white'
+        cardBrowser.style.zIndex = '9999'
+        cardBrowser.style.overflow = 'auto'
+        cardBrowser.style.padding = '20px'
+        cardBrowser.style.boxSizing = 'border-box'
+        cardBrowser.style.border = '2px solid white'
+
+        if (!cardGrid) {
+          const newCardGrid = document.createElement('div')
+          newCardGrid.id = 'cardGrid'
+          cardBrowser.appendChild(newCardGrid)
+        }
+
+        if (!cardDetails) {
+          const newCardDetails = document.createElement('div')
+          newCardDetails.id = 'cardDetails'
+          cardBrowser.appendChild(newCardDetails)
+        }
+
+        if (cardGrid) {
+          cardGrid.style.display = 'grid'
+          cardGrid.style.gridTemplateColumns =
+            'repeat(auto-fill, minmax(100px, 1fr))'
+          cardGrid.style.gap = '10px'
+          cardGrid.style.padding = '10px'
+        }
+      }
+
+      function checkOverlappingElements() {
+        if (!cardBrowser) return
+
+        const cardBrowserRect = cardBrowser.getBoundingClientRect()
+        const elements = document.elementsFromPoint(
+          cardBrowserRect.left + cardBrowserRect.width / 2,
+          cardBrowserRect.top + cardBrowserRect.height / 2
+        )
+
+        console.log(
+          'Elements at cardBrowser center:',
+          elements.map(el => el.id || el.tagName)
+        )
+
+        const overlappingElement = elements.find(
+          el =>
+            el !== cardBrowser &&
+            el !== document.documentElement &&
+            el !== document.body
+        )
+        if (overlappingElement) {
+          console.log(
+            'Potentially overlapping element:',
+            overlappingElement.id || overlappingElement.tagName
+          )
+          console.log(
+            'Overlapping element styles:',
+            window.getComputedStyle(overlappingElement)
+          )
+        }
+      }
+
+      function toggleCardBrowserDebug() {
+        isCardBrowserDebugMode = !isCardBrowserDebugMode
+        console.log(
+          'Card Browser Debug Mode:',
+          isCardBrowserDebugMode ? 'ON' : 'OFF'
+        )
+        showCardBrowser()
+      }
+
+      function showCardBrowser() {
+        console.log('Showing card browser')
+        if (!cardBrowser) {
+          cardBrowser = document.createElement('div')
+          cardBrowser.id = 'cardBrowser'
+          document.body.appendChild(cardBrowser)
+        }
+
+        cardBrowser.style.display = 'flex'
+        cardBrowser.style.flexDirection = 'column'
+        cardBrowser.style.position = 'fixed'
+        cardBrowser.style.top = '0'
+        cardBrowser.style.left = '0'
+        cardBrowser.style.width = '100%'
+        cardBrowser.style.height = '100%'
+        cardBrowser.style.backgroundColor = 'rgba(0, 0, 0, 0.9)'
+        cardBrowser.style.color = 'white'
+        cardBrowser.style.padding = '20px'
+        cardBrowser.style.boxSizing = 'border-box'
+        cardBrowser.style.zIndex = '2147483647'
+
+        cardBrowser.innerHTML = `
+        <div style="display: flex; height: calc(100% - 40px); gap: 20px;">
+            <div style="width: 70%; display: flex; flex-direction: column;">
+                <h2 id="cardBrowserHeader" style="margin-top: 0;">Template Cards</h2>
+                <div id="cardGrid" style="width: 100%; flex-grow: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; padding-right: 10px;"></div>
+            </div>
+            <div style="width: 30%; display: flex; flex-direction: column;">
+                <h2 style="margin-top: 0;">Card Details</h2>
+                <div id="cardDetails" style="width: 100%;flex-grow: 1; background-color: rgba(255,255,255,0.1); padding: 10px; margin-bottom: 10px; overflow-y: auto; min-height: 300px;"></div>
+                <button id="saveCardButton" style="padding: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer;">Add Card to Deck</button>
+                <button id="showDeckButton" style="padding: 10px; margin-top: 10px; background-color: #008CBA; color: white; border: none; cursor: pointer;">Show Current Deck</button>
+            </div>
+        </div>
+    `
+
+        const closeBtn = document.createElement('button')
+        closeBtn.textContent = 'Close'
+        closeBtn.style.position = 'absolute'
+        closeBtn.style.top = '10px'
+        closeBtn.style.right = '10px'
+        closeBtn.style.padding = '5px 10px'
+        closeBtn.style.backgroundColor = '#ff4444'
+        closeBtn.style.color = 'white'
+        closeBtn.style.border = 'none'
+        closeBtn.style.borderRadius = '5px'
+        closeBtn.style.cursor = 'pointer'
+        closeBtn.onclick = () => {
+          cardBrowser.style.display = 'none'
+          if (canvas) canvas.style.display = 'block'
+        }
+        cardBrowser.appendChild(closeBtn)
+
+        // Initialize allTemplateCards if it's empty
+        if (allTemplateCards.length === 0) {
+          allTemplateCards = [
+            ...elementalCards,
+            ...utilityCards,
+            ...elementalWeapons,
+            ...specialCards
+          ]
+        }
+
+        // Initialize the card browser with template cards
+        populateCardGrid(allTemplateCards)
+        setupCardBrowserEvents()
+        updateCardBrowserHeader()
+
+        if (canvas) canvas.style.display = 'none'
+        console.log('Card browser setup complete')
+      }
+
+      function updateCardBrowserHeader() {
+        const header = document.getElementById('cardBrowserHeader')
+        if (header) {
+          header.textContent = isViewingPlayerDeck
+            ? 'Your Current Deck'
+            : 'Template Cards'
+        }
+      }
+
+      function showCardDetails(card) {
+    console.log("Showing details for card:", card);
+    const cardDetails = document.getElementById('cardDetails');
+    if (!cardDetails || !card) {
+        console.error("Card details element not found or invalid card data");
+        return;
+    }
+
+    let cardName, cardType, cardEmoji, cardColor, cardRarity, cardEffect;
+
+    if (isViewingPlayerDeck) {
+        // Your Current Deck parsing (unchanged)
+        if (card.type === 'elemental') {
+            cardName = card.effect?.element || card.element;
+            cardType = 'Elemental';
+            cardEmoji = emojis[cardName.toLowerCase()] || emojis.unknown;
+            cardColor = card.effect?.color || card.color;
+            cardEffect = cardName;
+        } else if (card.type === 'utility') {
+            cardName = card.effect?.type || card.name;
+            cardType = 'Utility';
+            cardEmoji = emojis[cardName.toLowerCase()] || emojis.unknown;
+            cardEffect = cardName;
+        } else if (card.type === 'Elemental Weapon' || (card.type === 'utility' && card.isElementalWeapon)) {
+            cardName = card.name || `${card.effect.element} ${card.effect.type}`;
+            cardType = 'Elemental Weapon';
+            let weaponEmoji = emojis[card.effect?.type?.toLowerCase()] || emojis.unknown;
+            let elementEmoji = emojis[card.effect?.element?.toLowerCase()] || '';
+            cardEmoji = `${weaponEmoji} ${elementEmoji}`.trim();
+            cardEffect = `${card.effect.element} ${card.effect.type}`;
+        } else if (card.type === 'special') {
+            cardName = card.name || card.effect?.type;
+            cardType = 'Special';
+            cardEmoji = emojis[cardName.toLowerCase()] || emojis.unknown;
+            cardEffect = cardName;
+        } else {
+            cardName = card.name || 'Unknown';
+            cardType = card.type || 'Unknown';
+            cardEmoji = emojis[cardName.toLowerCase()] || emojis.unknown;
+        }
+        cardColor = card.color || card.effect?.color || 'white';
+        cardRarity = card.rarity || 'common';
+    } else {
+         // Deck Templates parsing
+         if (card.element) {
+            // Elemental card
+            cardName = card.element;
+            cardType = 'Elemental';
+            cardEmoji = emojis[cardName.toLowerCase()] || emojis.unknown;
+            cardColor = card.color;
+            cardEffect = cardName;
+        } else if (card.type === 'elemental weapon') {
+            // Elemental weapon
+            cardName = card.name || `${card.element} ${card.weaponType}`;
+            cardType = 'Elemental Weapon';
+            let weaponEmoji = emojis[card.weaponType.toLowerCase()] || emojis.unknown;
+            let elementEmoji = emojis[card.element.toLowerCase()] || '';
+            cardEmoji = `${weaponEmoji}${elementEmoji}`;
+            cardEffect = `${card.element} ${card.weaponType}`;
+        } else if (card.type === 'sword' || card.type === 'shield' || card.type === 'bow' || card.type === 'wand' || card.type === 'axe' || card.type === 'hammer' || card.type === 'dagger' || card.type === 'staff' || card.type === 'spear' || card.type === 'mace' || card.type === 'crossbow' || card.type === 'scythe' || card.type === 'sling' || card.type === 'boomerang' || card.type === 'katana' || card.type === 'shuriken' || card.type === 'potion' || card.type === 'scroll' || card.type === 'trap') {
+            // Utility card
+            cardName = card.type;
+            cardType = 'Utility';
+            cardEmoji = emojis[cardName.toLowerCase()] || emojis.unknown;
+            cardEffect = cardName;
+        } else if (card.type === 'special utility') {
+            // Special utility card
+            cardName = card.name;
+            cardType = 'Special Utility';
+            if (card.element && card.weaponType) {
+                let weaponEmoji = emojis[card.weaponType.toLowerCase()] || emojis.unknown;
+                let elementEmoji = emojis[card.element.toLowerCase()] || '';
+                cardEmoji = `${weaponEmoji}${elementEmoji}`;
+                cardEffect = `${card.element} ${card.weaponType}`;
+            } else {
+                cardEmoji = emojis[cardName.toLowerCase()] || emojis.unknown;
+                cardEffect = cardName;
+            }
+        } else {
+            // Fallback for any other card type
+            cardName = card.name || card.type || 'Unknown';
+            cardType = card.type || 'Unknown';
+            cardEmoji = emojis[cardName.toLowerCase()] || emojis.unknown;
+        }
+        cardRarity = card.rarity || 'common';
+    }
+
+    // Capitalize the first letter of the card name
+    cardName = cardName.charAt(0).toUpperCase() + cardName.slice(1);
+
+    let detailsHTML = `
+        <h3 style="margin-top: 0;">${cardName}</h3>
+        <div style="font-size: 48px; text-align: center; margin: 10px 0;">${cardEmoji}</div>
+        <p><strong>Type:</strong> ${cardType}</p>
+        <p><strong>Rarity:</strong> ${cardRarity}</p>
+    `;
+
+    if (cardEffect) {
+        detailsHTML += `<p><strong>Effect:</strong> ${cardEffect}</p>`;
+    }
+
+    if (cardColor && cardColor !== 'white') {
+        detailsHTML += `<p><strong>Color:</strong> <span style="background-color: ${cardColor}; padding: 2px 5px; border-radius: 3px; color: white">${cardColor}</span></p>`;
+    }
+
+    cardDetails.innerHTML = detailsHTML;
+    console.log("Card details HTML updated");
+}
+
+
+function populateCardGrid(cards) {
+    console.log(`Populating card grid with ${cards.length} cards`);
+    const cardGrid = document.getElementById('cardGrid');
+    if (!cardGrid) {
+        console.error("Card grid element not found");
+        return;
+    }
+    cardGrid.innerHTML = '';
+
+    cards.forEach((card, index) => {
+        if (!card) {
+            console.error("Invalid card data at index", index, ":", card);
+            return;
+        }
+
+        const cardElement = document.createElement('div');
+        
+        let cardName, cardColor, cardType, cardEmoji;
+
+        if (isViewingPlayerDeck) {
+            // Player deck card structure
+            cardName = card.effect?.element || card.effect?.type || card.type || 'Unknown';
+            cardColor = card.effect?.color || 'white';
+            cardType = card.type || 'Unknown';
+            cardEmoji = card.emoji || emojis[cardName.toLowerCase()] || '❓';
+        } else {
+            // Template deck card structure
+            cardName = card.name || card.element || card.type || 'Unknown';
+            cardColor = card.color || 'white';
+            cardType = card.type || 'Unknown';
+            cardEmoji = card.emoji || emojis[cardName.toLowerCase()] || '❓';
+        }
+
+        // Capitalize the first letter of the card name
+        cardName = cardName.charAt(0).toUpperCase() + cardName.slice(1);
+
+        cardElement.style.backgroundColor = cardColor;
+        cardElement.style.color = cardColor !== 'white' ? 'white' : 'black';
+        cardElement.style.padding = '10px';
+        cardElement.style.borderRadius = '5px';
+        cardElement.style.textAlign = 'center';
+        cardElement.style.cursor = 'pointer';
+        cardElement.style.display = 'flex';
+        cardElement.style.flexDirection = 'column';
+        cardElement.style.justifyContent = 'center';
+        cardElement.style.alignItems = 'center';
+        cardElement.style.height = '120px';
+        cardElement.style.position = 'relative';
+
+        cardElement.innerHTML = `
+            <div class="rarity-indicator rarity-${card.rarity || 'common'}"></div>
+            <div style="font-size: 24px; margin-bottom: 5px;">${cardEmoji}</div>
+            <div style="font-weight: bold;">${cardName}</div>
+            <div style="font-size: 12px;">${cardType}</div>
+        `;
+
+        cardElement.onclick = (event) => {
+            console.log("Card clicked:", cardName);
+            event.stopPropagation();
+            showCardDetails(card);
+        };
+
+        cardGrid.appendChild(cardElement);
+    });
+    console.log(`Card grid populated with ${cardGrid.children.length} card elements`);
+}
+
+      function setupCardBrowserEvents() {
+        const saveCardButton = document.getElementById('saveCardButton')
+        const showDeckButton = document.getElementById('showDeckButton')
+
+        saveCardButton.onclick = () => {
+          const cardDetails = document.getElementById('cardDetails')
+          if (cardDetails.innerHTML !== '') {
+            const cardName = cardDetails.querySelector('h3').textContent
+            if (isViewingPlayerDeck) {
+              const cardIndex = currentPlayerDeck.findIndex(
+                c =>
+                  c &&
+                  (c.name === cardName ||
+                    c.type === cardName ||
+                    c.element === cardName)
+              )
+              if (cardIndex !== -1) {
+                currentPlayerDeck.splice(cardIndex, 1)
+                playerDeck = currentPlayerDeck.slice() // Update the actual player deck
+                alert(`${cardName} removed from your deck!`)
+                populateCardGrid(currentPlayerDeck)
+                cardDetails.innerHTML = ''
+              }
+            } else {
+              const card = allTemplateCards.find(
+                c =>
+                  c &&
+                  (c.name === cardName ||
+                    c.type === cardName ||
+                    c.element === cardName)
+              )
+              if (
+                card &&
+                !currentPlayerDeck.some(
+                  c =>
+                    c &&
+                    (c.name === cardName ||
+                      c.type === cardName ||
+                      c.element === cardName)
+                )
+              ) {
+                currentPlayerDeck.push(JSON.parse(JSON.stringify(card))) // Deep copy the card
+                playerDeck = currentPlayerDeck.slice() // Update the actual player deck
+                alert(`${cardName} added to your deck!`)
+                showCardDetails(card)
+              } else {
+                alert('This card is already in your deck!')
+              }
+            }
+          }
+        }
+
+        showDeckButton.onclick = () => {
+          isViewingPlayerDeck = !isViewingPlayerDeck
+          if (isViewingPlayerDeck) {
+            console.log('Switching to player deck view')
+            currentPlayerDeck = playerDeck.slice() // Create a copy of the player's deck
+            populateCardGrid(currentPlayerDeck)
+            showDeckButton.textContent = 'Show Template Cards'
+            saveCardButton.textContent = 'Remove Card from Deck'
+          } else {
+            console.log('Switching to template cards view')
+            populateCardGrid(allTemplateCards)
+            showDeckButton.textContent = 'Show Current Deck'
+            saveCardButton.textContent = 'Add Card to Deck'
+          }
+          updateCardBrowserHeader() // Add this line to update the header
+          document.getElementById('cardDetails').innerHTML = ''
+        }
+      }
+
+
+      function createCard(type, emoji, effect, rarity = 'common') {
+    let card = {
+        type: type,
+        emoji: emoji,
+        effect: effect,
+        rarity: rarity,
+        x: 0,
+        y: 0,
+        width: 80,
+        height: 120,
+        selected: false,
+        rotation: 0,
+        scale: 1,
+        targetX: 0,
+        targetY: 0,
+        moving: false,
+        isLuckyStar: type === 'special' && effect.type === 'luckyStar',
+        isThirdHand: type === 'special' && effect.type === 'thirdHand',
+        isElementalWeapon: type === 'Elemental Weapon',
+        isHeal: type === 'elemental' && effect.element === 'heal',
+
+        draw: function() {
+            ctx.save();
+            ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+            ctx.rotate(this.rotation * Math.PI / 180);
+            ctx.scale(this.scale, this.scale);
+
+            // Draw card back
+            if (this.type === 'elemental') {
+                ctx.fillStyle = this.getLighterColor(this.effect.color);
+            } else if (this.type === 'Elemental Weapon' || this.type === 'utility') {
+                ctx.fillStyle = this.isElementalWeapon ? '#ffebcd' : '#d3d3d3';
+            } else {
+                ctx.fillStyle = '#ffffff';
+            }
+            ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+
+            // Draw card face
+            if (this.isLuckyStar || this.isThirdHand) {
+                const gradient = ctx.createLinearGradient(-this.width / 2, -this.height / 2, this.width / 2, this.height / 2);
+                gradient.addColorStop(0, 'red');
+                gradient.addColorStop(0.17, 'orange');
+                gradient.addColorStop(0.33, 'yellow');
+                gradient.addColorStop(0.5, 'green');
+                gradient.addColorStop(0.67, 'blue');
+                gradient.addColorStop(0.83, 'indigo');
+                gradient.addColorStop(1, 'violet');
+                ctx.fillStyle = gradient;
+            } else {
+                ctx.fillStyle = this.selected ? '#4CAF50' : '#ffffff';
+            }
+            ctx.fillRect(-this.width / 2 + 5, -this.height / 2 + 5, this.width - 10, this.height - 10);
+            ctx.fillStyle = '#000000';
+            ctx.font = '40px Arial';
+            ctx.fillText(this.emoji, -20, 15);
+
+            // Draw elemental effect for elemental weapons
+            if (this.isElementalWeapon) {
+                ctx.font = '20px Arial';
+                ctx.fillText(emojis[this.effect.element], this.width / 2 - 25, this.height / 2 - 25);
+            }
+
+            // Draw heal animation for heal cards
+            if (this.isHeal) {
+                ctx.font = '20px Arial';
+                ctx.fillStyle = this.getHealColor();
+                ctx.fillText('❤️', this.width / 2 - 25, this.height / 2 - 25);
+            }
+
+            ctx.restore();
+        },
+
+        getLighterColor: function(color) {
+            const r = parseInt(color.slice(1, 3), 16);
+            const g = parseInt(color.slice(3, 5), 16);
+            const b = parseInt(color.slice(5, 7), 16);
+            return `rgb(${Math.min(r + 50, 255)}, ${Math.min(g + 50, 255)}, ${Math.min(b + 50, 255)})`;
+        },
+
+        getHealColor: function() {
+            const colors = ['red', 'blue', 'green', 'orange', 'yellow'];
+            const index = Math.floor(Date.now() / 500) % colors.length;
+            return colors[index];
+        },
+
+        isPointInside: function(x, y) {
+            const scaledWidth = this.width * this.scale;
+            const scaledHeight = this.height * this.scale;
+            return x >= this.x && x <= this.x + scaledWidth && y >= this.y && y <= this.y + scaledHeight;
+        },
+
+        moveTo: function(targetX, targetY, callback) {
+            this.targetX = targetX;
+            this.targetY = targetY;
+            this.moving = true;
+            
+            const animate = () => {
+                const dx = this.targetX - this.x;
+                const dy = this.targetY - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 1) {
+                    this.x += dx * 0.1;
+                    this.y += dy * 0.1;
+                    requestAnimationFrame(animate);
+                } else {
+                    this.x = this.targetX;
+                    this.y = this.targetY;
+                    this.moving = false;
+                    if (callback) callback();
+                }
+            };
+            
+            animate();
+        }
+    };
+
+    if (type === 'Elemental Weapon') {
+        card.element = effect.element;
+        card.weaponType = effect.type;
+    }
+
+    return card;
+}
+
+      
+      function initializeCards() {
+        allCards = [
+          ...elementalCards.map(card => ({
+            name: card.element,
+            emoji: emojis[card.element],
+            type: 'Elemental',
+            element: card.element,
+            color: card.color
+          })),
+          ...utilityCards.map(card => ({
+            name: card.type,
+            emoji: emojis[card.type],
+            type: 'Utility'
+          })),
+          ...elementalWeapons.map(card => ({
+            name: card.type,
+            emoji: emojis[card.weaponType],
+            type: 'Elemental Weapon',
+            element: card.element,
+            weaponType: card.weaponType,
+            elementEmoji: card.elementEmoji
+          })),
+          {
+            name: 'Lucky Star',
+            emoji: emojis.luckyStar,
+            type: 'Special Utility'
+          },
+          {
+            name: 'Third Hand',
+            emoji: emojis.thirdHand,
+            type: 'Special Utility'
+          }
+        ]
+
+        // This function should populate allCards array
+        // Make sure this is called before showCardBrowser
+        console.log('Initializing all cards')
+        // Your existing code to populate allCards
+        console.log(`Initialized ${allCards.length} cards`)
+      }
+
+      function checkOverlappingElements() {
+        if (!cardBrowser) return
+
+        const cardBrowserRect = cardBrowser.getBoundingClientRect()
+        const elements = document.elementsFromPoint(
+          cardBrowserRect.left + cardBrowserRect.width / 2,
+          cardBrowserRect.top + cardBrowserRect.height / 2
+        )
+
+        console.log(
+          'Elements at cardBrowser center:',
+          elements.map(
+            el =>
+              `${el.tagName}#${el.id || 'no-id'}.${el.className || 'no-class'}`
+          )
+        )
+
+        const overlappingElement = elements.find(
+          el =>
+            el !== cardBrowser &&
+            el !== document.documentElement &&
+            el !== document.body
+        )
+        if (overlappingElement) {
+          console.log(
+            'Potentially overlapping element:',
+            `${overlappingElement.tagName}#${
+              overlappingElement.id || 'no-id'
+            }.${overlappingElement.className || 'no-class'}`
+          )
+          const style = window.getComputedStyle(overlappingElement)
+          console.log('Overlapping element styles:', {
+            position: style.position,
+            zIndex: style.zIndex,
+            display: style.display,
+            visibility: style.visibility,
+            opacity: style.opacity,
+            width: style.width,
+            height: style.height,
+            top: style.top,
+            left: style.left
+          })
+          console.log(
+            'Overlapping element dimensions:',
+            overlappingElement.getBoundingClientRect()
+          )
+        }
+
+        // Check if cardBrowser is actually on top
+        const topElement = elements[0]
+        if (topElement !== cardBrowser) {
+          console.log(
+            'Card browser is not the top element. Top element is:',
+            `${topElement.tagName}#${topElement.id || 'no-id'}.${
+              topElement.className || 'no-class'
+            }`
+          )
+        }
+      }
+
+      function checkAllZIndexes() {
+        const allElements = document.body.getElementsByTagName('*')
+        const zIndexes = Array.from(allElements)
+          .map(el => ({
+            element: `${el.tagName}#${el.id || 'no-id'}.${
+              el.className || 'no-class'
+            }`,
+            zIndex: window.getComputedStyle(el).zIndex
+          }))
+          .filter(item => item.zIndex !== 'auto')
+
+        console.log('All elements with non-auto z-index:', zIndexes)
+      }
+      function createCardBrowserIfNotExists() {
+        if (!document.getElementById('cardBrowser')) {
+          console.log('Creating cardBrowser dynamically')
+          const cardBrowser = document.createElement('div')
+          cardBrowser.id = 'cardBrowser'
+          document.body.appendChild(cardBrowser)
+
+          const cardGrid = document.createElement('div')
+          cardGrid.id = 'cardGrid'
+          cardBrowser.appendChild(cardGrid)
+
+          const cardDetails = document.createElement('div')
+          cardDetails.id = 'cardDetails'
+          cardBrowser.appendChild(cardDetails)
+
+          return cardBrowser
+        }
+        return document.getElementById('cardBrowser')
+      }
+
+      function addCloseBtnToCardBrowser() {
+        if (!cardBrowser) {
+          console.error('cardBrowser element not found')
+          return
+        }
+        let closeBtn = cardBrowser.querySelector('.close-btn')
+        if (!closeBtn) {
+          closeBtn = document.createElement('button')
+          closeBtn.textContent = 'Close'
+          closeBtn.className = 'close-btn'
+          closeBtn.style.position = 'absolute'
+          closeBtn.style.top = '10px'
+          closeBtn.style.right = '10px'
+          closeBtn.style.padding = '5px 10px'
+          closeBtn.style.backgroundColor = '#ff4444'
+          closeBtn.style.color = 'white'
+          closeBtn.style.border = 'none'
+          closeBtn.style.borderRadius = '5px'
+          closeBtn.style.cursor = 'pointer'
+          closeBtn.style.zIndex = '2147483648' // One higher than the cardBrowser to ensure it's on top
+
+          closeBtn.onclick = event => {
+            event.stopPropagation()
+            cardBrowser.style.display = 'none'
+            isCardBrowserVisible = false
+            isCardBrowserDebugMode = false
+
+            // Make the canvas visible again
+            if (canvas) {
+              canvas.style.display = 'block'
+            }
+          }
+
+          cardBrowser.appendChild(closeBtn)
+        }
+      }
+
+      function populateCardBrowser() {
+        console.log('populateCardBrowser function called')
+        cardGrid.innerHTML = ''
+        cardDetails.innerHTML = ''
+
+        if (
+          !elementalCards ||
+          !utilityCards ||
+          !elementalWeapons ||
+          !avatarTypes
+        ) {
+          console.error('One or more card arrays are undefined')
+          return
+        }
+
+        const allCards = [
+          ...elementalCards.map(card => ({ type: 'elemental', ...card })),
+          ...utilityCards.map(card => ({ type: 'utility', ...card })),
+          ...elementalWeapons.map(card => ({
+            type: 'elemental weapon',
+            ...card
+          })),
+          {
+            type: 'special utility',
+            name: 'Lucky Star',
+            emoji: emojis.luckyStar
+          },
+          {
+            type: 'special utility',
+            name: 'Third Hand',
+            emoji: emojis.thirdHand
+          },
+          ...avatarTypes.map(avatar => ({ type: 'avatar', ...avatar }))
+        ]
+
+        console.log('Total cards to display:', allCards.length)
+
+        allCards.forEach((card, index) => {
+          const cardItem = document.createElement('div')
+          cardItem.className = 'card-item'
+          cardItem.style.backgroundColor = 'white'
+          cardItem.style.color = 'black'
+          cardItem.style.padding = '10px'
+          cardItem.style.borderRadius = '5px'
+          cardItem.style.textAlign = 'center'
+          cardItem.style.cursor = 'pointer'
+
+          const emoji = document.createElement('div')
+          emoji.style.fontSize = '40px'
+          emoji.textContent =
+            card.emoji ||
+            card.elementEmoji ||
+            emojis[card.element] ||
+            emojis[card.type] ||
+            '?'
+
+          const name = document.createElement('div')
+          name.textContent = card.name || card.element || card.type
+          name.style.marginTop = '5px'
+
+          cardItem.appendChild(emoji)
+          cardItem.appendChild(name)
+
+          cardItem.onclick = () => showCardDetails(card)
+          cardGrid.appendChild(cardItem)
+
+          if (index === 0) {
+            console.log('First card added:', emoji.textContent)
+          }
+        })
+
+        console.log('Cards added to grid:', cardGrid.children.length)
+      }
+    </script>
+  </body>
+</html>

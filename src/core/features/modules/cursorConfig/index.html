@@ -1,0 +1,938 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Cursor Creator</title>
+    <meta name="description" content="Design and customize your own mouse cursors with this interactive web tool. Choose from templates, customize colors, and export as PNG.">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --background-color: #1a1a1a;
+            --text-color: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+
+        .controls {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .preview-area {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            min-height: 500px;
+            position: relative;
+        }
+
+        .cursor-template {
+            width: 32px;
+            height: 32px;
+            margin: 5px;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .color-picker {
+            margin: 10px 0;
+        }
+
+        .preview-box {
+            width: 100%;
+            height: 400px;
+            background: #ffffff;
+            border-radius: 5px;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .layer-controls {
+            margin: 15px 0;
+        }
+
+        .color-layer {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+
+        .cursor-preview {
+            position: absolute;
+            pointer-events: none;
+            width: 32px;
+            height: 32px;
+        }
+
+        .export-options {
+            margin-top: 20px;
+        }
+
+        .template-dropdown {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .template-dropdown-btn {
+            width: 100%;
+            padding: 10px;
+            background: #333;
+            border: 1px solid #444;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .template-grid {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .template-grid.show {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .blend-mode-select {
+            width: 100%;
+            padding: 5px;
+            margin: 5px 0;
+            background: #333;
+            color: white;
+            border: 1px solid #444;
+        }
+
+        .color-picker-wrapper {
+            margin: 10px 0;
+        }
+
+        .pickr {
+            width: 100%;
+        }
+
+        .pickr button {
+            width: 100%;
+            height: 30px;
+            border-radius: 5px;
+        }
+
+        .add-layer-btn {
+            width: 100%;
+            margin-top: 10px;
+            background: #444;
+        }
+
+        .preview-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .preview-modal.active {
+            display: flex;
+        }
+
+        .preview-modal .cursor-preview {
+            width: 128px;
+            height: 128px;
+            position: static;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .delete-layer-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            margin: 0 10px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 36px;
+            height: 36px;
+        }
+
+        .delete-layer-btn i {
+            font-size: 20px;
+        }
+
+        .delete-layer-btn:hover {
+            background: #cc0000;
+        }
+
+        .palette-dropdown {
+            margin: 15px 0;
+        }
+
+        .palette-grid {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background: #333;
+            border-radius: 5px;
+        }
+
+        .palette-grid.show {
+            max-height: 200px;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        .palette-btn {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            background: #444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: capitalize;
+        }
+
+        .palette-btn:hover {
+            background: #555;
+        }
+
+        .palette-preview {
+            display: flex;
+            margin-right: 8px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .palette-color {
+            width: 15px;
+            height: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Custom Cursor Creator</h1>
+            <p>Design your perfect cursor with our easy-to-use tool</p>
+        </div>
+
+        <div class="workspace">
+            <div class="controls">
+                <h3>Cursor Templates</h3>
+                <div class="template-dropdown">
+                    <button class="template-dropdown-btn" id="templateDropdownBtn">
+                        Select Template <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="template-grid" id="templateGrid"></div>
+                </div>
+
+                <div class="palette-dropdown">
+                    <button class="template-dropdown-btn" id="paletteDropdownBtn">
+                        Color Palettes <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="palette-grid" id="paletteGrid"></div>
+                </div>
+
+                <h3>Customize Colors</h3>
+                <div class="layer-controls" id="layerControls"></div>
+                <button id="addLayer" class="add-layer-btn">
+                    <i class="fas fa-plus"></i> Add Layer
+                </button>
+
+                <div class="export-options">
+                    <button id="exportPNG"><i class="material-icons">image</i> Export PNG</button>
+                    <button id="copyCSS"><i class="material-icons">content_copy</i> Copy CSS</button>
+                    <button id="downloadJSON"><i class="material-icons">download</i> Download JSON</button>
+                </div>
+            </div>
+
+            <div class="preview-area">
+                <h3>Live Preview</h3>
+                <div class="preview-box" id="previewBox">
+                    <div id="cursorPreview" class="cursor-preview"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="preview-modal" id="previewModal">
+        <div id="largePreview" class="cursor-preview"></div>
+    </div>
+
+    <script>
+        const blendModes = [
+            'normal', 'multiply', 'screen', 'overlay', 'darken', 'lighten',
+            'color-dodge', 'color-burn', 'hard-light', 'soft-light',
+            'gradient-above', 'gradient-below'
+        ];
+
+        // Color palette presets with layer assignments
+        const colorPalettes = {
+            monochrome: {
+                colors: ['#000000', '#404040', '#808080'],
+                blendModes: ['normal', 'multiply', 'overlay']
+            },
+            neon: {
+                colors: ['#FF00FF', '#00FFFF', '#FFFF00'],
+                blendModes: ['screen', 'overlay', 'color-dodge'] 
+            },
+            nature: {
+                colors: ['#2E7D32', '#81C784', '#C8E6C9'],
+                blendModes: ['normal', 'multiply', 'soft-light']
+            },
+            ocean: {
+                colors: ['#0277BD', '#4FC3F7', '#B3E5FC'],
+                blendModes: ['normal', 'screen', 'overlay']
+            },
+            sunset: {
+                colors: ['#FF6F00', '#FFA726', '#FFE0B2'],
+                blendModes: ['normal', 'soft-light', 'color-dodge']
+            },
+            cyberpunk: {
+                colors: ['#FF0055', '#00FF66', '#33CCFF'],
+                blendModes: ['screen', 'color-dodge', 'overlay']
+            },
+            retro: {
+                colors: ['#FFB74D', '#9575CD', '#4DB6AC'],
+                blendModes: ['soft-light', 'multiply', 'screen']
+            },
+            forest: {
+                colors: ['#1B5E20', '#388E3C', '#81C784'],
+                blendModes: ['normal', 'multiply', 'overlay']
+            },
+            desert: {
+                colors: ['#BF360C', '#E64A19', '#FF8A65'],
+                blendModes: ['normal', 'soft-light', 'screen']
+            },
+            arctic: {
+                colors: ['#B3E5FC', '#81D4FA', '#4FC3F7'],
+                blendModes: ['screen', 'overlay', 'soft-light']
+            },
+            candy: {
+                colors: ['#FF80AB', '#82B1FF', '#B388FF'],
+                blendModes: ['screen', 'soft-light', 'overlay']
+            },
+            autumn: {
+                colors: ['#BF360C', '#F57F17', '#FFA000'],
+                blendModes: ['normal', 'multiply', 'soft-light']
+            },
+            galaxy: {
+                colors: ['#311B92', '#6200EA', '#B388FF'],
+                blendModes: ['screen', 'color-dodge', 'overlay']
+            },
+            tropical: {
+                colors: ['#00BFA5', '#FFD740', '#FF3D00'],
+                blendModes: ['normal', 'soft-light', 'screen']
+            },
+            vintage: {
+                colors: ['#795548', '#A1887F', '#BCAAA4'],
+                blendModes: ['multiply', 'soft-light', 'overlay']
+            },
+            pastel: {
+                colors: ['#FFB5E8', '#B5DEFF', '#E7FFAC'],
+                blendModes: ['soft-light', 'overlay', 'screen']
+            },
+            steampunk: {
+                colors: ['#704214', '#BF8A49', '#D4A76A'],
+                blendModes: ['multiply', 'overlay', 'soft-light']
+            },
+            midnight: {
+                colors: ['#1A237E', '#311B92', '#4527A0'],
+                blendModes: ['screen', 'overlay', 'color-dodge']
+            },
+            emerald: {
+                colors: ['#004D40', '#00695C', '#00796B'],
+                blendModes: ['normal', 'multiply', 'overlay']
+            },
+            ruby: {
+                colors: ['#B71C1C', '#C62828', '#D32F2F'],
+                blendModes: ['screen', 'soft-light', 'overlay']
+            },
+            sapphire: {
+                colors: ['#0D47A1', '#1565C0', '#1976D2'],
+                blendModes: ['normal', 'screen', 'overlay']
+            },
+            amethyst: {
+                colors: ['#4A148C', '#6A1B9A', '#7B1FA2'],
+                blendModes: ['screen', 'color-dodge', 'overlay']
+            },
+            topaz: {
+                colors: ['#FF6F00', '#FF8F00', '#FFA000'],
+                blendModes: ['normal', 'soft-light', 'overlay']
+            },
+            pearl: {
+                colors: ['#ECEFF1', '#CFD8DC', '#B0BEC5'],
+                blendModes: ['screen', 'soft-light', 'overlay']
+            },
+            rainbow: {
+                colors: ['#FF0000', '#00FF00', '#0000FF'],
+                blendModes: ['screen', 'color-dodge', 'overlay']
+            },
+            grayscale: {
+                colors: ['#212121', '#424242', '#616161'],
+                blendModes: ['normal', 'multiply', 'overlay']
+            },
+            sepia: {
+                colors: ['#5D4037', '#795548', '#8D6E63'],
+                blendModes: ['multiply', 'soft-light', 'overlay']
+            },
+            copper: {
+                colors: ['#BF360C', '#D84315', '#E64A19'],
+                blendModes: ['normal', 'multiply', 'overlay']
+            },
+            gold: {
+                colors: ['#FFD700', '#FFC107', '#FFB300'],
+                blendModes: ['normal', 'soft-light', 'overlay']
+            },
+            silver: {
+                colors: ['#9E9E9E', '#BDBDBD', '#E0E0E0'],
+                blendModes: ['screen', 'soft-light', 'overlay']
+            },
+            bronze: {
+                colors: ['#8D6E63', '#A1887F', '#BCAAA4'],
+                blendModes: ['multiply', 'soft-light', 'overlay']
+            },
+            plasma: {
+                colors: ['#E91E63', '#9C27B0', '#673AB7'],
+                blendModes: ['screen', 'color-dodge', 'overlay']
+            },
+            fire: {
+                colors: ['#FF5722', '#FF9800', '#FFC107'],
+                blendModes: ['screen', 'color-dodge', 'overlay']
+            },
+            ice: {
+                colors: ['#B3E5FC', '#81D4FA', '#4FC3F7'],
+                blendModes: ['screen', 'soft-light', 'overlay']
+            },
+            random: {
+                colors: [],
+                blendModes: ['normal', 'multiply', 'overlay'],
+                isRandom: true
+            }
+        };
+
+        const cursorTemplates = {
+            default: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M8 2l14 14-6 2-2 6z" />
+                    <path class="layer-2" d="M9 4l12 12-5 1.5-1.5 5z" />
+                    <path class="layer-3" d="M10 6l10 10-4 1-1 4z" />
+                </svg>
+            `,
+            pointer: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M12 2v20l3-3 3 7 3-1-3-7h6z" />
+                    <path class="layer-2" d="M14 4v16l2-2 2.5 6 1.5-0.5-2.5-6h5z" />
+                    <path class="layer-3" d="M16 6v12l1-1 2 5 1-0.3-2-5h4z" />
+                </svg>
+            `,
+            crosshair: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M15 2v12H3v4h12v12h4V18h12v-4H19V2z" />
+                    <path class="layer-2" d="M16 4v11H5v2h11v11h2V17h11v-2H18V4z" />
+                    <path class="layer-3" d="M17 6v10H7v1h10v10h1V17h10v-1H18V6z" />
+                </svg>
+            `,
+            move: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M16 2l-6 6h4v8H6v-4l-6 6 6 6v-4h8v8h-4l6 6 6-6h-4v-8h8v4l6-6-6-6v4h-8V8h4z" />
+                    <path class="layer-2" d="M16 4l-4 4h2v10H4v-2l-4 4 4 4v-2h10v10h-2l4 4 4-4h-2V14h10v2l4-4-4-4v2H18V8h2z" />
+                </svg>
+            `,
+            pencil: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M22 2l8 8-16 16-8 2 2-8z"/>
+                    <path class="layer-2" d="M24 6l4 4-14 14-4-4z"/>
+                    <path class="layer-3" d="M8 24l2 2-3 1z"/>
+                </svg>
+            `,
+            grab: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M8 12v8l2-2v-4l2 2v-6l2 2v-4l2 2v-4l2 2v4l2-2v6l2-2v4l2 2v-8l-8-8z"/>
+                    <path class="layer-2" d="M10 14v6l2-2v-2l2 2v-4l2 2v-2l2 2v-2l2 2v4l2-2v2l2 2v-6l-7-7z"/>
+                </svg>
+            `,
+            text: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M4 4v6h8v18h8V10h8V4z"/>
+                    <path class="layer-2" d="M6 6v2h8v18h4V8h8V6z"/>
+                </svg>
+            `,
+            zoom: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M14 2a12 12 0 100 24 12 12 0 000-24zm8 20l8 8"/>
+                    <path class="layer-2" d="M14 6a8 8 0 100 16 8 8 0 000-16zm6 14l6 6"/>
+                </svg>
+            `,
+            wait: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M16 2A14 14 0 1016 30 14 14 0 0016 2zm0 4A10 10 0 1116 26 10 10 0 0116 6z"/>
+                    <path class="layer-2" d="M16 6v10l6 6"/>
+                </svg>
+            `,
+            help: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M16 2C8.3 2 2 8.3 2 16s6.3 14 14 14 14-6.3 14-14S23.7 2 16 2zm0 4c2.2 0 4 1.8 4 4 0 2-1 3-2 4-1 1-2 2-2 4h-4c0-3 1-4 2-5s2-2 2-3c0-1.1-.9-2-2-2s-2 .9-2 2h-4c0-2.2 1.8-4 4-4zm-2 16h4v4h-4v-4z"/>
+                    <path class="layer-2" d="M16 8c1.1 0 2 .9 2 2 0 1.5-1 2-2 3s-2 2-2 4h2c0-1.5 1-2 2-3s2-2 2-4c0-2.2-1.8-4-4-4s-4 1.8-4 4h2c0-1.1.9-2 2-2zm-1 10h2v2h-2v-2z"/>
+                </svg>
+            `,
+            not_allowed: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M16 2C8.3 2 2 8.3 2 16s6.3 14 14 14 14-6.3 14-14S23.7 2 16 2zM4 16c0-6.6 5.4-12 12-12 2.6 0 5 .8 7 2.2L7.2 23C5.8 21 4 18.6 4 16zm12 12c-2.6 0-5-.8-7-2.2L24.8 9c1.4 2 2.2 4.4 2.2 7 0 6.6-5.4 12-12 12z"/>
+                    <path class="layer-2" d="M16 6c2.6 0 5 .8 7 2.2L7.2 23C5.8 21 4 18.6 4 16c0-5.5 4.5-10 12-10zm0 20c-2.6 0-5-.8-7-2.2L24.8 9c1.4 2 2.2 4.4 2.2 7 0 5.5-4.5 10-12 10z"/>
+                </svg>
+            `,
+            resize_nw: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M4 4v12l4-4 6 6-6 6 4 4h12L4 4z"/>
+                    <path class="layer-2" d="M6 6v8l2-2 6 6-6 6 2 2h8L6 6z"/>
+                </svg>
+            `,
+            resize_ns: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M16 2L8 10h16L16 2zM8 22l8 8 8-8H8z"/>
+                    <path class="layer-2" d="M16 6l-4 4h8l-4-4zM12 24l4 4 4-4h-8z"/>
+                </svg>
+            `,
+            resize_ew: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M2 16l8-8v16l-8-8zM22 8v16l8-8-8-8z"/>
+                    <path class="layer-2" d="M6 16l4-4v8l-4-4zM26 12v8l4-4-4-4z"/>
+                </svg>
+            `,
+            mac_pointer: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M8 2l16 12-7 2-3 8z"/>
+                    <path class="layer-2" d="M10 5l12 9-5 1.5-2.5 6z"/>
+                </svg>
+            `,
+            mac_text: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M14 4h4v24h-4z"/>
+                    <path class="layer-2" d="M8 8h16v4H8z"/>
+                </svg>
+            `,
+            linux_select: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M6 2l4 20 4-4 4 8 4-2-4-8 6-2z"/>
+                    <path class="layer-2" d="M8 6l3 15 3-3 3 6 2-1-3-6 4-1z"/>
+                </svg>
+            `,
+            precision: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M15 2v12H3v4h12v12h4V18h12v-4H19V2z"/>
+                    <path class="layer-2" d="M14 14h4v4h-4z"/>
+                </svg>
+            `,
+            dropper: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M20 2l10 10-12 12-6-6z"/>
+                    <path class="layer-2" d="M22 6l6 6-8 8-4-4z"/>
+                </svg>
+            `,
+            hand_grab: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M12 8v12c0 4 8 4 8 0v-8c0-4-8-4-8 0"/>
+                    <path class="layer-2" d="M14 12v8c0 2 4 2 4 0v-6c0-2-4-2-4 0"/>
+                </svg>
+            `,
+            rotate: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M16 4C9.4 4 4 9.4 4 16h4c0-4.4 3.6-8 8-8s8 3.6 8 8h4c0-6.6-5.4-12-12-12z"/>
+                    <path class="layer-2" d="M22 14l6 4-6 4z"/>
+                </svg>
+            `,
+            zoom_in: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M14 2a12 12 0 100 24 12 12 0 000-24zm8 20l8 8M12 8h4v12h-4z"/>
+                    <path class="layer-2" d="M8 12h12v4H8z"/>
+                </svg>
+            `,
+            zoom_out: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M14 2a12 12 0 100 24 12 12 0 000-24zm8 20l8 8"/>
+                    <path class="layer-2" d="M8 12h12v4H8z"/>
+                </svg>
+            `,
+            brush: `
+                <svg viewBox="0 0 32 32" class="cursor-svg">
+                    <path class="layer-1" d="M24 2c-4 0-8 4-8 4l10 10s4-4 4-8-2-6-6-6zM14 8L2 20l10 10 12-12z"/>
+                    <path class="layer-2" d="M22 6c-2 0-4 2-4 2l6 6s2-2 2-4-2-4-4-4zM16 12L6 22l4 4 10-10z"/>
+                </svg>
+            `
+        };
+
+        let currentTemplate = 'default';
+        let colors = {
+            'layer-1': '#000000',
+            'layer-2': '#808080',
+            'layer-3': '#ffffff'
+        };
+
+        function initializeTemplates() {
+            const templateGrid = document.getElementById('templateGrid');
+            Object.keys(cursorTemplates).forEach(template => {
+                const div = document.createElement('div');
+                div.className = 'cursor-template';
+                div.innerHTML = cursorTemplates[template];
+                div.onclick = () => selectTemplate(template);
+                templateGrid.appendChild(div);
+            });
+        }
+
+        function initializeLayerControls() {
+            const layerControls = document.getElementById('layerControls');
+            layerControls.innerHTML = ''; // Clear existing controls
+            
+            Object.keys(colors).forEach(layer => {
+                const div = document.createElement('div');
+                div.className = 'color-layer';
+                
+                // Add delete button
+                // Add blend mode select
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-layer-btn';
+                deleteBtn.innerHTML = '<i class="material-icons">delete_outline</i>';
+                deleteBtn.onclick = () => deleteLayer(layer);
+                
+                const blendSelect = document.createElement('select');
+                blendSelect.className = 'blend-mode-select';
+                blendSelect.innerHTML = blendModes.map(mode => 
+                    `<option value="${mode}">${mode}</option>`
+                ).join('');
+                blendSelect.onchange = (e) => updateBlendMode(layer, e.target.value);
+                
+                // Add color picker wrapper
+                const pickerWrapper = document.createElement('div');
+                pickerWrapper.className = 'color-picker-wrapper';
+                
+                div.appendChild(document.createElement('label')).textContent = `${layer}:`;
+                div.appendChild(blendSelect);
+                div.appendChild(pickerWrapper);
+                
+                layerControls.appendChild(div);
+                
+                // Initialize Pickr
+                const pickr = Pickr.create({
+                    el: pickerWrapper,
+                    theme: 'nano',
+                    default: colors[layer],
+                    components: {
+                        preview: true,
+                        opacity: true,
+                        hue: true,
+                        interaction: {
+                            hex: true,
+                            rgba: true,
+                            hsla: true,
+                            input: true,
+                            save: true
+                        }
+                    }
+                });
+                
+                pickr.on('save', (color) => {
+                    updateColor(layer, color.toHEXA().toString());
+                });
+            });
+        }
+
+        function selectTemplate(template) {
+            currentTemplate = template;
+            updatePreview();
+        }
+
+        function updateColor(layer, color) {
+            colors[layer] = color;
+            updatePreview();
+        }
+
+        function deleteLayer(layerToDelete) {
+            delete colors[layerToDelete];
+            initializeLayerControls();
+            updatePreview();
+        }
+
+        function getRandomWebSafeColor() {
+            const values = [0, 51, 102, 153, 204, 255];
+            const r = values[Math.floor(Math.random() * values.length)];
+            const g = values[Math.floor(Math.random() * values.length)];
+            const b = values[Math.floor(Math.random() * values.length)];
+            return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+        }
+
+        function applyColorPalette(paletteName) {
+            const palette = colorPalettes[paletteName];
+            const layers = Object.keys(colors);
+            
+            if (palette.isRandom) {
+                layers.forEach((layer, index) => {
+                    const newColor = getRandomWebSafeColor();
+                    colors[layer] = newColor;
+                    // Update color picker
+                    const pickrInstance = document.querySelector(`.color-layer:nth-child(${index + 1}) .pickr`)?.__pickr;
+                    if (pickrInstance) {
+                        pickrInstance.setColor(newColor);
+                    }
+                    // Update blend mode
+                    const blendSelect = document.querySelector(`.color-layer:nth-child(${index + 1}) select`);
+                    if (blendSelect) {
+                        blendSelect.value = palette.blendModes[index] || 'normal';
+                        updateBlendMode(layer, palette.blendModes[index] || 'normal');
+                    }
+                });
+            } else {
+                layers.forEach((layer, index) => {
+                    if (index < palette.colors.length) {
+                        const newColor = palette.colors[index];
+                        colors[layer] = newColor;
+                        // Update color picker
+                        const pickrInstance = document.querySelector(`.color-layer:nth-child(${index + 1}) .pickr`)?.__pickr;
+                        if (pickrInstance) {
+                            pickrInstance.setColor(newColor);
+                        }
+                        // Update blend mode
+                        const blendSelect = document.querySelector(`.color-layer:nth-child(${index + 1}) select`);
+                        if (blendSelect) {
+                            blendSelect.value = palette.blendModes[index] || 'normal';
+                            updateBlendMode(layer, palette.blendModes[index] || 'normal');
+                        }
+                    }
+                });
+            }
+            
+            updatePreview();
+        }
+
+        function initializePalettes() {
+            const paletteGrid = document.getElementById('paletteGrid');
+            Object.keys(colorPalettes).forEach(paletteName => {
+                const btn = document.createElement('button');
+                btn.className = 'palette-btn';
+                
+                // Create color preview
+                const preview = document.createElement('div');
+                preview.className = 'palette-preview';
+                
+                const palette = colorPalettes[paletteName];
+                palette.colors.forEach(color => {
+                    const colorDiv = document.createElement('div');
+                    colorDiv.className = 'palette-color';
+                    colorDiv.style.backgroundColor = color;
+                    preview.appendChild(colorDiv);
+                });
+                
+                btn.appendChild(preview);
+                btn.appendChild(document.createTextNode(paletteName));
+                btn.onclick = () => applyColorPalette(paletteName);
+                paletteGrid.appendChild(btn);
+            });
+        }
+
+        function updatePreview() {
+            const preview = document.getElementById('cursorPreview');
+            preview.innerHTML = cursorTemplates[currentTemplate];
+            
+            Object.entries(colors).forEach(([layer, color]) => {
+                const paths = preview.getElementsByClassName(layer);
+                Array.from(paths).forEach(path => {
+                    path.style.fill = color;
+                });
+            });
+        }
+
+        function exportAsPNG() {
+            const preview = document.getElementById('cursorPreview');
+            html2canvas(preview, {
+                backgroundColor: null
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'custom-cursor.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        function copyCSS() {
+            const preview = document.getElementById('cursorPreview');
+            const svgString = preview.innerHTML;
+            const cssCode = `cursor: url('data:image/svg+xml;utf8,${encodeURIComponent(svgString)}') 16 16, auto;`;
+            
+            navigator.clipboard.writeText(cssCode).then(() => {
+                alert('CSS code copied to clipboard!');
+            });
+        }
+
+        function downloadJSON() {
+            const cursorData = {
+                template: currentTemplate,
+                colors: colors,
+                svg: document.getElementById('cursorPreview').innerHTML
+            };
+            
+            const dataStr = JSON.stringify(cursorData, null, 2);
+            const blob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.download = 'cursor-design.json';
+            link.href = url;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialize preview area mouse tracking
+        const previewBox = document.getElementById('previewBox');
+        const cursorPreview = document.getElementById('cursorPreview');
+
+        previewBox.addEventListener('mousemove', (e) => {
+            const rect = previewBox.getBoundingClientRect();
+            const x = e.clientX - rect.left - 16;
+            const y = e.clientY - rect.top - 16;
+            
+            cursorPreview.style.left = `${x}px`;
+            cursorPreview.style.top = `${y}px`;
+        });
+
+        // Event listeners
+        document.getElementById('exportPNG').addEventListener('click', exportAsPNG);
+        document.getElementById('copyCSS').addEventListener('click', copyCSS);
+        document.getElementById('downloadJSON').addEventListener('click', downloadJSON);
+
+        // Dropdown functionality
+        const templateDropdownBtn = document.getElementById('templateDropdownBtn');
+        const templateGrid = document.getElementById('templateGrid');
+        const paletteDropdownBtn = document.getElementById('paletteDropdownBtn');
+        const paletteGrid = document.getElementById('paletteGrid');
+        
+        templateDropdownBtn.addEventListener('click', () => {
+            templateGrid.classList.toggle('show');
+            const icon = templateDropdownBtn.querySelector('i');
+            icon.classList.toggle('fa-chevron-down');
+            icon.classList.toggle('fa-chevron-up');
+        });
+
+        paletteDropdownBtn.addEventListener('click', () => {
+            paletteGrid.classList.toggle('show');
+            const icon = paletteDropdownBtn.querySelector('i');
+            icon.classList.toggle('fa-chevron-down');
+            icon.classList.toggle('fa-chevron-up');
+        });
+
+        function updateBlendMode(layer, mode) {
+            const paths = document.querySelectorAll(`.${layer}`);
+            paths.forEach(path => {
+                if (mode === 'gradient-above') {
+                    path.style.background = 'linear-gradient(to bottom, currentColor 0%, transparent 100%)';
+                } else if (mode === 'gradient-below') {
+                    path.style.background = 'linear-gradient(to top, currentColor 0%, transparent 100%)';
+                } else {
+                    path.style.background = 'none';
+                    path.style.mixBlendMode = mode;
+                }
+            });
+        }
+
+        let layerCount = Object.keys(colors).length;
+
+        document.getElementById('addLayer').addEventListener('click', () => {
+            const newLayer = `layer-${layerCount + 1}`;
+            colors[newLayer] = '#808080';
+            layerCount++;
+            initializeLayerControls();
+            updatePreview();
+        });
+
+        // Preview modal functionality
+        const previewModal = document.getElementById('previewModal');
+        const largePreview = document.getElementById('largePreview');
+
+        cursorPreview.addEventListener('click', () => {
+            previewModal.classList.add('active');
+            largePreview.innerHTML = cursorPreview.innerHTML;
+        });
+
+        previewModal.addEventListener('click', () => {
+            previewModal.classList.remove('active');
+        });
+
+        // Initialize the app
+        initializeTemplates();
+        initializeLayerControls();
+        initializePalettes();
+        updatePreview();
+
+        // Initialize blend modes
+        Object.keys(colors).forEach(layer => {
+            updateBlendMode(layer, 'normal');
+        });
+    </script></body></html>

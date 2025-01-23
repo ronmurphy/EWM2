@@ -1,0 +1,13 @@
+{
+    "name": "Pipe Game Widget",
+    "description": "A game of managing pipe connections",
+    "version": "1.0.0",
+    "icon": "valve",
+    "settings": {
+        "size": {
+            "width": 250,
+            "height": 250
+        },
+        "autoload": false
+    }
+}

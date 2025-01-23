@@ -1,0 +1,13 @@
+{
+    "name": "Picture Viewer",
+    "description": "A picture gallery viewer",
+    "version": "1.0.0",
+    "icon": "gallery_thumbnail",
+    "settings": {
+        "size": {
+            "width": 800,
+            "height": 800
+        },
+        "autoload": true
+    }
+}

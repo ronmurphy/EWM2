@@ -1,0 +1,13 @@
+{
+    "name": "Emoji Cards",
+    "description": "A MtG like card game",
+    "version": "1.1.0",
+    "icon": "style",
+    "settings": {
+        "size": {
+            "width": 250,
+            "height": 100
+        },
+        "autoload": true
+    }
+}

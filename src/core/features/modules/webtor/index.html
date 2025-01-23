@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebTor</title>
+    <link rel="stylesheet" href="https://unpkg.com/video.js/dist/video-js.min.css">
+    <link href="https://unpkg.com/@videojs/themes@1/dist/fantasy/index.css" rel="stylesheet" />
+    <script src="https://unpkg.com/video.js/dist/video.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.10.1/dist/ffmpeg.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/webtorrent/webtorrent.min.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            color: white;
+            overflow: hidden;
+        }
+
+        #filePickerLabel {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        #video-player-container {
+            width: 100%;
+            height: 100%;
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .video-js {
+            width: 100%;
+            height: 100%;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        #torrentModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .modal-content {
+            background: #222;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            font-size: 20px;
+            text-align: center;
+        }
+
+        .modal-content ul {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .modal-content li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 10px;
+            background: #333;
+            margin-bottom: 5px;
+            border-radius: 4px;
+        }
+
+        .modal-content li input {
+            margin-left: 10px;
+        }
+
+        .modal-content button {
+            padding: 10px 20px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .modal-content button:hover {
+            background: #0056b3;
+        }
+
+        #progressMessage {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #progressBar {
+            width: 100%;
+            height: 5px;
+            background: #333;
+            margin-top: 10px;
+        }
+
+        #progressBar div {
+            height: 100%;
+            background: #007BFF;
+            width: 0;
+            transition: width 0.2s;
+        }
+    </style>
+</head>
+<body>
+    <label id="filePickerLabel" for="filePicker">Click to Open Video File</label>
+    <input type="file" id="filePicker" accept="video/*,.mkv,.torrent">
+
+    <div id="video-player-container">
+        <video id="videoPlayer" class="video-js vjs-theme-fantasy" controls preload="auto"></video>
+    </div>
+
+    <div id="torrentModal">
+        <div class="modal-content">
+            <h2>Select a Video File to Stream</h2>
+            <ul id="fileList"></ul>
+            <button id="downloadAndStreamButton">Download & Stream</button>
+        </div>
+    </div>
+
+    <script>
+        const filePicker = document.getElementById("filePicker");
+        const filePickerLabel = document.getElementById("filePickerLabel");
+        const videoPlayerContainer = document.getElementById("video-player-container");
+        const videoPlayer = videojs("videoPlayer");
+        const torrentModal = document.getElementById("torrentModal");
+        const fileList = document.getElementById("fileList");
+        const downloadAndStreamButton = document.getElementById("downloadAndStreamButton");
+
+        const client = new WebTorrent();
+
+        filePicker.addEventListener("change", async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const fileType = file.type || file.name.split('.').pop();
+
+            if (fileType === "torrent") {
+                showTorrentModal(file);
+            } else if (fileType === "video/x-matroska" || file.name.endsWith(".mkv")) {
+                transcodeMKV(file);
+            } else {
+                const videoURL = URL.createObjectURL(file);
+                loadVideo(videoURL, file.type);
+            }
+        });
+
+        async function transcodeMKV(file) {
+            filePickerLabel.textContent = "MKV file chosen. Transcoding...";
+            const { createFFmpeg, fetchFile } = FFmpeg;
+            const ffmpeg = createFFmpeg({ log: true });
+            await ffmpeg.load();
+
+            ffmpeg.FS("writeFile", "input.mkv", await fetchFile(file));
+            await ffmpeg.run("-i", "input.mkv", "-c:v", "libx264", "-c:a", "aac", "output.mp4");
+
+            const data = ffmpeg.FS("readFile", "output.mp4");
+            const videoBlob = new Blob([data.buffer], { type: "video/mp4" });
+            const videoURL = URL.createObjectURL(videoBlob);
+
+            loadVideo(videoURL, "video/mp4");
+        }
+
+        function loadVideo(src, type) {
+            filePickerLabel.style.display = "none";
+            videoPlayerContainer.style.display = "block";
+            videoPlayer.src({ type, src });
+        }
+
+        function showTorrentModal(file) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const torrentBuffer = Buffer.from(reader.result);
+                client.add(torrentBuffer, (torrent) => {
+                    fileList.innerHTML = "";
+                    torrent.files
+                        .filter((file) => file.name.endsWith(".mp4"))
+                        .forEach((file, index) => {
+                            const li = document.createElement("li");
+                            li.textContent = file.name;
+                            const checkbox = document.createElement("input");
+                            checkbox.type = "checkbox";
+                            checkbox.name = "file";
+                            checkbox.value = index;
+                            li.appendChild(checkbox);
+                            fileList.appendChild(li);
+                        });
+
+                    torrentModal.style.display = "flex";
+
+                    downloadAndStreamButton.onclick = () => {
+                        const selectedFileIndex = document.querySelector('input[name="file"]:checked').value;
+                        if (selectedFileIndex === undefined) return alert("Please select a file!");
+
+                        torrentModal.style.display = "none";
+                        streamTorrentFile(torrent.files[selectedFileIndex]);
+                    };
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function streamTorrentFile(file) {
+            filePickerLabel.textContent = "Streaming from Torrent...";
+            file.renderTo(videoPlayer.el().querySelector("video"), { autoplay: true });
+            videoPlayerContainer.style.display = "block";
+        }
+    </script>
+</body>
+</html>

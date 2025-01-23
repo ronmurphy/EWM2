@@ -1,0 +1,13 @@
+{
+    "name": "Cursor Config",
+    "description": "Create your cursor with this widget",
+    "version": "1.0.0",
+    "icon": "mouse",
+    "settings": {
+        "size": {
+            "width": 800,
+            "height": 800
+        },
+        "autoload": true
+    }
+}

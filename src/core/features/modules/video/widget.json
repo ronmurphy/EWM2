@@ -1,0 +1,13 @@
+{
+    "name": "Video.JS Widget",
+    "description": "A simple video player",
+    "version": "1.0.0",
+    "icon": "play_circle",
+    "settings": {
+        "size": {
+            "width": 1080,
+            "height": 720
+        },
+        "autoload": false
+    }
+}

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Picture Viewer</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2196f3;
+            --background-color: #f5f5f5;
+            --card-color: #ffffff;
+            --text-color: #333333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 20px;
+            background: var(--card-color);
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .view-toggle, .folder-button, .back-button {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 16px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .view-toggle:hover, .folder-button:hover, .back-button:hover {
+            background-color: #1976d2;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow-x: auto;
+        }
+
+        .breadcrumb button {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .breadcrumb span {
+            margin: 0 5px;
+            color: #666;
+        }
+
+        .gallery {
+            transition: all 0.3s ease;
+        }
+
+        .gallery.grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .gallery .image-item {
+            aspect-ratio: 1;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .gallery .image-item:hover {
+            transform: scale(1.05);
+        }
+
+        .gallery.list .image-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: var(--card-color);
+            border-radius: 8px;
+        }
+
+        .gallery.list .image-item img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 20px;
+        }
+
+        .spinner {
+            display: none;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        .spinner.show {
+            display: block;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            position: relative;
+            width: 90%;
+            height: 90%;
+        }
+
+        .modal-content img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .modal .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .modal .close-button:hover {
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="toolbar">
+            <button id="viewToggle" class="view-toggle">
+                <span class="material-icons-outlined">grid_view</span>
+            </button>
+            <div class="breadcrumb" id="breadcrumb"></div>
+            <input type="file" id="folderPicker" webkitdirectory directory multiple style="display: none;">
+            <button id="openFolder" class="folder-button">
+                <span class="material-icons-outlined">folder_open</span>
+                Open Folder
+            </button>
+        </div>
+
+        <div class="spinner" id="spinner"></div>
+        <div class="gallery grid" id="gallery"></div>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <button class="close-button">
+                <span class="material-icons-outlined">close</span>
+            </button>
+            <img src="" alt="Image">
+        </div>
+    </div>
+
+    <script>
+        let currentFolder = [];
+        let folderStack = [];
+        const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        const viewModes = ['grid', 'list', 'carousel', 'mac', 'fullscreen', 'compact'];
+        let currentViewModeIndex = 0;
+
+        const folderPicker = document.getElementById('folderPicker');
+        const openFolderBtn = document.getElementById('openFolder');
+        const breadcrumb = document.getElementById('breadcrumb');
+        const gallery = document.getElementById('gallery');
+        const spinner = document.getElementById('spinner');
+        const viewToggle = document.getElementById('viewToggle');
+        const modal = document.getElementById('modal');
+        const modalImg = modal.querySelector('img');
+        const closeButton = modal.querySelector('.close-button');
+
+        openFolderBtn.addEventListener('click', () => {
+            folderPicker.click();
+        });
+
+        folderPicker.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length) {
+                const folderPath = files[0].webkitRelativePath.split('/')[0];
+                folderStack = [folderPath];
+                updateBreadcrumb();
+                scanFolder(files);
+            }
+        });
+
+        function updateBreadcrumb() {
+            breadcrumb.innerHTML = '';
+            folderStack.forEach((folder, index) => {
+                const button = document.createElement('button');
+                button.textContent = folder;
+                button.onclick = () => navigateToFolder(index);
+                breadcrumb.appendChild(button);
+                if (index < folderStack.length - 1) {
+                    const separator = document.createElement('span');
+                    separator.textContent = '>';
+                    breadcrumb.appendChild(separator);
+                }
+            });
+        }
+
+        function navigateToFolder(index) {
+            folderStack = folderStack.slice(0, index + 1);
+            updateBreadcrumb();
+            scanFolder(currentFolder.filter(file => file.webkitRelativePath.startsWith(folderStack.join('/'))));
+        }
+
+        function scanFolder(files) {
+            spinner.classList.add('show');
+            setTimeout(() => {
+                currentFolder = files;
+
+                const images = files.filter(file => validImageTypes.includes(file.type));
+                renderGallery(images);
+                spinner.classList.remove('show');
+            }, 500);
+        }
+
+        viewToggle.addEventListener('click', () => {
+            currentViewModeIndex = (currentViewModeIndex + 1) % viewModes.length;
+            const currentViewMode = viewModes[currentViewModeIndex];
+            updateViewToggleIcon(currentViewMode);
+            gallery.className = `gallery ${currentViewMode}`;
+            renderGallery(currentFolder);
+        });
+
+        function updateViewToggleIcon(viewMode) {
+            const iconMap = {
+                grid: 'grid_view',
+                list: 'view_list',
+                carousel: 'view_carousel',
+                mac: 'apps',
+                fullscreen: 'fullscreen',
+                compact: 'view_module'
+            };
+            viewToggle.innerHTML = `<span class="material-icons-outlined">${iconMap[viewMode]}</span>`;
+        }
+
+        function renderGallery(images) {
+            gallery.innerHTML = '';
+            images.forEach(image => {
+                const item = document.createElement('div');
+                item.className = 'image-item';
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(image);
+                img.alt = image.name;
+
+                item.appendChild(img);
+                item.addEventListener('click', () => openModal(img.src));
+                gallery.appendChild(item);
+            });
+        }
+
+        function openModal(src) {
+            modalImg.src = src;
+            modal.classList.add('active');
+        }
+
+        closeButton.addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+
+        // Initialize with default view
+        updateViewToggleIcon(viewModes[currentViewModeIndex]);
+    </script>
+</body>
+</html>

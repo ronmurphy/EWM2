@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Icon CSS Generator</title>
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <!-- Pickr Color Picker -->
+    <link href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --secondary-color: #FFC107;
+            --primary-opacity: 1;
+            --secondary-opacity: 1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .control-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .color-control {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .color-picker-container {
+            width: 200px;
+        }
+
+        .opacity-slider {
+            width: 100px;
+        }
+
+        .method-selector {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        .swap-button {
+            padding: 10px 20px;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .swap-button:hover {
+            background: #444;
+        }
+
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            height: 300px;
+            overflow-y: auto;
+        }
+
+        .icon-item {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            aspect-ratio: 1;
+            background: #f8f8f8;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .icon-item:hover {
+            background: #eee;
+        }
+
+        .material-icons, .fa {
+            font-size: 32px;
+            background: linear-gradient(135deg, 
+                rgba(var(--primary-r), var(--primary-g), var(--primary-b), var(--primary-opacity)) 0%,
+                rgba(var(--secondary-r), var(--secondary-g), var(--secondary-b), var(--secondary-opacity)) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .export-grid {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .export-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .export-item canvas {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .export-button {
+            padding: 5px 10px;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .css-output {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Controls -->
+        <div class="controls">
+            <!-- Primary Color Section -->
+            <div class="control-section">
+                <div class="color-control">
+                    <div class="color-picker-container" id="primaryColorPicker"></div>
+                    <input type="range" id="primaryOpacity" class="opacity-slider" min="0" max="1" step="0.1" value="1">
+                </div>
+                <button class="swap-button" id="swapColors">↔ Swap Colors</button>
+            </div>
+
+            <!-- Secondary Color Section -->
+            <div class="control-section">
+                <div class="color-control">
+                    <div class="color-picker-container" id="secondaryColorPicker"></div>
+                    <input type="range" id="secondaryOpacity" class="opacity-slider" min="0" max="1" step="0.1" value="1">
+                </div>
+                <select class="method-selector" id="colorMethod">
+                    <option value="gradient">Gradient</option>
+                    <option value="fill">Fill</option>
+                    <option value="overlay">Overlay</option>
+                    <!-- Add your new methods here -->
+                </select>
+            </div>
+        </div>
+
+        <!-- Icon Grids -->
+        <div class="icon-grid" id="materialIconGrid"></div>
+        <div class="icon-grid" id="fontAwesomeGrid"></div>
+
+        <!-- Export Grid -->
+        <div class="export-grid" id="exportGrid"></div>
+
+        <!-- CSS Output -->
+        <div class="css-output">
+            <h3>Generated CSS</h3>
+            <textarea id="cssOutput" readonly></textarea>
+        </div>
+    </div>
+
+    <script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Color Picker Setup
+    const primaryColorPicker = Pickr.create({
+        el: '#primaryColorPicker',
+        theme: 'classic',
+        default: '#2196F3',
+        swatches: [
+            '#2196F3', '#FFC107', '#4CAF50', '#FF5722', '#9C27B0',
+            '#3F51B5', '#00BCD4', '#E91E63', '#607D8B', '#8BC34A',
+            '#FFEB3B', '#795548', '#009688', '#F44336', '#03A9F4'
+        ],
+        components: {
+            preview: true,
+            opacity: true,
+            hue: true,
+            interaction: { input: true, save: true }
+        }
+    });
+
+    const secondaryColorPicker = Pickr.create({
+        el: '#secondaryColorPicker',
+        theme: 'classic',
+        default: '#FFC107',
+        swatches: [
+            '#2196F3', '#FFC107', '#4CAF50', '#FF5722', '#9C27B0',
+            '#3F51B5', '#00BCD4', '#E91E63', '#607D8B', '#8BC34A',
+            '#FFEB3B', '#795548', '#009688', '#F44336', '#03A9F4'
+        ],
+        components: {
+            preview: true,
+            opacity: true,
+            hue: true,
+            interaction: { input: true, save: true }
+        }
+    });
+
+    // DOM Elements
+    const materialIconGrid = document.getElementById('materialIconGrid');
+    const fontAwesomeGrid = document.getElementById('fontAwesomeGrid');
+    const exportGrid = document.getElementById('exportGrid');
+    const cssOutput = document.getElementById('cssOutput');
+    const colorMethodSelector = document.getElementById('colorMethod');
+    const swapColorsButton = document.getElementById('swapColors');
+    const primaryOpacitySlider = document.getElementById('primaryOpacity');
+    const secondaryOpacitySlider = document.getElementById('secondaryOpacity');
+
+    // State
+    let selectedIcons = [];
+    let primaryColor = '#2196F3';
+    let secondaryColor = '#FFC107';
+    let primaryOpacity = 1;
+    let secondaryOpacity = 1;
+    let colorMethod = 'gradient';
+
+    // Helper: Update CSS Variables
+    const updateCssVariables = () => {
+        document.documentElement.style.setProperty('--primary-color', primaryColor);
+        document.documentElement.style.setProperty('--secondary-color', secondaryColor);
+        document.documentElement.style.setProperty('--primary-opacity', primaryOpacity);
+        document.documentElement.style.setProperty('--secondary-opacity', secondaryOpacity);
+    };
+
+    // Helper: Populate Icon Grids
+    const populateIconGrid = (grid, iconClassPrefix, icons) => {
+        grid.innerHTML = '';
+        icons.forEach(icon => {
+            const iconItem = document.createElement('div');
+            iconItem.className = 'icon-item';
+            iconItem.innerHTML = `<span class="${iconClassPrefix} ${icon}"></span>`;
+            iconItem.addEventListener('click', () => addToExport(iconClassPrefix, icon));
+            grid.appendChild(iconItem);
+        });
+    };
+
+    // Populate Material Icons
+    const materialIcons = ['home', 'favorite', 'settings', 'search', 'face', 'lock', 'email', 'star'];
+    populateIconGrid(materialIconGrid, 'material-icons', materialIcons);
+
+    // Populate FontAwesome Icons
+    const fontAwesomeIcons = ['fa-home', 'fa-heart', 'fa-cog', 'fa-search', 'fa-user', 'fa-lock', 'fa-envelope', 'fa-star'];
+    populateIconGrid(fontAwesomeGrid, 'fa', fontAwesomeIcons);
+
+    // Add to Export Grid
+    const addToExport = (iconClassPrefix, icon) => {
+        if (!selectedIcons.some(item => item.icon === icon)) {
+            selectedIcons.push({ iconClassPrefix, icon });
+            updateExportGrid();
+            updateCssOutput();
+        }
+    };
+
+    // Update Export Grid
+    const updateExportGrid = () => {
+        exportGrid.innerHTML = '';
+        selectedIcons.forEach(({ iconClassPrefix, icon }, index) => {
+            const exportItem = document.createElement('div');
+            exportItem.className = 'export-item';
+            exportItem.innerHTML = `
+                <span class="${iconClassPrefix} ${icon}"></span>
+                <button class="export-button" data-index="${index}">Remove</button>
+            `;
+            exportItem.querySelector('button').addEventListener('click', () => {
+                selectedIcons.splice(index, 1);
+                updateExportGrid();
+                updateCssOutput();
+            });
+            exportGrid.appendChild(exportItem);
+        });
+    };
+
+    // Update CSS Output
+    const updateCssOutput = () => {
+        const cssRules = selectedIcons.map(({ iconClassPrefix, icon }) => {
+            return `
+.${iconClassPrefix}.${icon} {
+    background: ${
+        colorMethod === 'gradient'
+            ? `linear-gradient(135deg, ${primaryColor} ${primaryOpacity * 100}%, ${secondaryColor} ${secondaryOpacity * 100}%)`
+            : primaryColor
+    };
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}`;
+        }).join('\n');
+        cssOutput.value = cssRules;
+    };
+
+    // Handle Color Updates
+    primaryColorPicker.on('change', color => {
+        primaryColor = color.toHEXA().toString();
+        updateCssVariables();
+        updateCssOutput();
+    });
+
+    secondaryColorPicker.on('change', color => {
+        secondaryColor = color.toHEXA().toString();
+        updateCssVariables();
+        updateCssOutput();
+    });
+
+    primaryOpacitySlider.addEventListener('input', e => {
+        primaryOpacity = e.target.value;
+        updateCssVariables();
+        updateCssOutput();
+    });
+
+    secondaryOpacitySlider.addEventListener('input', e => {
+        secondaryOpacity = e.target.value;
+        updateCssVariables();
+        updateCssOutput();
+    });
+
+    // Handle Color Method Change
+    colorMethodSelector.addEventListener('change', e => {
+        colorMethod = e.target.value;
+        updateCssOutput();
+    });
+
+    // Handle Swap Colors
+    swapColorsButton.addEventListener('click', () => {
+        [primaryColor, secondaryColor] = [secondaryColor, primaryColor];
+        updateCssVariables();
+        updateCssOutput();
+    });
+
+    // Initialize
+    updateCssVariables();
+});
+
+    </script>
+</body>
+</html>
