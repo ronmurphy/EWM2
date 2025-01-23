@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desktop Environment</title>
+    
+    <!-- Core visual styles -->
+    <link rel="stylesheet" href="src/styles/core/variables.css">
+    <link rel="stylesheet" href="src/styles/core/light.css">
+    <link rel="stylesheet" href="src/styles/core/base.css">
+    <link rel="stylesheet" href="src/styles/core/components.css">
+    
+    <!-- Feature-specific layouts -->
+    <link rel="stylesheet" href="src/styles/features/windows.css">
+    <link rel="stylesheet" href="src/styles/features/dock.css">
+    <link rel="stylesheet" href="src/styles/features/apps.css">
+    <link rel="stylesheet" href="src/styles/features/applets.css">
+    <link rel="stylesheet" href="src/styles/features/windows.css">
+
+
+    <!-- Shoelace theme (optional but recommended) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/cdn/themes/light.css">
+    
+    <!-- Material Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    
+    <!-- Font Awesome -->
+    <script src="https://kit.fontawesome.com/187c1afb2a.js" crossorigin="anonymous"></script>
+
+    <!-- Shoelace registration -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/cdn/shoelace-autoloader.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/cdn/components/menu/menu.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/cdn/components/menu-item/menu-item.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/cdn/components/divider/divider.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/cdn/components/dialog/dialog.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/cdn/components/alert/alert.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/cdn/components/spinner/spinner.js"></script>
+
+    
+    <!-- Sortable.js -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+    <!-- WebTorrent -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/webtorrent@latest/webtorrent.min.js"></script> -->
+
+</head>
+
+<body>
+    <div id="desktop" class="desktop">
+        <!-- <div id="windows" class="windows"></div> -->
+    <!-- System UI elements -->
+    <div id="dock" class="dock hidden"></div>
+    <div id="system-controls" class="system-controls"></div>
+
+    <!-- Scripts -->
+    <script type="module" src="src/renderer.js"></script>
+</body>
+</html>

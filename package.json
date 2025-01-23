@@ -1,0 +1,66 @@
+{
+  "name": "ewm2",
+  "version": "1.0.0",
+  "description": "The 2nd version of the Electron Window Manager, ver 1.0",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "dist": "electron-builder",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@ghostery/adblocker-electron": "^2.1.1",
+    "@shoelace-style/shoelace": "^2.18.0",
+    "cross-fetch": "^4.0.0",
+    "electron-screenshot-service": "^4.0.3",
+    "electron-store": "^10.0.0",
+    "fs": "^0.0.1-security",
+    "fs-extra": "^11.2.0",
+    "graceful-fs": "^4.2.11",
+    "html2canvas": "^1.4.1",
+    "loudness": "^0.4.2",
+    "original-fs": "^1.2.0",
+    "recharts": "^2.15.0",
+    "screenshot-desktop": "^1.15.0",
+    "systeminformation": "^5.23.11",
+    "video.js": "^8.21.0",
+    "webtorrent": "^2.5.10"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.solodev.ewm2",
+    "productName": "EWM2",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "index.html",
+      "main.js",
+      "package.json",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
