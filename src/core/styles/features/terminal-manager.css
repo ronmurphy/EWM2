@@ -1,0 +1,134 @@
+/* Terminal container */
+.terminal-container {
+    min-width: 600px !important;
+    min-height: 400px !important;
+}
+
+.terminal-window {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    background: var(--sl-color-neutral-900) !important;
+    color: var(--sl-color-neutral-0) !important;
+    font-family: 'Consolas', 'Monaco', monospace !important;
+    padding: 8px !important;
+}
+
+/* Terminal output area */
+.terminal-output {
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    padding: 8px !important;
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+}
+
+.terminal-output {
+    white-space: pre-wrap; /* Preserve whitespace and line breaks */
+    font-family: monospace; /* Use a monospace font for terminal output */
+}
+
+.terminal-line {
+    display: block; /* Ensure each line is displayed as a block */
+}
+
+/* Terminal input area */
+.terminal-input-area {
+    display: flex !important;
+    align-items: center !important;
+    padding: 8px !important;
+    gap: 8px !important;
+    border-top: 1px solid var(--sl-color-neutral-700) !important;
+}
+
+.terminal-config-btn {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: none !important;
+    color: var(--sl-color-neutral-300) !important; /* Lighter default color */
+    cursor: pointer !important;
+    padding: 4px !important;
+    border-radius: 4px !important;
+    transition: all 0.2s !important;
+}
+
+.terminal-config-btn:hover {
+    background: rgba(255, 255, 255, 0.26) !important;
+    color: var(--sl-color-neutral-100) !important;
+}
+
+.terminal-prompt {
+    color: var(--sl-color-success-500) !important;
+    font-weight: bold !important;
+    user-select: none !important;
+}
+
+.terminal-input {
+    flex: 1 !important;
+    background: transparent !important;
+    border: none !important;
+    color: var(--sl-color-neutral-0) !important;
+    font-family: inherit !important;
+    font-size: 14px !important;
+    padding: 4px !important;
+    outline: none !important;
+}
+
+.terminal-input:focus {
+    outline: none !important;
+}
+
+/* Terminal output styling */
+.terminal-line {
+    padding: 2px 0 !important;
+    min-height: 20px !important;
+}
+
+.terminal-line.command {
+    color: var(--sl-color-primary-400) !important;
+    font-weight: bold !important;
+}
+
+.terminal-line.error {
+    color: var(--sl-color-danger-500) !important;
+}
+
+/* Scrollbar styling */
+.terminal-output::-webkit-scrollbar {
+    width: 8px !important;
+}
+
+.terminal-output::-webkit-scrollbar-track {
+    background: var(--sl-color-neutral-800) !important;
+}
+
+.terminal-output::-webkit-scrollbar-thumb {
+    background: var(--sl-color-neutral-600) !important;
+    border-radius: 4px !important;
+}
+
+.terminal-output::-webkit-scrollbar-thumb:hover {
+    background: var(--sl-color-neutral-500) !important;
+}
+
+/* Selection styling */
+.terminal-window ::selection {
+    background: var(--sl-color-neutral-600) !important;
+    color: var(--sl-color-neutral-0) !important;
+}
+
+
+/* terminal dialog settings visually */
+.terminal-settings-dialog::part(body) {
+    min-height: 200px !important; /* More space for dropdown */
+    padding: 1.5rem !important;
+}
+
+.terminal-settings-dialog sl-select::part(combobox) {
+    min-height: 40px !important;
+}
+
+.terminal-settings-dialog sl-select::part(listbox) {
+    max-height: 200px !important; /* Taller dropdown area */
+}

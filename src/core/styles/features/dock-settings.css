@@ -1,0 +1,44 @@
+.dock-settings-dialog::part(base) {
+    --width: 400px;
+    background: var(--dock-bg, rgba(28, 28, 28, 0.95));
+    color: white;
+}
+
+.settings-group {
+    margin-bottom: 20px;
+}
+
+.settings-group sl-radio-group::part(form-control-label) {
+    color: white;
+    margin-bottom: 10px;
+}
+
+.heavy-sites-dialog::part(base) {
+    --width: 500px;
+    background: var(--dock-bg, rgba(28, 28, 28, 0.95));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: white;
+}
+
+.sites-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.site-item {
+    display: grid;
+    grid-template-columns: 2fr 2fr auto;
+    gap: 8px;
+    align-items: center;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.add-site-btn {
+    width: 100%;
+    margin-top: 8px;
+}

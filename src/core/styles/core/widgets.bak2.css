@@ -1,0 +1,224 @@
+/* Base widget panel styles */
+/* .side-panel-content {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: var(--sl-spacing-small) !important;
+    padding: var(--sl-spacing-medium) !important;
+    height: 100% !important;
+    overflow-y: auto !important;
+} */
+
+.side-panel-content {
+    display: flex !important;
+    gap: 16px !important;
+    padding: var(--sl-spacing-medium) !important;
+    height: 100% !important;
+    overflow-y: auto !important;
+}
+
+.widget-column {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    min-width: 300px !important;
+}
+
+.widget {
+    background: rgba(40, 40, 40, 0.95) !important;
+    border-radius: var(--sl-border-radius-medium) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(10px) !important;
+    padding: var(--sl-spacing-small) !important;
+    min-height: 100px !important;
+}
+
+/* Base widget styles */
+/* .widget {
+    background: rgba(40, 40, 40, 0.95) !important;
+    border-radius: var(--sl-border-radius-medium) !important;
+    position: relative !important;
+    transition: transform 0.2s, box-shadow 0.2s !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(10px) !important;
+    min-width: 0 !important; 
+    min-height: 0 !important; 
+    width: 100% !important;   
+    height: 100% !important;  
+} */
+
+.widget-controls {
+    position: absolute !important;
+    top: 4px !important;
+    /* right: 4px !important; */
+    right: 70px !important; /* centered over the month name */
+    display: flex !important;
+    gap: 2px !important;
+    opacity: 0 !important;
+    transition: opacity 0.2s !important;
+    z-index: 10 !important;          /* Ensure controls stay on top */
+    background: rgba(0, 0, 0, 0.5) !important; /* Optional: add background for better visibility */
+    border-radius: 4px !important;
+    padding: 2px !important;
+}
+
+.widget:hover .widget-controls {
+    opacity: 1 !important;
+}
+
+.widget-controls sl-button::part(base) {
+    color: var(--sl-color-neutral-0) !important;
+    padding: 0.25rem !important;
+    background: rgba(0, 0, 0, 0.2) !important;
+}
+
+.widget-controls sl-button:hover::part(base) {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Add these resize handle styles */
+.widget-resize-handle {
+    position: absolute !important;
+    width: 8px !important;
+    height: 8px !important;
+    background: var(--sl-color-primary-500) !important;
+    border-radius: 50% !important;
+    opacity: 0 !important;
+    transition: opacity 0.2s ease, transform 0.2s ease !important;
+    z-index: 10 !important;
+}
+
+.widget:hover .widget-resize-handle {
+    opacity: 0.5 !important;
+}
+
+.widget-resize-handle:hover {
+    opacity: 1 !important;
+    transform: scale(1.2) !important;
+    cursor: se-resize !important;
+}
+
+.widget-resize-handle.top-left { top: 4px !important; left: 4px !important; }
+.widget-resize-handle.top-right { top: 4px !important; right: 4px !important; }
+.widget-resize-handle.bottom-left { bottom: 4px !important; left: 4px !important; }
+.widget-resize-handle.bottom-right { bottom: 4px !important; right: 4px !important; }
+
+/* Calendar Widget Specific Styles */
+
+/* .calendar-widget {
+    grid-column: span 6 !important; 
+    grid-row: span 3 !important;    
+    display: flex !important;
+    flex-direction: column !important;
+    padding: var(--sl-spacing-small) !important;
+    width: 100% !important;
+    height: 100% !important;
+    position: relative !important;
+} */
+
+.calendar-widget {
+    min-height: 300px !important;
+}
+
+/* Make sure the content stays within bounds */
+.calendar-content {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: var(--sl-spacing-x-small) !important;
+    height: auto !important;
+    min-height: 0 !important;    /* Allow shrinking */
+    overflow: hidden !important; /* Prevent overflow */
+}
+
+
+/* .calendar-content {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: var(--sl-spacing-x-small) !important;
+    height: auto !important;  
+} */
+
+.calendar-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 4px !important;
+    height: 30px !important;  /* Explicit height */
+}
+
+.calendar-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    height: auto !important;  /* Remove flex: 1 */
+}
+
+.calendar-days {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    gap: 2px !important;
+}
+
+.calendar-dates {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    grid-template-rows: repeat(6, 1fr) !important;
+    gap: 2px !important;
+    flex: 1 !important;
+}
+
+.calendar-day-header {
+    text-align: center !important;
+    font-size: 0.8em !important;
+    padding: 2px !important;
+    color: var(--sl-color-neutral-400) !important;
+    width: 32px !important;  /* Enough for 3 letters + padding */
+    height: 20px !important;  /* Height for text + padding */
+}
+
+.calendar-day {
+    aspect-ratio: 1 !important;
+    width: 32px !important;  /* Match header width */
+    height: 32px !important;  /* Square cells */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.9em !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 4px !important;
+    transition: background 0.2s ease !important;
+    padding: 0 !important;  /* Remove padding since we have fixed size */
+}
+
+.calendar-day.current-month {
+    color: var(--sl-color-neutral-0) !important;
+}
+
+.calendar-day.today {
+    background: var(--sl-color-primary-600) !important;
+    color: white !important;
+    font-weight: bold !important;
+}
+
+.calendar-day:not(:empty):hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    cursor: pointer !important;
+}
+
+/* Scrollbar styling */
+.side-panel-content::-webkit-scrollbar {
+    width: 8px !important;
+}
+
+.side-panel-content::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+.side-panel-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-radius: 4px !important;
+}
+
+.side-panel-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+}

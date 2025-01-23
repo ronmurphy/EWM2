@@ -1,0 +1,221 @@
+
+
+.video-player {
+    width: 100% !important;
+    height: 100% !important;
+    background: #000 !important;
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+.video-player {
+    position: relative !important;
+    z-index: 1 !important;  /* Lower than the overlay */
+}
+
+.video-drop-zone {
+    width: 100% !important;
+    height: 100% !important;
+    position: relative !important;
+    flex: 1 !important;
+}
+
+.player-container {
+    width: 100% !important;
+    height: 100% !important;
+    position: relative !important;
+}
+
+
+.video-js {
+    width: 100% !important;
+    height: 100% !important;
+}
+.video-js {
+    z-index: 1 !important;
+}
+
+.video-js.vjs-fluid {
+    padding-top: 0 !important;
+}
+
+.video-js .vjs-big-play-button {
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+}
+
+.video-js .vjs-tech {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.vjs-control-bar {
+    z-index: 2 !important; 
+
+}
+
+.file-controls {
+    position: absolute !important;
+    top: 1rem !important;
+    right: 1rem !important;
+    z-index: 3 !important;
+    pointer-events: auto !important;
+}
+
+.file-controls .select-file-btn::part(base) {
+    background: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(4px) !important;
+    padding: 8px 16px !important;
+}
+
+.file-controls .select-file-btn:hover::part(base) {
+    background: rgba(0, 0, 0, 0.7) !important;
+}
+
+.drop-overlay {
+    display: none !important;
+    visibility: hidden !important;
+    /* opacity: 0 !important; */
+}
+
+.drag-over {
+    border: 2px dashed var(--sl-color-primary-600) !important;
+}
+
+.drop-overlay sl-icon {
+    font-size: 3rem !important;
+    color: var(--sl-color-primary-500) !important;
+}
+
+.video-drop-zone.drag-over .drop-overlay {
+    display: flex !important;
+}
+
+/* Initial file selection overlay */
+.initial-file-overlay {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(0, 0, 0, 0.9) !important;
+    display: flex !important;
+    visibility: visible !important;
+    justify-content: center !important;
+    align-items: center !important;
+    z-index: 9999 !important;
+}
+
+/* Initial file selection modal */
+.file-selection-modal {
+    background: rgba(40, 40, 40, 0.95) !important;
+    padding: 2rem !important;
+    border-radius: 8px !important;
+    text-align: center !important;
+    color: white !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1rem !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.file-selection-modal h2 {
+    color: white !important;
+    font-size: 1.5rem !important;
+    margin-bottom: 1rem !important;
+}
+
+.file-selection-modal .drag-hint {
+    color: white !important;
+    margin-top: 1rem !important;
+}
+
+.file-selection-modal .select-file-btn::part(base) {
+    padding: 1rem 2rem !important;
+    font-size: 1.1rem !important;
+}
+
+
+.initial-file-overlay, .drop-overlay {
+    display: none !important;
+    visibility: hidden !important;
+    /* opacity: 0 !important; */
+}
+
+.initial-file-overlay.visible, .drop-overlay.visible {
+    display: flex !important;
+    visibility: visible !important;
+    /* opacity: 1 !important; */
+}
+
+.initial-file-overlay.hidden {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* Drop overlay - hidden by default */
+.drop-overlay {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(0, 0, 0, 0.9) !important;
+    display: none !important;
+    visibility: hidden !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    color: white !important;
+    z-index: 101 !important;
+}
+
+/* Visible states */
+.drop-overlay.visible {
+    display: flex !important;
+    visibility: visible !important;
+}
+
+
+/* Pause overlay */
+.pause-overlay {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(0, 0, 0, 0.7) !important;
+    display: none !important;
+    visibility: hidden !important;
+    justify-content: center !important;
+    align-items: center !important;
+    z-index: 100 !important;
+}
+
+.pause-overlay.visible {
+    display: flex !important;
+    visibility: visible !important;
+}
+
+.pause-modal {
+    background: rgba(40, 40, 40, 0.95) !important;
+    padding: 1.5rem !important;
+    border-radius: 8px !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.pause-modal sl-button::part(base) {
+    padding: 1rem 2rem !important;
+    font-size: 1.1rem !important;
+    width: 200px !important;
+}
+
+.pause-modal sl-button-group {
+    gap: 0.5rem !important;
+}

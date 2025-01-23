@@ -1,0 +1,548 @@
+.window {
+    position: fixed;
+    background: var(--sl-color-neutral-0);
+    border-radius: var(--sl-border-radius-medium);
+    box-shadow: var(--sl-shadow-large);
+    display: flex;
+    flex-direction: column;
+    min-width: 300px;
+    min-height: 200px;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    border: 1px solid var(--sl-color-neutral-200);
+    backdrop-filter: blur(10px);
+}
+
+.window-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem;
+    background: var(--sl-color-neutral-50);
+    border-bottom: 1px solid var(--sl-color-neutral-200);
+    border-radius: var(--sl-border-radius-medium) var(--sl-border-radius-medium) 0 0;
+    cursor: grab;
+    user-select: none;
+}
+
+.window-title {
+    display: flex;
+    align-items: center;
+    /* gap: 0.5rem; */
+    gap: 8px;
+
+    font-weight: 500;
+    color: var(--sl-color-neutral-900);
+}
+
+/* In windows.css - Make window controls and icons more specific */
+.window-header .window-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: var(--sl-color-neutral-900) !important;
+}
+
+.window-header .window-title .material-symbols-outlined {
+    color: var(--sl-color-neutral-900) !important;
+    font-size: 20px;
+}
+
+.window-header .window-controls {
+    color: var(--sl-color-neutral-900) !important;
+}
+
+.window-header .window-controls button {
+    color: var(--sl-color-neutral-900) !important;
+}
+
+/* Immersive Mode Styles */
+.window.immersive {
+    border: none;
+}
+
+.window.immersive .window-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: transparent;
+    z-index: 100;
+    height: 40px;
+    transition: all 0.3s ease;
+}
+
+.window.immersive .window-header:not(.show-controls) {
+    background: transparent;
+    pointer-events: none;
+}
+
+.window.immersive .window-header:not(.show-controls) .window-trigger {
+    pointer-events: all;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.window.immersive .window-header:hover .window-trigger {
+    opacity: 1;
+}
+
+.window.immersive .window-controls-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: var(--sl-color-neutral-0);
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--sl-shadow-large);
+}
+
+.window.immersive .window-header.show-controls .window-controls-panel {
+    transform: translateY(0);
+}
+
+.window.immersive .window-content {
+    height: 100vh;
+}
+
+.window.immersive .window-header {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.window.immersive .window-header:hover,
+.window.immersive .window-header.show-controls {
+    opacity: 1;
+    background: var(--sl-color-neutral-50);
+}
+
+.immersive-controls {
+    position: relative;
+    z-index: 1000;
+}
+
+/* .window.immersive {
+    -webkit-app-region: drag;
+}
+
+.window.immersive webview,
+.window.immersive .window-controls-corner {
+    -webkit-app-region: no-drag;
+} */
+
+.window.immersive .window-header {
+    -webkit-app-region: drag;
+}
+
+.window.immersive .window-header .window-controls {
+    -webkit-app-region: no-drag;
+}
+
+.window.immersive .window-header:not(:hover) {
+    pointer-events: none;
+}
+
+
+
+
+.window.immersive .window-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    opacity: 0;
+    background: var(--sl-color-neutral-0);
+    transition: all 0.2s ease;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px;
+    height: 40px;
+}
+
+.window.immersive .window-header:hover {
+    opacity: 1;
+    background: var(--sl-color-neutral-0);
+    pointer-events: auto;
+}
+
+.window.immersive .window-controls {
+    display: flex;
+    gap: 4px;
+    opacity: 1;
+}
+
+.window.immersive .window-title {
+    -webkit-app-region: drag;
+}
+
+.window.immersive .window-controls sl-button {
+    -webkit-app-region: no-drag;
+}
+
+.window.immersive .window-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    opacity: 0;
+    background: var(--sl-color-neutral-0);
+    transition: all 0.2s ease;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px;
+    height: 40px;
+}
+
+.window.immersive .window-header:hover {
+    opacity: 1;
+    background: var(--sl-color-neutral-0);
+    pointer-events: auto;
+}
+
+.window.immersive .window-controls {
+    display: flex;
+    gap: 4px;
+    opacity: 1;
+    z-index: 1001;
+}
+
+.window.immersive .window-controls sl-button {
+    -webkit-app-region: no-drag;
+    color: var(--sl-color-neutral-900);
+    background: transparent;
+    border: none;
+    padding: 4px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.window.immersive .window-controls sl-button:hover {
+    background: var(--sl-color-neutral-100);
+}
+
+.window.immersive .window-title {
+    -webkit-app-region: drag;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 1001;
+}
+
+
+.window-trigger {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    z-index: 101;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.5);
+    color: white;
+    cursor: pointer;
+}
+
+.window-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    min-width: 24px;  /* Add minimum width */
+    min-height: 24px; /* Add minimum height */
+    z-index: 1000;
+}
+
+.window-icon:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.window-icon img {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+}
+
+.window-icon .material-symbols-outlined {
+    font-size: 20px;
+    line-height: 1;
+    vertical-align: middle;
+}
+
+.window-controls {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.larger-icon::part(prefix) {
+    font-size: 1.33em;
+    
+    /* Optionally adjust logical properties to tweak spacing */
+    margin-inline-end: -.25em;
+  }
+
+.window-controls sl-button::part(base) {
+    color: var(--sl-color-neutral-600);
+    padding: 0.25rem;
+}
+
+.window-controls sl-button:hover::part(base) {
+    color: var(--sl-color-neutral-900);
+}
+
+.window-controls .close:hover::part(base) {
+    color: var(--sl-color-danger-600);
+}
+
+/* .window-content {
+    flex: 1;
+    overflow: auto;
+    padding: 1rem;
+} */
+
+.window-content {
+    flex: 1;
+    overflow: hidden; /* Changed from auto */
+    padding: 0; /* Remove padding */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Window states */
+.window.dragging {
+    opacity: 0.9;
+    transition: none;
+}
+
+.window.window-focused {
+    box-shadow: var(--sl-shadow-x-large);
+    border-color: var(--sl-color-primary-200);
+}
+
+.window.closing {
+    transform: scale(0.95);
+    opacity: 0;
+}
+
+/* Animations */
+@keyframes windowOpen {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.window {
+    animation: windowOpen 0.3s ease forwards;
+}
+
+/* Snap indicators */
+.window::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 2px solid var(--sl-color-primary-500);
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.window.snapping::after {
+    opacity: 1;
+}
+
+.resize-handle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: var(--sl-color-primary-500);
+    border-radius: 50%;
+    bottom: 4px;
+    right: 4px;
+    cursor: se-resize;
+    opacity: 0;
+    transition: all 0.2s ease;
+    z-index: 1000;
+}
+
+.window:hover .resize-handle {
+    opacity: 0.5;
+}
+
+.window .resize-handle:hover,
+.window.resizing .resize-handle {
+    opacity: 1;
+    transform: scale(1.2);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Disable text selection during resize */
+.window.resizing {
+    user-select: none;
+}
+
+/* Add a subtle animation when starting/stopping resize */
+.resize-handle {
+    transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Optional: Add resize guides */
+.window.resizing::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 2px;
+    height: 100%;
+    background: var(--sl-color-primary-500);
+    opacity: 0.3;
+}
+
+.window.resizing::before {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--sl-color-primary-500);
+    opacity: 0.3;
+}
+
+/* In windows.css - Make window controls and icons more specific */
+.window-header .window-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: var(--sl-color-neutral-900) !important;
+}
+
+.window-header .window-title .material-symbols-outlined {
+    color: var(--sl-color-neutral-900) !important;
+    font-size: 20px;
+}
+
+.window-header .window-controls {
+    color: var(--sl-color-neutral-900) !important;
+}
+
+.window-header .window-controls button {
+    color: var(--sl-color-neutral-900) !important;
+}
+
+/* In windows.css */
+/* Override global material icons styles */
+.window:not(.widget-window) .window-header .window-title .material-symbols-outlined,
+.window:not(.widget-window) .window-header .window-controls .material-symbols-outlined {
+    color: var(--sl-color-neutral-900) !important;
+    font-size: 20px !important;
+}
+
+/* Make window controls more specific */
+.window:not(.widget-window) .window-header .window-title,
+.window:not(.widget-window) .window-header .window-controls,
+.window:not(.widget-window) .window-header .window-controls button {
+    color: var(--sl-color-neutral-900) !important;
+}
+
+/* Override any white colors from applets.css */
+.window:not(.widget-window) .material-symbols-outlined {
+    color: var(--sl-color-neutral-900) !important;
+}
+
+/* docked window and resizing of the docked window css */
+.window.docking-feedback {
+    animation: dockingPulse 0.3s ease;
+}
+
+@keyframes dockingPulse {
+    0% { box-shadow: 0 0 0 0 var(--sl-color-primary-500); }
+    50% { box-shadow: 0 0 20px 0 var(--sl-color-primary-500); }
+    100% { box-shadow: 0 0 0 0 var(--sl-color-primary-500); }
+}
+
+.dock-resizer {
+    position: absolute;
+    background: transparent;
+    z-index: 9999;
+    transition: background-color 0.2s;
+}
+
+.dock-resizer:hover {
+    background: var(--sl-color-primary-500);
+}
+
+.dock-resizer-left, .dock-resizer-right {
+    width: 4px;
+    margin-left: -2px;
+    cursor: ew-resize;
+}
+
+.dock-resizer-top, .dock-resizer-bottom {
+    height: 4px;
+    margin-top: -2px;
+    cursor: ns-resize;
+}
+
+.window-loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.rotating {
+    animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.tab-pin.active {
+    color: var(--sl-color-primary-600) !important;
+    transform: rotate(-45deg) !important;
+}
+
+.pinned-site {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 8px !important;
+    cursor: pointer !important;
+    border-radius: 8px !important;
+    transition: background-color 0.2s !important;
+}
+
+.pinned-site:hover {
+    background-color: var(--sl-color-neutral-100) !important;
+}

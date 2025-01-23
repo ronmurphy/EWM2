@@ -1,0 +1,58 @@
+
+/* Base styles */
+:root {
+    /* Override Shoelace CSS variables for custom theming */
+    --sl-color-primary-500: var(--color-primary);
+    --sl-color-danger-500: var(--color-danger);
+    --sl-border-radius-medium: var(--radius-md);
+    --sl-spacing-medium: var(--spacing-md);
+    --app-wallpaper: none;
+}
+
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--sl-font-sans);
+    background: transparent;
+    color: var(--text-primary);
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* body {
+    background-image: url('../../../assets/wallpapers/space.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+} */
+
+body {
+    background-image: var(--app-wallpaper);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Hide scrollbar but keep functionality */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-primary);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary-hover);
+}

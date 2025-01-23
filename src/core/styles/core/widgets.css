@@ -1,0 +1,575 @@
+/*
+Widget Template Guide
+-------------------
+Basic Widget Structure:
+<div class="widget">
+    <div class="widget-header">
+        <span class="widget-title">Widget Name</span>
+        <div class="widget-controls">
+            <sl-button>Action</sl-button>
+        </div>
+    </div>
+    <div class="widget-content">
+        <!-- Widget specific content -->
+    </div>
+</div>
+
+Colors from Dock Theme:
+--dock-bg: rgba(40, 40, 40, 0.95);
+--dock-border: rgba(255, 255, 255, 0.1);
+--dock-button-hover: rgba(255, 255, 255, 0.1);
+--dock-text: var(--sl-color-neutral-0);
+
+Common Spacing:
+--widget-padding: 8px;
+--widget-gap: 8px;
+--widget-radius: var(--sl-border-radius-medium);
+
+Button Styles:
+.widget sl-button::part(base) {
+    border-radius: 8px;
+    padding: 8px;
+    background: transparent;
+    border: none;
+    color: var(--sl-color-neutral-0);
+    transition: all 0.2s ease;
+}
+
+.widget sl-button:hover::part(base) {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+*/
+
+
+/* Panel Layout */
+.side-panel-content {
+    display: flex !important;
+    gap: 8px !important;
+    padding: 8px !important;
+    height: 100% !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+/* Column Layout */
+.widget-column {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    min-width: 300px !important;
+    max-width: 400px !important;
+}
+
+/* Widget Base */
+.widget {
+    background: rgba(40, 40, 40, 0.95) !important;
+    border-radius: var(--sl-border-radius-medium) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(10px) !important;
+    padding: 8px !important;
+    min-height: 100px !important;
+    position: relative !important;
+}
+
+/* Widget Header */
+.widget-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 8px !important;
+}
+
+/* Update drawer size */
+#side-panel-drawer::part(panel) {
+    width: 800px !important;
+}
+
+
+.widget-header-controls sl-select {
+    width: 200px !important;
+}
+
+.widget-title {
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+    color: var(--sl-color-neutral-0) !important;
+}
+
+.widget-controls {
+    display: flex !important;
+    gap: 4px !important;
+}
+
+.widget-footer {
+    display: flex !important;
+    gap: 8px !important;
+    align-items: center !important;
+}
+
+.widget-footer sl-select {
+    flex: 1 !important;
+}
+
+/* Calendar Specific */
+.calendar-widget {
+    min-height: 300px !important;
+}
+
+.calendar-grid {
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(24px, 1fr)) !important;
+    gap: 2px !important;
+    width: 100% !important;
+}
+
+.calendar-days, .calendar-dates {
+    display: contents !important;
+}
+
+.calendar-day-header, .calendar-day {
+    text-align: center !important;
+    padding: 4px 2px !important;
+    font-size: calc(0.7rem + 0.1vw) !important;
+    min-width: 24px !important;
+    border-radius: var(--sl-border-radius-small) !important;
+}
+.calendar-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 4px !important;
+    margin-bottom: 12px !important;
+    width: 100% !important;
+}
+
+.month-year {
+    flex: 1 !important;
+    text-align: center !important;
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+    color: var(--sl-color-neutral-0) !important;
+}
+
+.calendar-day.current-month {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.calendar-day.today {
+    background: var(--sl-color-primary-600) !important;
+    color: var(--sl-color-neutral-0) !important;
+    font-weight: bold !important;
+}
+
+/* Clock Widget */
+.clock-widget {
+    min-height: 120px !important;
+}
+
+.clock-content {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 100% !important;
+}
+
+.clock-content .time {
+    font-size: 1.5rem !important;
+    font-weight: bold !important;
+    margin-bottom: 8px !important;
+}
+
+.clock-content .date {
+    font-size: 1rem !important;
+    color: var(--sl-color-neutral-300) !important;
+}
+
+/* System Monitor Widget */
+.sysmonitor-widget {
+    min-height: 150px !important;
+}
+
+.monitor-grid {
+    display: grid !important;
+    gap: 16px !important;
+    padding: 8px !important;
+}
+
+.monitor-item {
+    background: rgba(0, 0, 0, 0.2) !important;
+    padding: 8px !important;
+    border-radius: var(--sl-border-radius-small) !important;
+}
+
+.monitor-label {
+    font-size: 0.9rem !important;
+    color: var(--sl-color-neutral-300) !important;
+    margin-bottom: 4px !important;
+}
+
+.monitor-value {
+    font-size: 1.2rem !important;
+    font-weight: bold !important;
+    margin-bottom: 8px !important;
+}
+
+.monitor-bar {
+    height: 4px !important;
+    background: var(--sl-color-primary-600) !important;
+    border-radius: 2px !important;
+    width: 0% !important;
+    transition: width 0.3s ease !important;
+}
+
+/* Enahnced System Monitor Widget */
+
+.sysmonitor-widget {
+    min-width: 200px;
+}
+
+.monitor-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 8px;
+}
+
+.monitor-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 8px;
+}
+
+.monitor-label {
+    font-size: 0.9em;
+    color: var(--sl-color-neutral-400);
+    margin-bottom: 4px;
+}
+
+.monitor-value {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.monitor-bar {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+}
+
+.monitor-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: var(--sl-color-primary-600);
+    transition: width 0.3s ease;
+}
+
+.cpu-bar::after { background: #4CAF50; }
+.memory-bar::after { background: #2196F3; }
+.battery-bar::after { background: #FFC107; }
+
+.monitor-details {
+    margin-top: 8px;
+    font-size: 0.8em;
+    display: none;
+}
+
+.show-details .monitor-details {
+    display: block;
+}
+
+.monitor-controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
+    padding: 4px;
+}
+
+/* In widgets.css */
+.monitor-error {
+    color: var(--sl-color-danger-500);
+    padding: 1rem;
+    text-align: center;
+}
+
+.monitor-error.hidden {
+    display: none;
+}
+
+.monitor-bar {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+}
+
+.monitor-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: var(--value, 0%);
+    background: var(--sl-color-primary-600);
+    transition: width 0.3s ease;
+}
+
+/* advanced system monitor */
+
+.advanced-sysmonitor-widget {
+    width: 100% !important;
+    min-height: 400px !important;
+    padding: 16px !important;
+    background: rgba(30, 30, 30, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.sysmonitor-content {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    height: 100% !important;
+}
+
+.monitor-grid {
+    display: grid !important;
+    gap: 16px !important;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+}
+
+/* Section Styling */
+.monitor-section {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 8px !important;
+    padding: 16px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+}
+
+.section-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    color: var(--sl-color-neutral-0) !important;
+}
+
+.section-title {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-weight: 500 !important;
+}
+
+.section-title .material-symbols-outlined {
+    font-size: 20px !important;
+    color: var(--sl-color-primary-500) !important;
+}
+
+.section-value {
+    font-size: 1.2em !important;
+    font-weight: 600 !important;
+    font-variant-numeric: tabular-nums !important;
+}
+
+/* Charts */
+.chart-container {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border-radius: 4px !important;
+    padding: 8px !important;
+}
+
+/* Memory Usage Bar */
+.memory-usage-bar {
+    display: flex !important;
+    height: 24px !important;
+    background: rgba(0, 0, 0, 0.2) !important;
+    border-radius: 4px !important;
+    overflow: hidden !important;
+    margin: 8px 0 !important;
+}
+
+.usage-segment {
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: var(--sl-color-neutral-0) !important;
+    font-size: 0.8em !important;
+    transition: width 0.3s ease !important;
+    position: relative !important;
+}
+
+.usage-segment.used {
+    background: var(--sl-color-primary-600) !important;
+}
+
+.usage-segment.cached {
+    background: var(--sl-color-primary-400) !important;
+}
+
+.usage-segment.free {
+    background: var(--sl-color-neutral-400) !important;
+}
+
+.segment-label {
+    position: absolute !important;
+    white-space: nowrap !important;
+    font-size: 0.75em !important;
+    opacity: 0.8 !important;
+}
+
+/* Details Grid */
+.detail-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    margin-top: 8px !important;
+}
+
+.detail-item {
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    color: var(--sl-color-neutral-0) !important;
+    font-size: 0.9em !important;
+    padding: 4px 8px !important;
+    background: rgba(0, 0, 0, 0.2) !important;
+    border-radius: 4px !important;
+}
+
+.detail-label {
+    color: var(--sl-color-neutral-400) !important;
+}
+
+/* Performance Grid */
+.performance-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+}
+
+.performance-item {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border-radius: 4px !important;
+    padding: 12px !important;
+    text-align: center !important;
+}
+
+.perf-label {
+    color: var(--sl-color-neutral-400) !important;
+    font-size: 0.9em !important;
+    margin-bottom: 4px !important;
+}
+
+.perf-value {
+    color: var(--sl-color-neutral-0) !important;
+    font-size: 1.1em !important;
+    font-weight: 500 !important;
+    font-variant-numeric: tabular-nums !important;
+}
+
+/* Controls */
+.monitor-controls {
+    display: flex !important;
+    gap: 8px !important;
+    justify-content: flex-end !important;
+    padding-top: 8px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.monitor-controls sl-button::part(base) {
+    color: var(--sl-color-neutral-0) !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+.monitor-controls sl-button:hover::part(base) {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Error State */
+.monitor-error {
+    background: var(--sl-color-danger-900) !important;
+    color: var(--sl-color-danger-100) !important;
+    padding: 12px !important;
+    border-radius: 4px !important;
+    text-align: center !important;
+    margin-top: 8px !important;
+}
+
+.monitor-error.hidden {
+    display: none !important;
+}
+
+/* Chart View Transitions */
+.charts-view .monitor-section {
+    transition: all 0.3s ease !important;
+}
+
+.charts-view .chart-container {
+    height: 200px !important;
+}
+
+/* Animations */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+}
+
+.updating {
+    animation: pulse 1s infinite !important;
+}
+
+/* Scrollbar */
+.side-panel-content::-webkit-scrollbar {
+    width: 8px !important;
+}
+
+.side-panel-content::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+.side-panel-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-radius: 4px !important;
+}
+
+.side-panel-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Adopt dock button styles */
+.calendar-header sl-button::part(base),
+.widget-controls sl-button::part(base) {
+    border-radius: 8px !important;
+    padding: 8px !important;
+    background: transparent !important;
+    border: none !important;
+    color: var(--sl-color-neutral-0) !important;
+    transition: all 0.2s ease !important;
+}
+
+.calendar-header sl-button:hover::part(base),
+.widget-controls sl-button:hover::part(base) {
+    background: rgba(255, 255, 255, 0.1) !important;
+    transform: scale(1.1) !important;
+}
+
+.prev-month {
+    margin-right: auto !important;
+}
+
+.next-month {
+    margin-left: auto !important;
+}

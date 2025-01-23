@@ -1,0 +1,87 @@
+/* Base button styles */
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    border: none;
+    background: var(--color-primary);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.button:hover {
+    filter: brightness(1.1);
+}
+
+/* Control buttons (window controls, etc) */
+.control-button {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.control-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.control-button.close:hover {
+    background: var(--color-danger);
+}
+
+/* Window styles */
+.window {
+    position: fixed;
+    background: var(--bg-window);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    min-width: 300px;
+    min-height: 200px;
+    overflow: hidden;
+    transition: var(--transition-normal);
+}
+
+.window-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm);
+    background: rgba(0, 0, 0, 0.2);
+    cursor: grab;
+}
+
+/* Shoelace button styling */
+sl-button::part(base) {
+    --sl-input-height-small: 32px;
+    --sl-input-height-medium: 40px;
+    --sl-input-height-large: 48px;
+}
+
+.window-controls sl-button::part(base) {
+    color: var(--text-primary);
+    border: none;
+    padding: 0.25rem;
+    margin: 0;
+    min-width: 32px;
+    height: 32px;
+}
+
+.window-controls sl-button.close::part(base):hover {
+    background-color: var(--color-danger);
+    color: white;
+}
+
+.window-controls sl-button:not(.close)::part(base):hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}

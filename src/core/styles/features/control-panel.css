@@ -1,0 +1,33 @@
+.control-panel-dialog::part(base) {
+    --width: 400px;
+    background: var(--dock-bg, rgba(28, 28, 28, 0.95));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: white;
+}
+
+.settings-grid {
+    display: grid;
+    gap: 8px;
+    padding: 16px;
+}
+
+.setting-button::part(base) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    color: white;
+    transition: background-color 0.2s;
+}
+
+.setting-button:hover::part(base) {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.setting-button .material-symbols-outlined {
+    font-size: 24px;
+}

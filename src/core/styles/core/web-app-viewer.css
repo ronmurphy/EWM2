@@ -1,0 +1,57 @@
+/* web-app-viewer.css */
+.web-app-viewer {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.viewer-wrapper {
+    flex: 1;
+    position: relative;
+}
+
+.viewer-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+}
+
+.web-app-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(30, 30, 30, 0.8);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* Custom styling for favicon in titlebar */
+.window-title img {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.reload-button::part(base) {
+    color: var(--sl-color-neutral-0);
+    padding: 0.25rem;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+}
+
+.reload-button:hover::part(base) {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.reload-button .material-symbols-outlined {
+    font-size: 18px;
+}

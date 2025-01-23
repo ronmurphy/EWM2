@@ -1,0 +1,711 @@
+
+
+/* Variables for precise height calculations */
+.new-browser-container {
+    --upper-controls-height: 36px;    /* Tab row */
+    --lower-controls-height: 44px;    /* Navigation and URL row */
+    --total-controls-height: calc(var(--upper-controls-height) + var(--lower-controls-height));
+}
+
+/* Base theme variables */
+.new-browser-container {
+    --theme-bg: var(--sl-color-neutral-50);
+    --theme-text: var(--sl-color-neutral-900);
+    --theme-border: var(--sl-color-neutral-200);
+    --theme-hover: var(--sl-color-neutral-100);
+    --theme-active: var(--sl-color-primary-600);
+}
+
+/* Main container */
+.window-content {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    background: var(--browser-bg) !important;
+}
+
+/* Browser layout */
+.browser-container {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    overflow: hidden !important;
+}
+
+/* Controls section */
+/* Browser controls layout */
+.browser-controls {
+    display: flex !important;
+    flex-direction: column !important;
+    background: var(--sl-color-neutral-50) !important;
+    border-bottom: 1px solid var(--sl-color-neutral-200) !important;
+}
+
+/* Upper controls containing tabs and tools */
+.upper-controls {
+    display: flex !important;
+    align-items: center !important;
+    padding: 4px 8px 0 8px !important;
+    min-height: 36px !important;
+}
+
+/* Navigation section */
+.nav-section {
+    flex: 0 0 auto !important;
+}
+
+/* Tab section */
+.tab-section {
+    display: flex !important;
+    align-items: center !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+    gap: 4px !important;
+}
+
+.tab-buttons {
+    flex: 1 !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+}
+
+.tab-buttons::-webkit-scrollbar {
+    display: none !important;
+}
+
+.tab-buttons .button-group {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+}
+
+/* Lower controls with navigation and URL */
+.lower-controls {
+    display: flex !important;
+    align-items: center !important;
+    padding: 4px 8px 8px 8px !important;
+    gap: 8px !important;
+}
+
+/* URL section */
+.url-section {
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+
+.url-input {
+    width: 100% !important;
+}
+
+/* URL wrapper with progress bar */
+.url-wrapper {
+    position: relative !important;
+    width: 100% !important;
+}
+
+.url-input::part(base) {
+    width: 100% !important;
+}
+
+.loading-progress {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    height: 2px !important;
+    background: var(--sl-color-primary-600) !important;
+    transition: width 0.3s ease-out !important;
+}
+
+/* Tools section */
+.tools-section {
+    display: flex !important;
+    gap: 4px !important;
+    margin-left: 8px !important;
+}
+
+.tools-section sl-button::part(base) {
+    padding: 0.3rem !important;
+}
+
+/* Highlight pin button when active tab is pinned */
+.pin-button.active::part(base) {
+    background: var(--sl-color-primary-100);
+}
+
+.browser-content {
+    display: flex !important;
+    position: relative !important;
+    flex: 1 1 auto !important;
+    height: calc(100vh - var(--total-controls-height)) !important;
+    overflow: hidden !important;
+}
+
+
+.tabs-container {
+    display: flex !important;
+    position: relative !important;
+    flex: 1 1 auto !important;
+    height: 100% !important;
+    overflow: hidden !important;
+}
+
+
+/* Individual tab styling */
+/* Tab styling */
+.tab-button {
+    min-width: 100px !important;
+    max-width: 200px !important;
+    height: 32px !important;
+    padding: 0 8px !important;
+    margin: 0 1px !important;
+}
+
+.tab-title {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+/* Webview */
+.browser-webview {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    border: none !important;
+}
+
+
+/* Pinned sites section */
+.pinned-sites {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: var(--browser-bg) !important;
+    overflow-y: auto !important;
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
+    gap: 16px !important;
+    padding: 16px !important;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.pinned-sites-drawer::part(body) {
+    padding: var(--sl-spacing-medium);
+}
+
+.pinned-sites-drawer::part(base) {
+    background: var(--sl-color-neutral-900);
+    color: var(--sl-color-neutral-0);
+}
+
+.pinned-sites-drawer::part(header) {
+    background: var(--sl-color-neutral-800);
+}
+
+.pinned-sites-drawer::part(footer) {
+    background: var(--sl-color-neutral-800);
+}
+
+/* Grid layout for pinned sites */
+.pinned-sites-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important;
+    gap: 8px !important;
+    padding: 8px !important;
+}
+
+/* More compact pinned site cards */
+.pinned-site {
+    background: var(--sl-color-neutral-800) !important;
+    padding: 8px !important;
+    border-radius: var(--sl-border-radius-medium) !important;
+    transition: transform 0.2s ease !important;
+    cursor: pointer !important;
+    z-index: 100000 !important; /* Ensure clickable */
+}
+
+.pinned-site:hover {
+    transform: translateY(-2px) !important;
+    background: var(--sl-color-neutral-700) !important;
+}
+
+.pinned-site .site-favicon {
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 4px !important;
+}
+
+.pinned-site .site-title {
+    color: var(--sl-color-neutral-0) !important;
+    margin-top: 4px !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+}
+
+.pinned-sites-drawer::part(overlay) {
+    pointer-events: none !important;
+}
+
+.pinned-sites-drawer::part(panel) {
+    pointer-events: all !important;
+}
+
+
+.pinned-site .remove-pin {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.pinned-site:hover .remove-pin {
+    opacity: 1;
+}
+
+.tab-pin {
+    opacity: 0.7;
+}
+
+.tab-pin:hover {
+    opacity: 1;
+}
+
+/* Tab favicon styling */
+.tab-favicon {
+    width: 16px !important;
+    height: 16px !important;
+    margin-right: 4px !important;
+}
+
+/* Update URL when favicon loads */
+.tab-favicon {
+    object-fit: contain !important;
+}
+
+/* Ad blocker counter styles */
+.blocked-counter {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    cursor: pointer !important;
+    transition: color 0.2s ease-in-out !important;
+}
+
+.blocked-counter .counter {
+    font-size: 12px !important;
+    min-width: 20px !important;
+    text-align: center !important;
+    transition: opacity 0.2s ease-in-out !important;
+}
+
+.blocked-counter[data-active="true"] {
+    color: var(--sl-color-success-600) !important;
+}
+
+.blocked-counter[data-active="true"] sl-icon {
+    color: var(--sl-color-success-600) !important;
+}
+
+.blocked-counter.blocking-disabled {
+    color: var(--sl-color-danger-600) !important;
+}
+
+.blocked-counter.blocking-disabled sl-icon {
+    color: var(--sl-color-danger-600) !important;
+}
+
+.blocked-counter.blocking-disabled:hover {
+    color: var(--sl-color-danger-500) !important;
+}
+
+.blocked-counter.blocking-disabled .counter {
+    display: none !important;
+}
+
+/* Add a nice transition */
+.blocked-counter {
+    transition: color 0.2s ease-in-out !important;
+}
+
+.blocked-counter sl-icon {
+    transition: color 0.2s ease-in-out !important;
+}
+
+/* theming */
+/* Flat theme */
+.theme-flat {
+    --theme-bg: #ffffff;
+    --theme-text: #202124;
+    --theme-border: #dadce0;
+    --theme-hover: #f1f3f4;
+    --theme-active: #1a73e8;
+}
+
+.theme-flat .browser-controls {
+    background: var(--theme-bg) !important;
+}
+
+.theme-flat .tab-button {
+    border: none !important;
+    border-radius: 8px 8px 0 0 !important;
+}
+
+.theme-flat .tab-button[variant="primary"]::part(base) {
+    background: var(--theme-active) !important;
+    color: white !important;
+}
+
+/* Dark theme */
+.theme-dark {
+    --theme-bg: #202124;
+    --theme-text: #ffffff;
+    --theme-border: #3c4043;
+    --theme-hover: #3c4043;
+    --theme-active: #8ab4f8;
+}
+
+.theme-dark .browser-controls {
+    background: var(--theme-bg) !important;
+    border-color: var(--theme-border) !important;
+}
+
+.theme-dark .url-input::part(base) {
+    background: #3c4043 !important;
+    color: var(--theme-text) !important;
+    border-color: transparent !important;
+}
+
+.theme-dark .tab-button::part(base) {
+    color: var(--theme-text) !important;
+    background: #292a2d !important;
+}
+
+.theme-dark .tab-button[variant="primary"]::part(base) {
+    background: #3c4043 !important;
+}
+
+/* Minimal theme */
+.theme-minimal {
+    --theme-bg: #ffffff;
+    --theme-text: #000000;
+    --theme-border: #eeeeee;
+    --theme-hover: #f5f5f5;
+    --theme-active: #000000;
+}
+
+.theme-minimal .browser-controls {
+    background: var(--theme-bg) !important;
+    border: none !important;
+}
+
+.theme-minimal .tab-button::part(base) {
+    background: transparent !important;
+    border: none !important;
+}
+
+.theme-minimal .tab-button[variant="primary"]::part(base) {
+    border-bottom: 2px solid var(--theme-active) !important;
+    background: rgba(0,0,0,0.05) !important;
+}
+
+/* Futuristic theme */
+.theme-futuristic {
+    --theme-bg: #1a1a2e;
+    --theme-text: #ffffff;
+    --theme-border: #4a4a6e;
+    --theme-hover: rgba(0, 255, 157, 0.1);
+    --theme-active: #00ff9d;
+}
+
+.theme-futuristic .browser-controls {
+    background: rgba(26, 26, 46, 0.8) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(74, 74, 110, 0.3) !important;
+}
+
+.theme-futuristic .url-input::part(base) {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: var(--theme-text) !important;
+    box-shadow: 0 0 15px rgba(0, 255, 157, 0.2) !important;
+}
+
+.theme-futuristic .tab-button::part(base) {
+    background: rgba(26, 26, 46, 0.8) !important;
+    border: 1px solid rgba(74, 74, 110, 0.3) !important;
+    color: var(--theme-text) !important;
+}
+
+.theme-futuristic .tab-button[variant="primary"]::part(base) {
+    background: rgba(0, 255, 157, 0.1) !important;
+    border-color: var(--theme-active) !important;
+    box-shadow: 0 0 10px rgba(0, 255, 157, 0.2) !important;
+}
+
+/* Windows 11 theme */
+.theme-windows11 {
+    --theme-bg: #f3f3f3;
+    --theme-text: #1a1a1a;
+    --theme-border: #d2d2d2;
+    --theme-hover: #e5e5e5;
+    --theme-active: #0a84ff;
+}
+
+.theme-windows11 .browser-controls {
+    background: var(--theme-bg) !important;
+    border-color: var(--theme-border) !important;
+}
+
+.theme-windows11 .url-input::part(base) {
+    background: #ffffff !important;
+    color: var(--theme-text) !important;
+    border-color: var(--theme-border) !important;
+}
+
+.theme-windows11 .tab-button::part(base) {
+    color: var(--theme-text) !important;
+    background: #ebebeb !important;
+}
+
+.theme-windows11 .tab-button[variant="primary"]::part(base) {
+    background: #d0e6ff !important;
+}
+
+/* macOS theme */
+.theme-macos {
+    --theme-bg: #f5f5f7;
+    --theme-text: #1c1c1e;
+    --theme-border: #dcdcdc;
+    --theme-hover: #e4e4e7;
+    --theme-active: #007aff;
+}
+
+.theme-macos .browser-controls {
+    background: var(--theme-bg) !important;
+    border-color: var(--theme-border) !important;
+}
+
+.theme-macos .url-input::part(base) {
+    background: #ffffff !important;
+    color: var(--theme-text) !important;
+    border-color: #cccccc !important;
+}
+
+.theme-macos .tab-button::part(base) {
+    color: var(--theme-text) !important;
+    background: #f0f0f3 !important;
+}
+
+.theme-macos .tab-button[variant="primary"]::part(base) {
+    background: #dbe8ff !important;
+}
+
+/* GNOME theme */
+.theme-gnome {
+    --theme-bg: #292929;
+    --theme-text: #e5e5e5;
+    --theme-border: #3f3f3f;
+    --theme-hover: #414141;
+    --theme-active: #4a90e2;
+}
+
+.theme-gnome .browser-controls {
+    background: var(--theme-bg) !important;
+    border-color: var(--theme-border) !important;
+}
+
+.theme-gnome .url-input::part(base) {
+    background: #363636 !important;
+    color: var(--theme-text) !important;
+    border-color: transparent !important;
+}
+
+.theme-gnome .tab-button::part(base) {
+    color: var(--theme-text) !important;
+    background: #353535 !important;
+}
+
+.theme-gnome .tab-button[variant="primary"]::part(base) {
+    background: #414141 !important;
+}
+
+/* KDE Plasma theme */
+.theme-kde {
+    --theme-bg: #232629;
+    --theme-text: #e6e6e6;
+    --theme-border: #3b4045;
+    --theme-hover: #3a4044;
+    --theme-active: #5294e2;
+}
+
+.theme-kde .browser-controls {
+    background: var(--theme-bg) !important;
+    border-color: var(--theme-border) !important;
+}
+
+.theme-kde .url-input::part(base) {
+    background: #2e3236 !important;
+    color: var(--theme-text) !important;
+    border-color: transparent !important;
+}
+
+.theme-kde .tab-button::part(base) {
+    color: var(--theme-text) !important;
+    background: #2b2f33 !important;
+}
+
+.theme-kde .tab-button[variant="primary"]::part(base) {
+    background: #3a4044 !important;
+}
+
+
+/* Common button styles for all themes */
+.browser-controls sl-button::part(base) {
+    color: var(--theme-text) !important;
+}
+
+.browser-controls sl-button:not([disabled]):hover::part(base) {
+    background: var(--theme-hover) !important;
+}
+
+/* Apply theme colors to URLs and inputs */
+.url-input::part(base) {
+    color: var(--theme-text) !important;
+    background: var(--theme-bg) !important;
+    border-color: var(--theme-border) !important;
+}
+
+/* Modern tab styling */
+.tab-button {
+    --tab-height: 32px;
+    height: var(--tab-height) !important;
+    min-width: 100px !important;
+    max-width: 200px !important;
+    padding: 0 8px !important;
+    margin: 0 1px !important;
+    border-radius: 8px 8px 0 0 !important;
+}
+
+.tab-content {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    height: 100% !important;
+}
+
+.tab-pin.active {
+    color: var(--theme-active) !important;
+}
+
+/* Smooth transitions */
+.tab-button {
+    transition: background-color 0.2s, transform 0.2s !important;
+}
+
+.tab-button:hover {
+    transform: translateY(-1px) !important;
+}
+
+.tab-content {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    height: 100% !important;
+    padding: 0 4px !important;
+    width: 100% !important;
+}
+
+.tab-controls {
+    display: flex !important;
+    align-items: center !important;
+    gap: 2px !important;
+    margin-left: auto !important;
+}
+
+.tab-button {
+    --tab-height: 32px;
+    height: var(--tab-height) !important;
+    min-width: 120px !important;
+    max-width: 200px !important;
+    padding: 0 !important;
+    margin: 0 1px !important;
+    border-radius: 8px 8px 0 0 !important;
+    overflow: hidden !important;
+}
+
+.tab-title {
+    flex: 1 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    min-width: 0 !important;
+}
+
+.tab-favicon {
+    flex-shrink: 0 !important;
+    width: 16px !important;
+    height: 16px !important;
+}
+
+.tab-pin, .tab-close {
+    opacity: 0.7 !important;
+    transition: opacity 0.2s !important;
+}
+
+.tab-pin:hover, .tab-close:hover {
+    opacity: 1 !important;
+}
+
+.tab-pin.active {
+    color: var(--theme-active) !important;
+    opacity: 1 !important;
+}
+
+.tab-button {
+    --tab-height: 32px;
+    height: var(--tab-height) !important;
+    min-width: 120px !important;
+    max-width: 200px !important;
+    padding: 0 !important;
+    margin: 0 1px !important;
+    border-radius: 8px 8px 0 0 !important;
+    overflow: hidden !important;
+}
+
+.tab-content {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    height: 100% !important;
+    padding: 0 8px !important;
+    width: 100% !important;
+}
+
+.tab-controls {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    margin-left: auto !important;
+}
+
+.tab-favicon {
+    width: 16px !important;
+    height: 16px !important;
+    flex-shrink: 0 !important;
+}
+
+.tab-title {
+    flex: 1 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}

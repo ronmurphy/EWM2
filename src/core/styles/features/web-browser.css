@@ -1,0 +1,159 @@
+/* CSS Variables for consistent measurements */
+.web-container {
+    --window-header-height: 41px;    /* 16px padding + 24px content + 1px border */
+    --toolbar-height: 41px;          /* 32px content + 8px padding + 1px border */
+    --window-border-radius: var(--sl-border-radius-medium);
+    --toolbar-padding: 4px;
+    --controls-height: 32px;
+}
+
+/* Root container */
+.window-content {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Browser container */
+.browser-container {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    overflow: hidden !important;
+}
+
+/* Toolbar area */
+.browser-toolbar {
+    flex: 0 0 auto !important;
+    background: var(--sl-color-neutral-50);
+    border-bottom: 1px solid var(--sl-color-neutral-200);
+    padding: var(--toolbar-padding) !important;
+    height: var(--toolbar-height) !important;
+}
+
+/* Controls row - contains everything in the top bar */
+.browser-controls-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    height: var(--controls-height) !important;
+}
+
+/* Navigation controls */
+.nav-controls {
+    flex: 0 0 auto !important;
+}
+
+/* Navigation button hover states */
+.nav-controls sl-button:not([disabled]):hover::part(base),
+.new-tab-button:hover::part(base) {
+    background-color: var(--sl-color-neutral-100);
+}
+
+/* New tab button */
+.new-tab-button {
+    flex: 0 0 auto !important;
+}
+
+/* Tab buttons container */
+.tab-buttons {
+    flex: 1 !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: thin !important;
+}
+
+/* URL input */
+.url-input {
+    flex: 0 1 300px !important;
+    min-width: 200px !important;
+}
+
+/* Make the input field more compact */
+.url-input::part(base) {
+    min-height: var(--controls-height) !important;
+}
+
+/* URL input focus state */
+.url-input:focus-within::part(base) {
+    border-color: var(--sl-color-primary-500);
+}
+
+/* Individual tab styling */
+.tab-button {
+    min-width: 100px !important;
+    max-width: 200px !important;
+    height: 28px !important;
+    padding: 0 8px !important;
+}
+
+.tab-title {
+    font-size: var(--sl-font-size-small) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+/* Tab close button */
+.tab-close {
+    opacity: 0.7;
+}
+
+.tab-close:hover {
+    opacity: 1;
+}
+
+/* Tab hover state */
+.tab-button:hover::part(base) {
+    background-color: var(--sl-color-neutral-100);
+}
+
+/* Active tab styling */
+.tab-button[variant="primary"]::part(base) {
+    background-color: var(--sl-color-primary-600);
+    color: var(--sl-color-neutral-0);
+}
+
+/* Tabs container and webview */
+.tabs-container {
+    display: flex !important;
+    position: relative !important;
+    flex: 1 1 auto !important;
+    height: calc(100vh - var(--window-header-height) - var(--toolbar-height)) !important;
+    overflow: hidden !important;
+}
+
+.browser-webview {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    border: none !important;
+}
+
+/* Scrollbar styling for tab area */
+.tab-buttons::-webkit-scrollbar {
+    height: 3px;
+}
+
+.tab-buttons::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tab-buttons::-webkit-scrollbar-thumb {
+    background: var(--sl-color-neutral-300);
+    border-radius: 3px;
+}
+
+/* Optional: Hide scrollbar but keep functionality */
+.tab-buttons {
+    -ms-overflow-style: none !important;  /* IE and Edge */
+    scrollbar-width: none !important;  /* Firefox */
+}
+
+.tab-buttons::-webkit-scrollbar {
+    display: none !important;  /* Chrome, Safari and Opera */
+}

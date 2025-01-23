@@ -1,0 +1,183 @@
+/* Base widget panel styles */
+.side-panel-content {
+    display: grid !important;
+    grid-template-columns: repeat(12, 1fr) !important;
+    grid-auto-rows: minmax(50px, auto) !important;
+    gap: var(--sl-spacing-small) !important;
+    padding: var(--sl-spacing-medium) !important;
+    background: rgba(30, 30, 30, 0.85) !important;
+    backdrop-filter: blur(10px) !important;
+    height: 100% !important;
+    overflow-y: auto !important;
+}
+
+#side-panel-drawer::part(panel) {
+    background: rgba(30, 30, 30, 0.85) !important;
+    backdrop-filter: blur(10px) !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+#side-panel-drawer::part(header) {
+    background: rgba(30, 30, 30, 0.9) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--sl-color-neutral-0) !important;
+    padding: var(--sl-spacing-medium) !important;
+}
+
+#side-panel-drawer::part(footer) {
+    background: rgba(30, 30, 30, 0.9) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: var(--sl-spacing-medium) !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+}
+
+#side-panel-drawer::part(close-button) {
+    color: var(--sl-color-neutral-0) !important;
+}
+
+#side-panel-drawer::part(close-button):hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Base widget styles */
+.widget {
+    background: rgba(40, 40, 40, 0.95) !important;
+    border-radius: var(--sl-border-radius-medium) !important;
+    padding: var(--sl-spacing-medium) !important;
+    position: relative !important;
+    cursor: move !important;
+    user-select: none !important;
+    transition: transform 0.2s, box-shadow 0.2s !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.widget:hover {
+    box-shadow: var(--sl-shadow-medium) !important;
+    background: rgba(45, 45, 45, 0.95) !important;
+}
+
+.widget-resize-handle {
+    position: absolute !important;
+    bottom: 4px !important;
+    right: 4px !important;
+    width: 8px !important;
+    height: 8px !important;
+    cursor: se-resize !important;
+    background: var(--sl-color-neutral-400) !important;
+    border-radius: 50% !important;
+    opacity: 0.5 !important;
+    transition: all 0.2s ease !important;
+}
+
+.widget-resize-handle:hover {
+    opacity: 1 !important;
+    background: var(--sl-color-primary-500) !important;
+    transform: scale(1.2) !important;
+}
+
+/* Calendar Widget Styles */
+.calendar-widget {
+    min-height: 300px !important;
+}
+
+.calendar-content {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: var(--sl-spacing-small) !important;
+    color: var(--sl-color-neutral-0) !important;
+    height: 100% !important;
+}
+
+.calendar-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: var(--sl-spacing-small) !important;
+}
+
+.calendar-title {
+    color: var(--sl-color-neutral-0) !important;
+    font-size: var(--sl-font-size-large) !important;
+    font-weight: var(--sl-font-weight-semibold) !important;
+}
+
+.calendar-header sl-button::part(base) {
+    color: var(--sl-color-neutral-0) !important;
+    background: transparent !important;
+    border: none !important;
+    padding: var(--sl-spacing-x-small) !important;
+    transition: all 0.2s ease !important;
+}
+
+.calendar-header sl-button:hover::part(base) {
+    background: rgba(255, 255, 255, 0.1) !important;
+    transform: scale(1.1) !important;
+}
+
+.calendar-grid {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    gap: 2px !important;
+    padding: var(--sl-spacing-small) !important;
+    flex: 1 !important;
+}
+
+.calendar-day-header {
+    text-align: center !important;
+    font-weight: var(--sl-font-weight-semibold) !important;
+    color: var(--sl-color-neutral-400) !important;
+    padding: var(--sl-spacing-x-small) !important;
+    font-size: var(--sl-font-size-small) !important;
+}
+
+.calendar-day {
+    text-align: center !important;
+    padding: var(--sl-spacing-small) !important;
+    border-radius: var(--sl-border-radius-small) !important;
+    aspect-ratio: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: var(--sl-font-size-small) !important;
+    color: var(--sl-color-neutral-0) !important;
+    transition: all 0.2s ease !important;
+}
+
+.calendar-day.current-month {
+    color: var(--sl-color-neutral-0) !important;
+}
+
+.calendar-day.current-month:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.calendar-day.other-month {
+    color: var(--sl-color-neutral-500) !important;
+}
+
+.calendar-day.today {
+    background: var(--sl-color-primary-600) !important;
+    color: var(--sl-color-neutral-0) !important;
+    font-weight: var(--sl-font-weight-bold) !important;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Scrollbar styling */
+.side-panel-content::-webkit-scrollbar {
+    width: 8px !important;
+}
+
+.side-panel-content::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+.side-panel-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-radius: 4px !important;
+}
+
+.side-panel-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+}

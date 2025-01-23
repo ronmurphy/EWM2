@@ -1,0 +1,14 @@
+/* Import all application-specific CSS */
+@import 'new-browser.css';
+@import 'terminal-manager.css';
+@import 'video-player.css';
+@import '../core/widgets.css';
+@import 'html-viewer.css';
+@import '../core/start-menu.css';
+@import'../core/module-viewer.css';
+@import '../core/web-app-viewer.css';
+@import 'dock-settings.css';
+@import 'control-panel.css';
+
+/* Add other app CSS imports here */
+

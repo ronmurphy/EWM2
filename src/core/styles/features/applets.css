@@ -1,0 +1,677 @@
+/* Applet Settings config */
+.applet-settings-dialog::part(base) {
+    --width: 400px;
+    background: var(--dock-bg, rgba(28, 28, 28, 0.95)); 
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: white;
+}
+
+.applet-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+}
+
+.applet-item {
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    cursor: move;
+}
+
+.applet-item sl-checkbox {
+    width: 100%;
+}
+
+.sortable-ghost {
+    opacity: 0.5;
+}
+
+.applet-item .material-symbols-outlined {
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+/* Volume Applet */
+
+.volume-container {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+}
+
+.volume-icon-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.volume-percentage {
+    color: white;
+    font-size: 12px;
+    min-width: 34px;
+    opacity: 0.8;
+}
+
+.material-symbols-outlined {
+    color: white;
+    font-size: 20px;
+}
+
+.volume-circular-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 24px;
+    height: 24px;
+    transform: rotate(-90deg);
+}
+
+.volume-circular-progress circle {
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.progress-bg {
+    stroke: rgba(255, 255, 255, 0.1);
+}
+
+.progress-bar {
+    stroke: var(--sl-color-primary-500);
+    stroke-dasharray: 62.8;
+    transition: stroke-dashoffset 0.3s ease;
+}
+
+
+
+.volume-container .material-symbols-outlined {
+    color: white;
+    font-size: 20px;
+}
+
+.volume-applet {
+    width: 40px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    cursor: ns-resize;
+}
+
+.volume-level {
+    height: 100%;
+    background: white;
+    border-radius: 2px;
+    transition: width 0.2s ease;
+}
+
+/* Clock Applet */
+.clock-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;  /* Reduced gap between icon and time */
+    padding: 0 8px;
+    cursor: pointer;
+    height: 40px;  /* Match the dock height */
+}
+
+.clock-container .material-symbols-outlined {
+    color: white;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.clock-content {
+    color: white;
+    font-size: 14px;
+    font-family: var(--sl-font-sans);
+    line-height: 40px;  /* Vertically center the text */
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Hover effect */
+.clock-container:hover {
+    opacity: 0.8;
+}
+
+/* Dock item styling */
+.dock-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dock-item-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+/* Spacer Styles */
+.spacer-container {
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.spacer {
+    background: transparent;
+    min-width: 4px;
+}
+
+.resize-handle {
+    position: absolute;
+    width: 4px;
+    height: 100%;
+    background: rgba(255,255,255,0.1);
+    cursor: ew-resize;
+}
+
+.resize-handle.left {
+    left: -2px;
+}
+
+.resize-handle.right {
+    right: -2px;
+}
+
+/* Screenshot Styles */
+.screenshot-container {
+    padding: 2px !important;
+    background: transparent !important;
+}
+
+.screenshot-grid {
+    border-collapse: collapse !important;
+    border-spacing: 0 !important;
+}
+
+.screenshot-grid td {
+    padding: 2px !important;
+    width: 24px !important;
+    height: 24px !important;
+}
+
+.screenshot-button {
+    width: 24px !important;
+    height: 24px !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    color: var(--sl-color-neutral-0) !important;
+    cursor: pointer !important;
+    border-radius: var(--sl-border-radius-small) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background-color 0.2s, transform 0.2s !important;
+}
+
+.screenshot-button:hover {
+    background: var(--sl-color-neutral-700) !important;
+    transform: scale(1.1) !important;
+}
+
+.screenshot-button .material-symbols-outlined {
+    font-size: 18px !important;
+}
+
+/* weather applet */
+
+.weather-container {
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 4px;
+}
+
+.weather-display {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.weather-text {
+    font-size: 14px;
+    color: white;
+    white-space: nowrap;
+}
+
+.weather-container .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.weather-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    animation: fadeIn 0.2s ease forwards;
+}
+
+.weather-modal-content {
+    background: var(--dock-bg, rgba(28, 28, 28, 0.95));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    width: 480px;
+    color: white;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    transform: translateY(20px);
+    animation: slideUp 0.3s ease forwards;
+}
+
+.close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+/* Shoelace dialog styles */
+
+sl-dialog::part(base) {
+    --sl-panel-position: fixed;
+    position: fixed;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
+}
+
+sl-dialog::part(base) {
+    --sl-panel-background-color: var(--dock-bg, rgba(28, 28, 28, 0.95)) !important;
+    --sl-panel-border-color: rgba(255, 255, 255, 0.1) !important;
+    /* background: var(--dock-bg, rgba(28, 28, 28, 0.95)) !important; */
+    border-radius: 12px !important;
+    max-width: 480px !important;
+}
+
+.dialog__panel {
+    background: var(--dock-bg, rgba(28, 28, 28, 0.95)) !important;
+    color: var(--sl-color-neutral-0) !important;
+}
+
+
+sl-dialog::part(panel) {
+    background: var(--dock-bg, rgba(28, 28, 28, 0.95)) !important;
+    color: var(--sl-color-neutral-0) !important;
+}
+
+sl-dialog::part(header) {
+    background: var(--dock-bg, rgba(28, 28, 28, 0.95)) !important;
+    color: var(--sl-color-neutral-0) !important;
+    padding: 16px !important;
+}
+
+sl-dialog::part(body) {
+    background: var(--dock-bg, rgba(28, 28, 28, 0.95)) !important;
+    color: var(--sl-color-neutral-0) !important;
+    padding: 0 16px 16px 16px !important;
+}
+
+/* .dialog__overlay {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: var(--dock-bg, rgba(28, 28, 28)) !important;
+} */
+
+
+sl-dialog::part(close-button) {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+sl-dialog::part(close-button):hover {
+    color: white !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+
+}
+
+sl-dialog .current-weather {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin: 0 0 24px 0;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 8px;
+}
+
+sl-dialog .current-weather .temp {
+    font-size: 32px;
+    font-weight: 500;
+    color: white !important;
+}
+
+sl-dialog .current-weather .desc {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-size: 16px;
+}
+
+sl-dialog .current-weather .material-symbols-outlined {
+    font-size: 36px;
+    color: white !important;
+}
+
+sl-dialog .forecast {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+sl-dialog .forecast-day {
+    text-align: center;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 8px;
+    transition: transform 0.2s;
+}
+
+sl-dialog .forecast-day:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
+sl-dialog .forecast-day .date {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+sl-dialog .forecast-day .temp {
+    color: white !important;
+    font-size: 24px;
+    font-weight: 500;
+    margin: 8px 0;
+}
+
+sl-dialog .forecast-day .desc {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-size: 14px;
+}
+
+sl-dialog .forecast-day .material-symbols-outlined {
+    font-size: 24px;
+    color: white !important;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { 
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to { 
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* adBlock counter */
+.adblocker-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.adblocker-container:hover {
+    opacity: 0.8;
+}
+
+.adblocker-icon-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.adblocker-icon-wrapper .material-symbols-outlined {
+    font-size: 20px;
+    transition: color 0.3s ease;
+}
+
+.adblocker-count {
+    color: white;
+    font-size: 12px;
+    min-width: 20px;
+    opacity: 0.8;
+    transition: transform 0.15s ease;
+}
+
+/* panel and widgets */
+/* Panel Toggle Applet */
+.panel-toggle-container {
+    padding: 4px !important;
+}
+
+.panel-toggle-button {
+    width: 24px !important;
+    height: 24px !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    color: var(--sl-color-neutral-0) !important;
+    cursor: pointer !important;
+    border-radius: var(--sl-border-radius-small) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background-color 0.2s, transform 0.2s !important;
+}
+
+.panel-toggle-button:hover {
+    background: var(--sl-color-neutral-700) !important;
+    transform: scale(1.1) !important;
+}
+
+/* Widget Panel Drawer Styles */
+/* sl-drawer#side-panel-drawer {
+    --sl-panel-background-color: rgba(30, 30, 30, 0.85) !important;
+    --sl-color-neutral-0: #ffffff !important;
+    color: var(--sl-color-neutral-0) !important;
+}
+
+sl-drawer#side-panel-drawer::part(base) {
+    --sl-panel-background-color: rgba(30, 30, 30, 0.85) !important;
+    backdrop-filter: blur(10px) !important;
+    color: var(--sl-color-neutral-0) !important;
+}
+
+sl-drawer#side-panel-drawer::part(overlay) {
+    backdrop-filter: blur(5px) !important;
+}
+
+sl-drawer#side-panel-drawer::part(panel) {
+    background: rgba(30, 30, 30, 0.85) !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--sl-color-neutral-0) !important;
+} */
+
+sl-drawer#side-panel-drawer {
+    --sl-panel-background-color: rgba(30, 30, 30, 0.85) !important;
+    --sl-color-neutral-0: #ffffff !important;
+    color: var(--sl-color-neutral-0) !important;
+}
+
+sl-drawer#side-panel-drawer::part(base) {
+    --sl-panel-background-color: rgba(30, 30, 30, 0.85) !important;
+    backdrop-filter: blur(10px) !important;
+    color: var(--sl-color-neutral-0) !important;
+}
+
+sl-drawer#side-panel-drawer::part(overlay) {
+    backdrop-filter: blur(5px) !important;
+}
+
+sl-drawer#side-panel-drawer::part(panel) {
+    width: 800px !important;
+    background: rgba(30, 30, 30, 0.85) !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--sl-color-neutral-0) !important;
+}
+
+sl-drawer#side-panel-drawer::part(header-actions) {
+    display: flex !important;
+    gap: 8px !important;
+    align-items: center !important;
+}
+
+sl-drawer#side-panel-drawer sl-select[slot="header-actions"] {
+    width: 200px !important;
+}
+
+sl-drawer#side-panel-drawer::part(header) {
+    background: rgba(30, 30, 30, 0.95) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: var(--sl-spacing-medium) !important;
+    color: var(--sl-color-neutral-0) !important;
+}
+
+sl-drawer#side-panel-drawer::part(label) {
+    color: var(--sl-color-neutral-0) !important;
+}
+
+sl-drawer#side-panel-drawer::part(body) {
+    background: transparent !important;
+    color: var(--sl-color-neutral-0) !important;
+}
+
+sl-drawer#side-panel-drawer::part(footer) {
+    background: rgba(30, 30, 30, 0.95) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: var(--sl-spacing-medium) !important;
+}
+
+sl-drawer#side-panel-drawer::part(close-button) {
+    color: var(--sl-color-neutral-0) !important;
+    background: transparent !important;
+}
+
+sl-drawer#side-panel-drawer::part(close-button):hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Content Area */
+/* .side-panel-content {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    grid-auto-rows: minmax(50px, auto) !important;
+    gap: var(--sl-spacing-small) !important;
+    padding: var(--sl-spacing-medium) !important;
+    height: 100% !important;
+    overflow-y: auto !important;
+    background: transparent !important;
+    color: var(--sl-color-neutral-0) !important;
+} */
+
+.side-panel-content {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+    padding: var(--sl-spacing-medium) !important;
+    height: 100% !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    background: transparent !important;
+    color: var(--sl-color-neutral-0) !important;
+}
+
+.widget-column {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    min-width: 300px !important;
+    max-width: 100% !important;
+}
+
+/* Drawer Footer Button */
+.drawer-close-button::part(base) {
+    background: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--sl-color-neutral-0) !important;
+}
+
+.drawer-close-button:hover::part(base) {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Scrollbar Styling */
+.side-panel-content::-webkit-scrollbar {
+    width: 8px !important;
+}
+
+.side-panel-content::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+.side-panel-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-radius: 4px !important;
+}
+
+.side-panel-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* end panel and widgets */
+
+/* wallpaper applet */
+.wallpaper-container {
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+}
+
+.wallpaper-button {
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.wallpaper-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.wallpaper-button .material-symbols-outlined {
+    font-size: 20px;
+    color: white;
+}
+
+/* end wallpaper applet */

@@ -1,0 +1,39 @@
+/* module-viewer.css */
+.module-viewer-container {
+    min-width: 300px;
+    min-height: 200px;
+    background: var(--window-bg, #ffffff);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.module-viewer {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.viewer-wrapper {
+    flex: 1;
+    position: relative;
+    background: var(--module-bg, #ffffff);
+}
+
+.viewer-frame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+    .module-viewer-container {
+        --window-bg: #1e1e1e;
+        --module-bg: #262626;
+    }
+}

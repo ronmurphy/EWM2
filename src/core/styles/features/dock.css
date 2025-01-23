@@ -1,0 +1,325 @@
+.dock {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 4px;
+    background: var(--dock-bg, rgba(28, 28, 28, 0.95));
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 9999;
+}
+
+.dock.hidden {
+    transform: translate(-50%, 150%);
+    opacity: 0;
+}
+
+/* Zone containers */
+.dock-zones-left,
+.dock-zones-center,
+.dock-zones-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.dock-zones-left,
+.dock-zones-right {
+    display: flex;
+    gap: 8px;
+}
+
+.dock-zones-left {
+    margin-right: auto;
+}
+
+.dock-zones-center {
+    flex: 0 1 auto;
+}
+
+.dock-zones-right {
+    margin-left: auto;
+}
+
+/* Individual zones */
+.dock-zone {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.dock-zone:not(:empty) + .dock-zone:not(:empty)::before {
+    content: '';
+    width: 1px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 0 4px;
+}
+/* Dock items */
+.dock-item {
+    position: relative;
+    transition: transform 0.2s ease;
+}
+
+.dock-item sl-button::part(base) {
+    border-radius: 8px;
+    padding: 8px;
+    background: transparent;
+    border: none;
+    color: var(--sl-color-neutral-0);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dock-item:hover {
+    transform: translateY(-2px);
+}
+
+.dock-item sl-button::part(base) {
+    border-radius: 8px;
+    padding: 8px;
+    background: transparent;
+    color: var(--sl-color-neutral-0);
+}
+
+.dock-item sl-button:hover::part(base) {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.dock-item-title {
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.dock-item .material-symbols-outlined {
+    font-size: 20px;
+}
+
+/* Previews */
+.dock-preview {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    background: var(--sl-color-neutral-900);
+    border-radius: 8px;
+    padding: 8px;
+    pointer-events: none;
+    opacity: 0;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 200px;
+    z-index: 1000;
+}
+
+.dock-item:hover .dock-preview {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-16px);
+}
+
+.dock-preview-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px;
+}
+
+.dock-preview-title {
+    font-size: 13px;
+    color: var(--sl-color-neutral-0);
+}
+
+/* Animation variants */
+.dock[data-animation='slide'] {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+
+.dock[data-animation='fade'] {
+    transition: opacity 0.3s ease;
+}
+
+/* Icon animations */
+.dock-icon-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.2s ease;
+}
+
+.dock-icon-container.bounce {
+    animation: dock-bounce 0.5s cubic-bezier(0.36, 0, 0.66, -0.56) forwards;
+}
+
+@keyframes dock-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+}
+
+/* Pin indicator */
+.pin-indicator {
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--sl-color-primary-500);
+}
+
+/* Context menu */
+.dock-context-menu {
+    --sl-panel-background-color: var(--bg-window);
+    --sl-panel-border-color: var(--accent-color);
+    min-width: 200px;
+    border-radius: var(--radius-md);
+    background: var(--bg-window);
+    border: 1px solid var(--sl-panel-border-color);
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: blur(10px);
+    color: var(--text-primary);
+}
+
+.dock-context-menu sl-menu-item::part(base) {
+    padding: var(--spacing-sm) var(--spacing-md);
+    color: var(--text-primary);
+}
+
+.dock-context-menu sl-menu-item::part(base):hover {
+    background: color-mix(in srgb, var(--accent-color) 15%, transparent);
+}
+
+.dock-context-menu sl-menu-item .material-symbols-outlined {
+    margin-right: var(--spacing-sm);
+    color: var(--text-secondary);
+}
+
+.dock-context-menu sl-divider {
+    --sl-panel-border-color: var(--accent-color);
+    opacity: 0.2;
+}
+
+
+/* Running indicator animation */
+.dock-item.running::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 16px;
+    height: 2px;
+    background: var(--sl-color-primary-500);
+    border-radius: 1px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Hover scale effect for dock items */
+.dock-item sl-button::part(base) {
+    transform: scale(1);
+    transition: transform 0.2s ease;
+}
+
+.dock-item:hover sl-button::part(base) {
+    transform: scale(1.1);
+}
+
+/* Position variants */
+/* .dock[data-position='bottom'] {
+    bottom: 16px;
+    top: auto;
+}
+
+.dock[data-position='top'] {
+    top: 16px;
+    bottom: auto;
+} */
+
+/* Dock Style Variants */
+.dock.taskbar {
+    /* Already matches your default styles */
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--dock-bg, rgba(28, 28, 28, 0.95));
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dock.floating {
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: auto;
+    max-width: 90%;
+    background: var(--dock-bg, rgba(28, 28, 28, 0.85));
+    border-radius: 16px;
+    padding: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* Optional Effects */
+.dock.with-blur {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.dock.floating .dock-item {
+    transition: transform 0.2s ease;
+}
+
+.dock.floating .dock-item:hover {
+    transform: scale(1.2);
+}
+
+/* dock.css - Add workspace constraints */
+:root {
+    --dock-height: 64px;
+}
+
+/* Taskbar mode */
+.dock.taskbar {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    /* height: var(--dock-height); */
+    height: 56px;
+}
+
+/* Reserve space in taskbar mode */
+body {
+    padding-bottom: var(--dock-height);
+}
+
+/* Update window constraints */
+.window {
+    max-height: calc(100vh - var(--dock-height)) !important;
+}
+
+.window.maximized {
+    height: calc(100vh - var(--dock-height)) !important;
+}
+
+/* Floating mode - reset constraints */
+.dock.floating + body {
+    padding-bottom: 0;
+}
+
+.dock.floating ~ .window {
+    max-height: 100vh;
+}
+
+.dock.floating ~ .window.maximized {
+    height: 100vh !important;
+}

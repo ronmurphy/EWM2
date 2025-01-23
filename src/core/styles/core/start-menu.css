@@ -1,0 +1,312 @@
+/* start-menu.css */
+/* Modal Base */
+.start-menu-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 0;
+    transition: opacity 0.2s ease;
+}
+
+.start-menu-modal.active {
+    display: flex;
+}
+
+/* Content Container */
+.start-menu-content {
+    width: 800px;
+    max-height: 80vh;
+    background: var(--dock-bg, rgba(28, 28, 28, 0.95));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    transform: scale(0.95);
+    opacity: 0;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.start-menu-modal.active .start-menu-content {
+    transform: scale(1);
+    opacity: 1;
+}
+
+/* Search Bar */
+.start-menu-search {
+    padding: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.start-menu-search sl-input::part(base) {
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    border-radius: 8px;
+}
+
+.start-menu-search sl-input::part(input) {
+    color: white;
+    padding: 12px;
+}
+
+/* Sections Layout */
+.start-menu-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.start-menu-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.start-menu-section h2 {
+    color: white;
+    font-size: 18px;
+    margin: 0;
+    padding: 0 8px;
+}
+
+/* Grid Layout */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+    padding: 8px;
+}
+
+/* Card Styles */
+.menu-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.menu-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+}
+
+.card-icon img,
+.card-icon .material-symbols-outlined {
+    font-size: 24px;
+    color: white;
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.card-info h3 {
+    margin: 0;
+    font-size: 14px;
+    color: white;
+    font-weight: 500;
+}
+
+.card-info p {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dialog Styles */
+.add-webapp-dialog::part(base) {
+    --width: 400px;
+    background: rgba(30, 30, 30, 0.85);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    color: white;
+    z-index: 100000;
+}
+
+.add-webapp-dialog::part(overlay) {
+    /* backdrop-filter: blur(5px); */
+    /* background: rgba(0, 0, 0, 0.5); */
+z-index: 1;
+}
+
+.add-webapp-dialog::part(header) {
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.add-webapp-dialog::part(title) {
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.add-webapp-dialog::part(body) {
+    padding: 20px;
+}
+
+.add-webapp-dialog::part(footer) {
+    background: transparent;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+/* Form Styles */
+.add-webapp-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.add-webapp-form sl-input::part(form-control) {
+    color: white;
+}
+
+.add-webapp-form sl-input::part(form-control-label) {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.add-webapp-form sl-input::part(base) {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.add-webapp-form sl-input::part(input) {
+    color: white;
+    padding: 8px 12px;
+}
+
+/* Button Styles */
+.add-webapp-dialog sl-button[variant='default']::part(base) {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.add-webapp-dialog sl-button[variant='default']:hover::part(base) {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.add-webapp-dialog sl-button[variant='primary']::part(base) {
+    background: var(--sl-color-primary-600);
+    border: none;
+}
+
+.add-webapp-dialog sl-button[variant='primary']:hover::part(base) {
+    background: var(--sl-color-primary-500);
+}
+
+/* Add Web App Section Button */
+.start-menu-section sl-button::part(base) {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 8px;
+}
+
+.start-menu-section sl-button:hover::part(base) {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Web App Loading States */
+.web-app-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+}
+
+.web-app-loading sl-spinner {
+    font-size: 2rem;
+    --indicator-color: var(--sl-color-primary-600);
+}
+
+/* Scrollbar Styling */
+.start-menu-sections::-webkit-scrollbar {
+    width: 8px;
+}
+
+.start-menu-sections::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.start-menu-sections::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.start-menu-sections::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Responsive Styles */
+@media (max-width: 900px) {
+    .start-menu-content {
+        width: 90%;
+        margin: 0 20px;
+    }
+}
+
+.app-controls {
+    display: flex;
+    gap: 8px;
+    padding: 16px 8px;
+    margin-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.app-controls sl-button {
+    flex: 1;
+}
+
+.app-controls sl-button::part(base) {
+    justify-content: center;
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.app-controls sl-button:hover::part(base) {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+}
